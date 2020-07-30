@@ -17,6 +17,7 @@ from .ingredients import (
     plot_embedding,
     rank_genes_cnmf,
 )
+from ._version import get_versions
 
 
 def info(args):
@@ -296,7 +297,9 @@ def recipe(args):
 
 def main():
     parser = argparse.ArgumentParser(prog="kitchen")
-
+    parser.add_argument(
+        "-V", "--version", action="version", version=get_versions()["version"],
+    )
     subparsers = parser.add_subparsers()
 
     info_parser = subparsers.add_parser(
