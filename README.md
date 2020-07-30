@@ -18,3 +18,6 @@ kitchen info <path/to/.h5ad>  # ex1: print information about anndata object (sav
 
 kitchen recipe <path/to/.h5ad> -p -cc -c arcsinh_n_genes_by_counts pct_counts_mito phase # ex2: process a filtered .h5ad file from raw counts, performing unsupervised clustering, cell cycle inference, and UMAP embedding colored by genes, mito percentage, and cell cycle phase, along with leiden clusters and PAGA graph
 ```
+
+[tag-version]: https://img.shields.io/github/v/tag/codyheiser/kitchen
+[repo-url]: https://github.com/codyheiser/kitchen
