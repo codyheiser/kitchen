@@ -7,7 +7,16 @@ Manipulate .h5ad files and cook scRNA-seq data from command line
 import argparse, os
 import scanpy as sc
 from dropkick import recipe_dropkick
-from ingredients import check_dir_exists, cellranger2, subset_adata, cc_score, dim_reduce, plot_embedding, rank_genes_cnmf
+
+from .ingredients import (
+    check_dir_exists,
+    cellranger2,
+    subset_adata,
+    cc_score,
+    dim_reduce,
+    plot_embedding,
+    rank_genes_cnmf,
+)
 
 
 def info(args):
@@ -405,8 +414,7 @@ def main():
     add_label_parser.set_defaults(func=add_label)
 
     knee_point_parser.subparsers.add_parser(
-        "knee_point",
-        help="Label cells using 'knee point' method from CellRanger 2.1",
+        "knee_point", help="Label cells using 'knee point' method from CellRanger 2.1",
     )
     knee_point_parser.add_argument(
         "file", type=str, help="Counts matrix as .h5ad file",
@@ -443,8 +451,7 @@ def main():
     knee_point_parser.set_defaults(func=knee_point)
 
     subset_parser = subparsers.add_parser(
-        "subset",
-        help="Subset AnnData object on one or more .obs columns",
+        "subset", help="Subset AnnData object on one or more .obs columns",
     )
     subset_parser.add_argument(
         "file", type=str, help="Counts matrix as .h5ad file",
@@ -497,8 +504,7 @@ def main():
     concatenate_parser.set_defaults(func=concatenate)
 
     recipe_parser = subparsers.add_parser(
-        "recipe",
-        help="Full automated processing of scRNA-seq data from command line",
+        "recipe", help="Full automated processing of scRNA-seq data from command line",
     )
     recipe_parser.add_argument(
         "file",
