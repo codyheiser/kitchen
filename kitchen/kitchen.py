@@ -413,7 +413,7 @@ def main():
     )
     add_label_parser.set_defaults(func=add_label)
 
-    knee_point_parser.subparsers.add_parser(
+    knee_point_parser = subparsers.add_parser(
         "knee_point", help="Label cells using 'knee point' method from CellRanger 2.1",
     )
     knee_point_parser.add_argument(
