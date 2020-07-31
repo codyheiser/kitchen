@@ -6,6 +6,7 @@ Manipulate .h5ad files and cook scRNA-seq data from command line
 """
 import argparse, os
 import scanpy as sc
+import matplotlib.pyplot as plt
 from dropkick import recipe_dropkick
 
 from .ingredients import (
