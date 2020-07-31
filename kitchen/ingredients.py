@@ -506,7 +506,7 @@ def rank_genes_cnmf(
     """
     # default to all usages
     if indices is None:
-        indices = range(getattr(adata, attr)[keys].shape[1])
+        indices = [x for x in range(getattr(adata, attr)[keys].shape[1])]
     # get scores for each usage
     if isinstance(keys, str) and indices is not None:
         scores = np.array(getattr(adata, attr)[keys])[:, indices]
