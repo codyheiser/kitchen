@@ -29,7 +29,7 @@ def info(args):
     print("Reading {}\n".format(args.file))
     adata = sc.read(args.file)
     print(adata, "\n")
-    print(".X: {}\n".format(adata.X))
+    print(".X: {} with {}\n".format(type(adata.X), adata.X.dtype))
     print("obs_names: {}".format(adata.obs_names))
     print("var_names: {}".format(adata.var_names))
 
@@ -108,7 +108,7 @@ def to_dense(args):
     # densify counts slot
     if args.verbose:
         print("densifying counts...")
-    a.X = a.X.todense()
+    a.X = a.X.todense(out=np.matrix)
     a.X = a.X.astype(int)
     # save file as .h5ad
     a.write(args.file, compression="gzip")
