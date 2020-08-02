@@ -296,7 +296,7 @@ def cellranger3(
     # call emptydrops to test for nonambient barcodes
     out = find_nonambient_barcodes(
         m,
-        np.array(adata.obs.loc[adata.obs.CellRanger_3 == 1,].index, dtype="|S18"),
+        np.array(adata.obs.loc[adata.obs.CellRanger_3 == 1,].index, dtype=m.bcs.dtype),
         min_umi_frac_of_median=min_umi_frac_of_median,
         min_umis_nonambient=min_umis_nonambient,
         max_adj_pvalue=max_adj_pvalue,
