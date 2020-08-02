@@ -29,7 +29,7 @@ def info(args):
     print("Reading {}\n".format(args.file))
     adata = sc.read(args.file)
     print(adata, "\n")
-    print(".X in {} format\n".format(type(adata.X)))
+    print(".X: {}\n".format(adata.X))
     print("obs_names: {}".format(adata.obs_names))
     print("var_names: {}".format(adata.var_names))
 
@@ -89,7 +89,7 @@ def to_sparse(args):
     # sparsify counts slot
     if args.verbose:
         print("sparsifying counts...")
-    a.X = sparse.csr_matrix(a.X)
+    a.X = sparse.csr_matrix(a.X, dtype=int)
     # save file as .h5ad
     a.write(args.file, compression="gzip")
 
@@ -109,6 +109,7 @@ def to_dense(args):
     if args.verbose:
         print("densifying counts...")
     a.X = a.X.todense()
+    a.X = a.X.astype(int)
     # save file as .h5ad
     a.write(args.file, compression="gzip")
 
