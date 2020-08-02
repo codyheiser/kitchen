@@ -10,6 +10,8 @@ import scanpy as sc
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from math import ceil
+from emptydrops import find_nonambient_barcodes
+from emptydrops.matrix import CountMatrix
 
 sc.set_figure_params(color_map="viridis", frameon=False)
 
@@ -249,18 +251,61 @@ def cellranger2(adata, expected=1500, upper_quant=0.99, lower_prop=0.1, verbose=
         verbose (bool): print updates to console
 
     Returns:
-        adata edited in place to add .obs["knee_point"] binary label
+        adata edited in place to add .obs["CellRanger_2"] binary label
     """
     if "total_counts" not in adata.obs.columns:
         adata.obs["total_counts"] = adata.X.sum(axis=1)
     tmp = np.sort(np.array(adata.obs["total_counts"]))[::-1]
     thresh = np.quantile(tmp[0:expected], upper_quant) * lower_prop
     adata.uns["knee_thresh"] = thresh
-    adata.obs["knee_point"] = 0
-    adata.obs.loc[adata.obs.total_counts > thresh, "knee_point"] = 1
+    adata.obs["CellRanger_2"] = 0
+    adata.obs.loc[adata.obs.total_counts > thresh, "CellRanger_2"] = 1
     if verbose:
         print("Detected knee point: {}".format(round(thresh, 3)))
         print(adata.obs.knee_point.value_counts())
+
+
+def cellranger3(
+    adata,
+    init_counts=15000,
+    min_umi_frac_of_median=0.01,
+    min_umis_nonambient=500,
+    max_adj_pvalue=0.01,
+):
+    """
+    Label cells using "emptydrops" method from CellRanger 3.0
+
+    Parameters:
+        adata (anndata.AnnData): object containing unfiltered counts
+        init_counts (int): initial total counts threshold for calling cells
+        min_umi_frac_of_median (float): minimum total counts for testing barcodes as
+            fraction of median counts for initially labeled cells
+        min_umis_nonambient (float): minimum total counts for testing barcodes
+        max_adj_pvalue (float): maximum p-value for cell calling after B-H correction
+
+    Returns:
+        adata edited in place to add .obs["CellRanger_3"] binary label 
+            and .obs["CellRanger_3_ll"] log-likelihoods for tested barcodes
+    """
+    m = CountMatrix.from_anndata(adata)  # create emptydrops object from adata
+    if "total_counts" not in adata.obs.columns:
+        adata.obs["total_counts"] = adata.X.sum(axis=1)
+    # label initial cell calls above total counts threshold
+    adata.obs["CellRanger_3"] = 0
+    adata.obs.loc[adata.obs.total_counts > init_counts, "CellRanger_3"] = 1
+    # call emptydrops to test for nonambient barcodes
+    out = find_nonambient_barcodes(
+        m,
+        np.array(adata.obs.loc[adata.obs.CellRanger_3 == 1,].index, dtype="|S18"),
+        min_umi_frac_of_median=min_umi_frac_of_median,
+        min_umis_nonambient=min_umis_nonambient,
+        max_adj_pvalue=max_adj_pvalue,
+    )
+    # assign binary labels from emptydrops
+    adata.obs.CellRanger_3.iloc[out[0]] = out[-1]
+    # assign log-likelihoods from emptydrops to .obs
+    adata.obs["CellRanger_3_ll"] = None
+    adata.obs.CellRanger_3_ll.iloc[out[0]] = out[1]
 
 
 def subset_adata(adata, subset, verbose=True):
