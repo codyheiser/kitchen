@@ -29,6 +29,7 @@ def info(args):
     print("Reading {}\n".format(args.file))
     adata = sc.read(args.file)
     print(adata, "\n")
+    print(".X in {} format\n".format(type(adata.X)))
     print("obs_names: {}".format(adata.obs_names))
     print("var_names: {}".format(adata.var_names))
 
