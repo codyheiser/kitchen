@@ -5,8 +5,10 @@ Manipulate .h5ad files and cook scRNA-seq data from command line
 @author: C Heiser
 """
 import argparse, os
+import numpy as np
 import scanpy as sc
 import matplotlib.pyplot as plt
+from scipy import sparse
 from dropkick import recipe_dropkick
 
 from .ingredients import (
@@ -68,6 +70,44 @@ def transpose(args):
     if args.verbose:
         print("transposing file and saving...")
     a = a.T
+    # save file as .h5ad
+    a.write(args.file, compression="gzip")
+
+
+def to_sparse(args):
+    """Convert .X slot of anndata object to scipy CSR format, overwrite .h5ad file"""
+    # read file into anndata obj
+    if args.verbose:
+        print("Reading {}".format(args.file))
+    a = sc.read(args.file)
+    if args.verbose:
+        print(a)
+    if isinstance(a.X, sparse.csr.csr_matrix):
+        print("{} already in sparse format".format(args.file))
+        return
+    # sparsify counts slot
+    if args.verbose:
+        print("sparsifying counts...")
+    a.X = sparse.csr_matrix(a.X)
+    # save file as .h5ad
+    a.write(args.file, compression="gzip")
+
+
+def to_dense(args):
+    """Convert .X slot of anndata object to numpy.matrix format, overwrite .h5ad file"""
+    # read file into anndata obj
+    if args.verbose:
+        print("Reading {}".format(args.file))
+    a = sc.read(args.file)
+    if args.verbose:
+        print(a)
+    if isinstance(a.X, np.matrix) or isinstance(a.X, np.ndarray):
+        print("{} already in dense format".format(args.file))
+        return
+    # densify counts slot
+    if args.verbose:
+        print("densifying counts...")
+    a.X = a.X.todense()
     # save file as .h5ad
     a.write(args.file, compression="gzip")
 
@@ -362,6 +402,42 @@ def main():
         action="store_true",
     )
     transpose_parser.set_defaults(func=transpose)
+
+    to_sparse_parser = subparsers.add_parser(
+        "to_sparse",
+        help="Convert .X slot of anndata object to scipy CSR format, overwrite .h5ad file",
+    )
+    to_sparse_parser.add_argument(
+        "file",
+        type=str,
+        help="Input counts matrix as .h5ad or tab delimited text file",
+    )
+    to_sparse_parser.add_argument(
+        "-q",
+        "--quietly",
+        required=False,
+        help="Run without printing processing updates to console",
+        action="store_true",
+    )
+    to_sparse_parser.set_defaults(func=to_sparse)
+
+    to_dense_parser = subparsers.add_parser(
+        "to_dense",
+        help="Convert .X slot of anndata object to numpy.matrix format, overwrite .h5ad file",
+    )
+    to_dense_parser.add_argument(
+        "file",
+        type=str,
+        help="Input counts matrix as .h5ad or tab delimited text file",
+    )
+    to_dense_parser.add_argument(
+        "-q",
+        "--quietly",
+        required=False,
+        help="Run without printing processing updates to console",
+        action="store_true",
+    )
+    to_dense_parser.set_defaults(func=to_dense)
 
     rename_obs_parser = subparsers.add_parser(
         "rename_obs", help="Rename .obs columns in .h5ad file",
