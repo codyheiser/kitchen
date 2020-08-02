@@ -142,7 +142,7 @@ def knee_point(args):
     a.write(args.file, compression="gzip")
 
 
-    def emptydrops(args):
+def emptydrops(args):
     """Label cells using "emptydrops" method from CellRanger 3.0"""
     # read file into anndata obj
     if args.verbose:
