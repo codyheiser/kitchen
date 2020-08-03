@@ -225,7 +225,7 @@ def concatenate(args):
     for f in args.files[1:]:
         # read file into anndata obj
         if args.verbose:
-            rint("Reading {}".format(f))
+            print("Reading {}".format(f))
         adatas.append(sc.read(f))
     # concatenate all files
     if args.verbose:
