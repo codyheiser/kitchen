@@ -291,8 +291,8 @@ def cellranger3(
     if "total_counts" not in adata.obs.columns:
         adata.obs["total_counts"] = adata.X.sum(axis=1)
     # label initial cell calls above total counts threshold
-    adata.obs["CellRanger_3"] = 0
-    adata.obs.loc[adata.obs.total_counts > init_counts, "CellRanger_3"] = 1
+    adata.obs["CellRanger_3"] = False
+    adata.obs.loc[adata.obs.total_counts > init_counts, "CellRanger_3"] = True
     # call emptydrops to test for nonambient barcodes
     out = find_nonambient_barcodes(
         m,
@@ -303,6 +303,7 @@ def cellranger3(
     )
     # assign binary labels from emptydrops
     adata.obs.CellRanger_3.iloc[out[0]] = out[-1]
+    adata.obs.CellRanger_3 = adata.obs.CellRanger_3.astype(int)  # convert bool to int
     # assign log-likelihoods from emptydrops to .obs
     adata.obs["CellRanger_3_ll"] = None
     adata.obs.CellRanger_3_ll.iloc[out[0]] = out[1]
