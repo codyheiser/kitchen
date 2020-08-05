@@ -262,7 +262,7 @@ def cellranger2(adata, expected=1500, upper_quant=0.99, lower_prop=0.1, verbose=
     adata.obs.loc[adata.obs.total_counts > thresh, "CellRanger_2"] = 1
     if verbose:
         print("Detected knee point: {}".format(round(thresh, 3)))
-        print(adata.obs.knee_point.value_counts())
+        print(adata.obs.CellRanger_2.value_counts())
 
 
 def cellranger3(
