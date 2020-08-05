@@ -125,6 +125,15 @@ def rename_obs(args):
     adata.write(args.file, compression="gzip")
 
 
+def label_info(args):
+    """Print value counts for .obs labels to console"""
+    print("Reading {}\n".format(args.file))
+    adata = sc.read(args.file)
+    print(adata, "\n")
+    for l in args.labels:
+        print("{}\n{}\n".format(l, adata.obs[l].value_counts()))
+
+
 def add_label(args):
     """
     Use .obs_names from filtered counts matrix to add binary label to a reference
@@ -471,6 +480,22 @@ def main():
         action="store_true",
     )
     rename_obs_parser.set_defaults(func=rename_obs)
+
+    label_info_parser = subparsers.add_parser(
+        "label_info", help="Print value counts for .obs labels to console",
+    )
+    label_info_parser.add_argument(
+        "file", type=str, help="Counts matrix as .h5ad file",
+    )
+    label_info_parser.add_argument(
+        "-l",
+        "--labels",
+        type=str,
+        nargs="+",
+        required=True,
+        help="List of .obs column names to print value counts for",
+    )
+    label_info_parser.set_defaults(func=label_info)
 
     add_label_parser = subparsers.add_parser(
         "add_label",
