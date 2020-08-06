@@ -217,7 +217,10 @@ def emptydrops(args):
 
 def subset(args):
     """Subset anndata object on binary .obs label(s), save to new .h5ad file"""
-    a = subset_adata(args.file, subset=args.subset, verbose=args.verbose)
+    if args.verbose:
+        print("Reading {}".format(args.file))
+    a = sc.read(args.file)
+    a = subset_adata(a, subset=args.subset, verbose=args.verbose)
     if args.verbose:
         print("Writing subsetted counts to {}".format(args.out))
     a.write(args.out, compression="gzip")
