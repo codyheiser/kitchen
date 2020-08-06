@@ -200,7 +200,6 @@ def emptydrops(args):
         print("Reading {}".format(args.file), end="")
     a = sc.read(args.file)
     if args.verbose:
-        # print information about counts, including names of cells and genes
         print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
     # add EmptyDrops label to anndata
     cellranger3(
@@ -218,8 +217,10 @@ def emptydrops(args):
 def subset(args):
     """Subset anndata object on binary .obs label(s), save to new .h5ad file"""
     if args.verbose:
-        print("Reading {}".format(args.file))
+        print("Reading {}".format(args.file), end="")
     a = sc.read(args.file)
+    if args.verbose:
+        print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
     a = subset_adata(a, subset=args.subset, verbose=args.verbose)
     if args.verbose:
         print("Writing subsetted counts to {}".format(args.out))
