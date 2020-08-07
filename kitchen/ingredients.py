@@ -561,7 +561,7 @@ def plot_genes(
     if ambient:
         # get markers manually and append ambient genes
         markers = {}
-        for clu in a.obs[groupby].cat.unique().tolist():
+        for clu in a.obs[groupby].unique().tolist():
             markers[clu] = [
                 a.uns["rank_genes_groups"]["names"][x][clu] for x in range(n_genes)
             ]
