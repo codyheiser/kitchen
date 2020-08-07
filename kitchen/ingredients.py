@@ -561,11 +561,11 @@ def plot_genes(
     if ambient:
         # get markers manually and append ambient genes
         markers = {}
-        for clu in a.obs[groupby].unique().tolist():
+        for clu in adata.obs[groupby].unique().tolist():
             markers[clu] = [
-                a.uns["rank_genes_groups"]["names"][x][clu] for x in range(n_genes)
+                adata.uns["rank_genes_groups"]["names"][x][clu] for x in range(n_genes)
             ]
-        markers["ambient"] = a.var_names[a.var.ambient].tolist()
+        markers["ambient"] = adata.var_names[adata.var.ambient].tolist()
 
         if "heatmap" in plot_type:
             sc.pl.heatmap(
