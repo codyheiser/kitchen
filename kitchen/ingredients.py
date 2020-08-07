@@ -545,6 +545,8 @@ def plot_genes(
         save_to (str): string to add to plot name using scanpy plot defaults
         verbose (bool): print updates to console
     """
+    if verbose:
+        print("Performing differential expression analysis...")
     # rank genes with t-test and B-H correction
     sc.tl.rank_genes_groups(adata, groupby=groupby, layer="log1p_norm", use_raw=False)
 
@@ -579,8 +581,6 @@ def plot_genes(
                 cmap=cmap,
                 save=save_to,
             )
-            if verbose:
-                print("Saving heatmap")
         if "dotplot" in plot_type:
             sc.pl.dotplot(
                 adata,
@@ -592,8 +592,6 @@ def plot_genes(
                 color_map=cmap,
                 save=save_to,
             )
-            if verbose:
-                print("Saving dot plot")
         if "matrixplot" in plot_type:
             sc.pl.matrixplot(
                 adata,
@@ -605,8 +603,6 @@ def plot_genes(
                 cmap=cmap,
                 save=save_to,
             )
-            if verbose:
-                print("Saving matrix plot")
 
     else:
         if "heatmap" in plot_type:
@@ -620,8 +616,6 @@ def plot_genes(
                 cmap=cmap,
                 save=save_to,
             )
-            if verbose:
-                print("Saving heatmap")
         if "dotplot" in plot_type:
             sc.pl.rank_genes_groups_dotplot(
                 adata,
@@ -632,8 +626,6 @@ def plot_genes(
                 color_map=cmap,
                 save=save_to,
             )
-            if verbose:
-                print("Saving dot plot")
         if "matrixplot" in plot_type:
             sc.pl.rank_genes_groups_matrixplot(
                 adata,
@@ -644,8 +636,6 @@ def plot_genes(
                 cmap=cmap,
                 save=save_to,
             )
-            if verbose:
-                print("Saving matrix plot")
 
 
 def rank_genes_cnmf(
