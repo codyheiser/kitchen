@@ -546,7 +546,7 @@ def plot_genes(
         verbose (bool): print updates to console
     """
     # rank genes with t-test and B-H correction
-    sc.tl.rank_genes_groups(adata, groupby=groupby, layer="log1p_norm")
+    sc.tl.rank_genes_groups(adata, groupby=groupby, layer="log1p_norm", use_raw=False)
 
     # calculate arcsinh counts for visualization
     adata.X = adata.layers["raw_counts"].copy()
