@@ -13,7 +13,7 @@ from math import ceil
 from emptydrops import find_nonambient_barcodes
 from emptydrops.matrix import CountMatrix
 
-sc.set_figure_params(color_map="viridis", frameon=False, dpi=150)
+sc.set_figure_params(color_map="viridis", frameon=False, dpi=150, format="png")
 
 # define cell cycle phase genes
 #  human genes ('_h') from satija lab list
@@ -529,7 +529,7 @@ def plot_genes(
     dendrogram=True,
     ambient=False,
     cmap="viridis",
-    save_to=None,
+    save_to="de.png",
     verbose=True,
 ):
     """
@@ -542,7 +542,7 @@ def plot_genes(
         dendrogram (bool): show dendrogram of cluster similarity
         ambient (bool): include ambient genes as a group in the plot
         cmap (str): valid color map for the plot
-        save_to (str): path to .png file for saving figure; default is plt.show()
+        save_to (str): string to add to plot name using scanpy plot defaults
         verbose (bool): print updates to console
     """
     # rank genes with t-test and B-H correction
@@ -577,15 +577,10 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 cmap=cmap,
-                show=False,
+                save=save_to,
             )
-            plt.tight_layout()
-            if save_to is not None:
-                if verbose:
-                    print("Saving heatmap to {}_heatmap.png".format(save_to))
-                plt.savefig("{}_heatmap.png".format(save_to))
-            else:
-                plt.show()
+            if verbose:
+                print("Saving heatmap")
         if "dotplot" in plot_type:
             sc.pl.dotplot(
                 adata,
@@ -595,15 +590,10 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 color_map=cmap,
-                show=False,
+                save=save_to,
             )
-            plt.tight_layout()
-            if save_to is not None:
-                if verbose:
-                    print("Saving dot plot to {}_dotplot.png".format(save_to))
-                plt.savefig("{}_dotplot.png".format(save_to))
-            else:
-                plt.show()
+            if verbose:
+                print("Saving dot plot")
         if "matrixplot" in plot_type:
             sc.pl.matrixplot(
                 adata,
@@ -613,15 +603,10 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 cmap=cmap,
-                show=False,
+                save=save_to,
             )
-            plt.tight_layout()
-            if save_to is not None:
-                if verbose:
-                    print("Saving matrix plot to {}_matrixplot.png".format(save_to))
-                plt.savefig("{}_matrixplot.png".format(save_to))
-            else:
-                plt.show()
+            if verbose:
+                print("Saving matrix plot")
 
     else:
         if "heatmap" in plot_type:
@@ -633,15 +618,10 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 cmap=cmap,
-                show=False,
+                save=save_to,
             )
-            plt.tight_layout()
-            if save_to is not None:
-                if verbose:
-                    print("Saving heatmap to {}_heatmap.png".format(save_to))
-                plt.savefig("{}_heatmap.png".format(save_to))
-            else:
-                plt.show()
+            if verbose:
+                print("Saving heatmap")
         if "dotplot" in plot_type:
             sc.pl.rank_genes_groups_dotplot(
                 adata,
@@ -650,15 +630,10 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 color_map=cmap,
-                show=False,
+                save=save_to,
             )
-            plt.tight_layout()
-            if save_to is not None:
-                if verbose:
-                    print("Saving dot plot to {}_dotplot.png".format(save_to))
-                plt.savefig("{}_dotplot.png".format(save_to))
-            else:
-                plt.show()
+            if verbose:
+                print("Saving dot plot")
         if "matrixplot" in plot_type:
             sc.pl.rank_genes_groups_matrixplot(
                 adata,
@@ -667,15 +642,10 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 cmap=cmap,
-                show=False,
+                save=save_to,
             )
-            plt.tight_layout()
-            if save_to is not None:
-                if verbose:
-                    print("Saving matrix plot to {}_matrixplot.png".format(save_to))
-                plt.savefig("{}_matrixplot.png".format(save_to))
-            else:
-                plt.show()
+            if verbose:
+                print("Saving matrix plot")
 
 
 def rank_genes_cnmf(
