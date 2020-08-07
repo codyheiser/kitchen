@@ -579,6 +579,7 @@ def plot_genes(
                 cmap=cmap,
                 show=False,
             )
+            plt.tight_layout()
             if save_to is not None:
                 if verbose:
                     print("Saving heatmap to {}_heatmap.png".format(save_to))
@@ -596,6 +597,7 @@ def plot_genes(
                 color_map=cmap,
                 show=False,
             )
+            plt.tight_layout()
             if save_to is not None:
                 if verbose:
                     print("Saving dot plot to {}_dotplot.png".format(save_to))
@@ -613,6 +615,7 @@ def plot_genes(
                 cmap=cmap,
                 show=False,
             )
+            plt.tight_layout()
             if save_to is not None:
                 if verbose:
                     print("Saving matrix plot to {}_matrixplot.png".format(save_to))
@@ -632,6 +635,7 @@ def plot_genes(
                 cmap=cmap,
                 show=False,
             )
+            plt.tight_layout()
             if save_to is not None:
                 if verbose:
                     print("Saving heatmap to {}_heatmap.png".format(save_to))
@@ -648,6 +652,7 @@ def plot_genes(
                 color_map=cmap,
                 show=False,
             )
+            plt.tight_layout()
             if save_to is not None:
                 if verbose:
                     print("Saving dot plot to {}_dotplot.png".format(save_to))
@@ -664,6 +669,7 @@ def plot_genes(
                 cmap=cmap,
                 show=False,
             )
+            plt.tight_layout()
             if save_to is not None:
                 if verbose:
                     print("Saving matrix plot to {}_matrixplot.png".format(save_to))

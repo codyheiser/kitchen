@@ -335,7 +335,7 @@ def recipe(args):
             plot_type=args.diff_expr,
             groupby="leiden",
             n_genes=5,
-            save_to=name,
+            save_to="_".join(name),
             verbose=args.verbose,
         )
     # if there's cnmf results, plot loadings
@@ -413,7 +413,7 @@ def de(args):
         ambient=args.ambient,
         dendrogram=args.dendrogram,
         cmap=args.cmap,
-        save_to=name,
+        save_to="_".join(name),
         verbose=args.verbose,
     )
 
