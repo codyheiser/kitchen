@@ -19,6 +19,7 @@ from .ingredients import (
     cc_score,
     dim_reduce,
     plot_embedding,
+    plot_genes,
     rank_genes_cnmf,
 )
 from ._version import get_versions
@@ -47,6 +48,10 @@ def to_h5ad(args):
         print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
         print("obs_names: {}".format(a.obs_names))
         print("var_names: {}".format(a.var_names))
+    # sparsify counts slot
+    if args.verbose:
+        print("sparsifying counts...")
+    a.X = sparse.csr_matrix(a.X, dtype=int)
     # save file as .h5ad
     if args.verbose:
         print("Writing counts to {}/{}.h5ad".format(args.outdir, name))
@@ -110,6 +115,22 @@ def to_dense(args):
         print("densifying counts...")
     a.X = a.X.todense()
     a.X = a.X.astype(int)
+    # save file as .h5ad
+    a.write(args.file, compression="gzip")
+
+
+def to_X(args):
+    """Swap a matrix from .layers to .X slot of anndata object, overwrite .h5ad file"""
+    # read file into anndata obj
+    if args.verbose:
+        print("Reading {}".format(args.file))
+    a = sc.read(args.file)
+    if args.verbose:
+        print(a)
+    # swap layers
+    if args.verbose:
+        print("Putting .layers['{}'] in .X and saving")
+    a.X = a.layers[args.layer].copy
     # save file as .h5ad
     a.write(args.file, compression="gzip")
 
@@ -178,7 +199,6 @@ def knee_point(args):
         print("Reading {}".format(args.file), end="")
     a = sc.read(args.file)
     if args.verbose:
-        # print information about counts, including names of cells and genes
         print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
     # add knee_point label to anndata
     cellranger2(
@@ -249,6 +269,12 @@ def concatenate(args):
         batch_categories=[os.path.splitext(os.path.basename(x))[0] for x in args.files],
         fill_value=0,
     )
+    if args.verbose:
+        print(
+            "Final shape: {} cells and {} genes".format(
+                concat.shape[0], concat.shape[1]
+            )
+        )
     # save file as .h5ad
     if args.verbose:
         print("Writing counts to {}".format(args.out))
@@ -299,8 +325,19 @@ def recipe(args):
     # run cell cycle inference
     if args.cell_cycle:
         cc_score(a, verbose=args.verbose)
+        args.colors = ["phase"] + args.colors
     # make sure output dir exists before saving plots
     check_dir_exists(args.outdir)
+    # if there's DE to do, plot genes
+    if args.diff_expr is not None:
+        plot_genes(
+            a,
+            plot_type=args.diff_expr,
+            groupby="leiden",
+            n_genes=5,
+            save_to=name,
+            verbose=args.verbose,
+        )
     # if there's cnmf results, plot loadings
     if "cnmf_spectra" in a.varm:
         _ = rank_genes_cnmf(a, show=False)
@@ -355,6 +392,30 @@ def recipe(args):
             "{}/{}_processed.h5ad".format(args.outdir, "_".join(name)),
             compression="gzip",
         )
+
+
+def de(args):
+    """Perform differential expression analysis on a processed .h5ad file and plot results"""
+    # get basename of file for writing outputs
+    name = [os.path.splitext(os.path.basename(args.file))[0]]
+    # read file into anndata obj
+    if args.verbose:
+        print("Reading {}".format(args.file), end="")
+    a = sc.read(args.file)
+    if args.verbose:
+        print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
+    # perform DE analysis and plot genes
+    plot_genes(
+        a,
+        plot_type=args.plot_type,
+        groupby=args.groupby,
+        n_genes=args.n_genes,
+        ambient=args.ambient,
+        dendrogram=args.dendrogram,
+        cmap=args.cmap,
+        save_to=name,
+        verbose=args.verbose,
+    )
 
 
 def main():
@@ -453,6 +514,28 @@ def main():
         action="store_true",
     )
     to_dense_parser.set_defaults(func=to_dense)
+
+    to_X_parser = subparsers.add_parser(
+        "to_X", help="Swap a matrix from .layers to .X slot of anndata object",
+    )
+    to_X_parser.add_argument(
+        "file", type=str, help="Counts matrix as .h5ad file",
+    )
+    to_X_parser.add_argument(
+        "-l",
+        "--layer",
+        type=str,
+        required=True,
+        help="Key from .layers to replace .X with",
+    )
+    to_X_parser.add_argument(
+        "-q",
+        "--quietly",
+        required=False,
+        help="Run without printing processing updates to console",
+        action="store_true",
+    )
+    to_X_parser.set_defaults(func=to_X)
 
     rename_obs_parser = subparsers.add_parser(
         "rename_obs", help="Rename .obs columns in .h5ad file",
@@ -710,6 +793,14 @@ def main():
         action="store_true",
     )
     recipe_parser.add_argument(
+        "-de",
+        "--diff_expr",
+        type=str,
+        help="Type(s) of DE gene expression plots ['heatmap', 'dotplot', 'matrixplot']",
+        nargs="*",
+        default=None,
+    )
+    recipe_parser.add_argument(
         "-c",
         "--colors",
         type=str,
@@ -744,6 +835,60 @@ def main():
         "-q", "--quietly", help="Don't print updates to console", action="store_true",
     )
     recipe_parser.set_defaults(func=recipe)
+
+    de_parser = subparsers.add_parser(
+        "de",
+        help="Perform differential expression analysis on a processed .h5ad file and plot results",
+    )
+    de_parser.add_argument(
+        "file",
+        type=str,
+        help="Counts file as .h5ad or flat (.csv, .txt) in cells x genes format",
+    )
+    de_parser.add_argument(
+        "-p",
+        "--plot-type",
+        type=str,
+        help="Type(s) of DE gene expression plots ['heatmap', 'dotplot', 'matrixplot']",
+        nargs="*",
+        default=None,
+    )
+    de_parser.add_argument(
+        "-g",
+        "--groupby",
+        required=False,
+        type=str,
+        help=".obs variable to group cells by for DE analysis",
+        default="leiden",
+    )
+    de_parser.add_argument(
+        "-n",
+        "--n-genes",
+        type=int,
+        default=5,
+        help="Number of genes to plot per group. Default 5.",
+    )
+    de_parser.add_argument(
+        "-c",
+        "--cmap",
+        required=False,
+        type=str,
+        help="Color map to use in genes plot",
+        default="viridis",
+    )
+    de_parser.add_argument(
+        "-a", "--ambient", help="Include ambient genes", action="store_true",
+    )
+    de_parser.add_argument(
+        "-d",
+        "--dendrogram",
+        help="Generate dendrogram of group similarities",
+        action="store_true",
+    )
+    de_parser.add_argument(
+        "-q", "--quietly", help="Don't print updates to console", action="store_true",
+    )
+    de_parser.set_defaults(func=de)
 
     args = parser.parse_args()
 

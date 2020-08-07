@@ -13,7 +13,7 @@ from math import ceil
 from emptydrops import find_nonambient_barcodes
 from emptydrops.matrix import CountMatrix
 
-sc.set_figure_params(color_map="viridis", frameon=False)
+sc.set_figure_params(color_map="viridis", frameon=False, dpi=150)
 
 # define cell cycle phase genes
 #  human genes ('_h') from satija lab list
@@ -519,6 +519,157 @@ def plot_embedding(
         plt.savefig(save_to)
     else:
         plt.show()
+
+
+def plot_genes(
+    adata,
+    plot_type=["heatmap"],
+    groupby="leiden",
+    n_genes=5,
+    dendrogram=True,
+    ambient=False,
+    cmap="viridis",
+    save_to=None,
+    verbose=True,
+):
+    """
+    Calculate and plot rank_genes_groups results
+
+    Parameters:
+        adata (anndata.AnnData): object containing preprocessed counts matrix
+        plot_type (str): one or a list of combination of "heatmap", "dotplot", "matrixplot"
+        groupby (str): .obs key to group cells by. default 'leiden'.
+        dendrogram (bool): show dendrogram of cluster similarity
+        ambient (bool): include ambient genes as a group in the plot
+        cmap (str): valid color map for the plot
+        save_to (str): path to .png file for saving figure; default is plt.show()
+        verbose (bool): print updates to console
+    """
+    # rank genes with t-test and B-H correction
+    sc.tl.rank_genes_groups(adata, groupby=groupby, layer="log1p_norm")
+
+    # calculate arcsinh counts for visualization
+    adata.X = adata.layers["raw_counts"].copy()
+    sc.pp.normalize_total(adata)
+    adata.X = np.arcsinh(adata.X)
+    adata.layers["arcsinh"] = adata.X.copy()
+    adata.X = adata.layers["raw_counts"].copy()  # return raw counts to .X
+
+    if isinstance(plot_type, str):
+        plot_type = [plot_type]
+
+    if ambient:
+        # get markers manually and append ambient genes
+        markers = {}
+        for clu in a.obs[groupby].cat.unique().tolist():
+            markers[clu] = [
+                a.uns["rank_genes_groups"]["names"][x][clu] for x in range(n_genes)
+            ]
+        markers["ambient"] = a.var_names[a.var.ambient].tolist()
+
+        if "heatmap" in plot_type:
+            sc.pl.heatmap(
+                adata,
+                markers,
+                dendrogram=dendrogram,
+                groupby=groupby,
+                show_gene_labels=True,
+                layer="arcsinhd",
+                var_group_rotation=0,
+                cmap=cmap,
+                show=False,
+            )
+            if save_to is not None:
+                if verbose:
+                    print("Saving heatmap to {}_heatmap.png".format(save_to))
+                plt.savefig("{}_heatmap.png".format(save_to))
+            else:
+                plt.show()
+        if "dotplot" in plot_type:
+            sc.pl.dotplot(
+                adata,
+                markers,
+                dendrogram=dendrogram,
+                groupby=groupby,
+                layer="arcsinh",
+                var_group_rotation=0,
+                color_map=cmap,
+                show=False,
+            )
+            if save_to is not None:
+                if verbose:
+                    print("Saving dot plot to {}_dotplot.png".format(save_to))
+                plt.savefig("{}_dotplot.png".format(save_to))
+            else:
+                plt.show()
+        if "matrixplot" in plot_type:
+            sc.pl.matrixplot(
+                adata,
+                markers,
+                dendrogram=dendrogram,
+                groupby=groupby,
+                layer="arcsinh",
+                var_group_rotation=0,
+                cmap=cmap,
+                show=False,
+            )
+            if save_to is not None:
+                if verbose:
+                    print("Saving matrix plot to {}_matrixplot.png".format(save_to))
+                plt.savefig("{}_matrixplot.png".format(save_to))
+            else:
+                plt.show()
+
+    else:
+        if "heatmap" in plot_type:
+            sc.pl.rank_genes_groups_heatmap(
+                adata,
+                dendrogram=dendrogram,
+                groupby=groupby,
+                show_gene_labels=True,
+                layer="arcsinhd",
+                var_group_rotation=0,
+                cmap=cmap,
+                show=False,
+            )
+            if save_to is not None:
+                if verbose:
+                    print("Saving heatmap to {}_heatmap.png".format(save_to))
+                plt.savefig("{}_heatmap.png".format(save_to))
+            else:
+                plt.show()
+        if "dotplot" in plot_type:
+            sc.pl.rank_genes_groups_dotplot(
+                adata,
+                dendrogram=dendrogram,
+                groupby=groupby,
+                layer="arcsinh",
+                var_group_rotation=0,
+                color_map=cmap,
+                show=False,
+            )
+            if save_to is not None:
+                if verbose:
+                    print("Saving dot plot to {}_dotplot.png".format(save_to))
+                plt.savefig("{}_dotplot.png".format(save_to))
+            else:
+                plt.show()
+        if "matrixplot" in plot_type:
+            sc.pl.rank_genes_groups_matrixplot(
+                adata,
+                dendrogram=dendrogram,
+                groupby=groupby,
+                layer="arcsinh",
+                var_group_rotation=0,
+                cmap=cmap,
+                show=False,
+            )
+            if save_to is not None:
+                if verbose:
+                    print("Saving matrix plot to {}_matrixplot.png".format(save_to))
+                plt.savefig("{}_matrixplot.png".format(save_to))
+            else:
+                plt.show()
 
 
 def rank_genes_cnmf(
