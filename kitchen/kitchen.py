@@ -82,9 +82,12 @@ def h5ad_to_csv(args):
     if args.verbose:
         # print information about counts, including names of cells and genes
         print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
-    # create pd.DataFrame from adata.X
-    if args.verbose:
-        print("building output dataframe...")
+    # swap to desired layer
+    if args.layer is not None:
+        if args.verbose:
+            print("Using .layers[{}]".format(args.layer))
+        a.X = a.layers[args.layer].copy()
+    # check for/create output directory
     check_dir_exists(args.outdir)
     if args.separate_indices:
         if args.verbose:
@@ -535,6 +538,13 @@ def main():
         help="Output directory for writing csv file(s). Default './'",
         nargs="?",
         default=".",
+    )
+    to_csv_parser.add_argument(
+        "-l",
+        "--layer",
+        type=str,
+        default=None,
+        help="Key from .layers to save. Default '.X'.",
     )
     to_csv_parser.add_argument(
         "-s",
