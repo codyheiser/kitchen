@@ -13,7 +13,9 @@ from math import ceil
 from emptydrops import find_nonambient_barcodes
 from emptydrops.matrix import CountMatrix
 
-sc.set_figure_params(color_map="viridis", frameon=False, dpi=150, format="png")
+sc.set_figure_params(
+    color_map="viridis", frameon=False, dpi=100, dpi_save=200, format="png"
+)
 
 # define cell cycle phase genes
 #  human genes ('_h') from satija lab list
@@ -580,6 +582,7 @@ def plot_genes(
                 var_group_rotation=0,
                 cmap=cmap,
                 save=save_to,
+                show=False,
             )
         if "dotplot" in plot_type:
             sc.pl.dotplot(
@@ -591,6 +594,7 @@ def plot_genes(
                 var_group_rotation=0,
                 color_map=cmap,
                 save=save_to,
+                show=False,
             )
         if "matrixplot" in plot_type:
             sc.pl.matrixplot(
@@ -602,6 +606,7 @@ def plot_genes(
                 var_group_rotation=0,
                 cmap=cmap,
                 save=save_to,
+                show=False,
             )
 
     else:
@@ -616,6 +621,7 @@ def plot_genes(
                 var_group_rotation=0,
                 cmap=cmap,
                 save=save_to,
+                show=False,
             )
         if "dotplot" in plot_type:
             sc.pl.rank_genes_groups_dotplot(
@@ -627,6 +633,7 @@ def plot_genes(
                 var_group_rotation=0,
                 color_map=cmap,
                 save=save_to,
+                show=False,
             )
         if "matrixplot" in plot_type:
             sc.pl.rank_genes_groups_matrixplot(
@@ -638,6 +645,7 @@ def plot_genes(
                 var_group_rotation=0,
                 cmap=cmap,
                 save=save_to,
+                show=False,
             )
 
 

@@ -6,6 +6,7 @@ Manipulate .h5ad files and cook scRNA-seq data from command line
 """
 import argparse, os
 import numpy as np
+import pandas as pd
 import scanpy as sc
 import matplotlib.pyplot as plt
 from scipy import sparse
@@ -39,6 +40,9 @@ def to_h5ad(args):
     """Convert counts matrix from flat file (.txt, .csv) to .h5ad"""
     # get basename of file for writing outputs
     name = os.path.splitext(os.path.basename(args.file))[0]
+    # check to make sure it's an .h5ad file
+    if os.path.splitext(args.file)[1] == ".h5ad":
+        raise ValueError("Input file already in .h5ad format")
     # read file into anndata obj
     if args.verbose:
         print("Reading {}".format(args.file), end="")
@@ -62,6 +66,62 @@ def to_h5ad(args):
         if args.verbose:
             print("Removing {}".format(args.file))
         os.remove(args.file)
+
+
+def h5ad_to_csv(args):
+    """Convert counts matrix from .h5ad to flat file (.txt, .csv)"""
+    # get basename of file for writing outputs
+    name = os.path.splitext(os.path.basename(args.file))[0]
+    # check to make sure it's an .h5ad file
+    if os.path.splitext(args.file)[1] != ".h5ad":
+        raise ValueError("Input file must be in .h5ad format")
+    # read file into anndata obj
+    if args.verbose:
+        print("Reading {}".format(args.file), end="")
+    a = sc.read(args.file)
+    if args.verbose:
+        # print information about counts, including names of cells and genes
+        print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
+    # create pd.DataFrame from adata.X
+    if args.verbose:
+        print("building output dataframe...")
+    check_dir_exists(args.outdir)
+    if args.separate_indices:
+        if args.verbose:
+            print("Writing counts to {}/{}_X.csv".format(args.outdir, name))
+        if isinstance(a.X, sparse.csr.csr_matrix):
+            df = pd.DataFrame.sparse.from_spmatrix(a.X)
+            df.to_csv(
+                "{}/{}_X.csv".format(args.outdir, name),
+                sep=",",
+                header=False,
+                index=False,
+            )
+        elif isinstance(a.X, np.ndarray):
+            np.savetxt("{}/{}_X.csv".format(args.outdir, name), a.X, delimiter=",")
+        if args.verbose:
+            print("Writing obs names to {}/{}_obs.csv".format(args.outdir, name))
+        pd.DataFrame(a.obs_names).to_csv(
+            "{}/{}_obs.csv".format(args.outdir, name), header=False, index=False
+        )
+        if args.verbose:
+            print("Writing var names to {}/{}_var.csv".format(args.outdir, name))
+        pd.DataFrame(a.var_names).to_csv(
+            "{}/{}_var.csv".format(args.outdir, name), header=False, index=False
+        )
+    else:
+        if isinstance(a.X, sparse.csr.csr_matrix):
+            df = pd.DataFrame.sparse.from_spmatrix(
+                a.X, index=a.obs_names, columns=a.var_names
+            )
+        else:
+            df = pd.DataFrame(a.X, index=a.obs_names, columns=a.var_names)
+        # save file as .csv
+        if args.verbose:
+            print("Writing counts to {}/{}.csv".format(args.outdir, name))
+        df.to_csv(
+            "{}/{}.csv".format(args.outdir, name), sep=",", header=True, index=True
+        )
 
 
 def transpose(args):
@@ -461,6 +521,35 @@ def main():
         action="store_true",
     )
     to_h5ad_parser.set_defaults(func=to_h5ad)
+
+    to_csv_parser = subparsers.add_parser(
+        "to_csv", help="Save .h5ad counts to .csv file(s)",
+    )
+    to_csv_parser.add_argument(
+        "file", type=str, help="Counts matrix as .h5ad file",
+    )
+    to_csv_parser.add_argument(
+        "-o",
+        "--outdir",
+        type=str,
+        help="Output directory for writing csv file(s). Default './'",
+        nargs="?",
+        default=".",
+    )
+    to_csv_parser.add_argument(
+        "-s",
+        "--separate-indices",
+        help="Save indices (.obs and .var names) to separate files",
+        action="store_true",
+    )
+    to_csv_parser.add_argument(
+        "-q",
+        "--quietly",
+        required=False,
+        help="Run without printing processing updates to console",
+        action="store_true",
+    )
+    to_csv_parser.set_defaults(func=h5ad_to_csv)
 
     transpose_parser = subparsers.add_parser(
         "transpose", help="Transpose counts matrix and save as .h5ad",
