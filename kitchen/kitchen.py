@@ -362,6 +362,7 @@ def concatenate(args):
 
 def recipe(args):
     """Full automated processing of scRNA-seq data"""
+    sc._settings.ScanpyConfig(figdir=args.outdir)  # set output directory for figures
     # get basename of file for writing outputs
     name = [os.path.splitext(os.path.basename(args.file))[0]]
     if args.subset is not None:
@@ -415,7 +416,6 @@ def recipe(args):
             groupby="leiden",
             n_genes=5,
             save_to="_{}.png".format("_".join(name)),
-            outdir=args.outdir,
             verbose=args.verbose,
         )
         # if there's cnmf results, plot those on a heatmap/matrix/dotplot too
@@ -429,7 +429,6 @@ def recipe(args):
                 indices=None,
                 n_genes=5,
                 save_to="_cnmf_{}.png".format("_".join(name)),
-                outdir=args.outdir,
             )
     # if there's cnmf results, plot loadings
     if "cnmf_spectra" in a.varm:
@@ -489,6 +488,7 @@ def recipe(args):
 
 def de(args):
     """Perform differential expression analysis on a processed .h5ad file and plot results"""
+    sc._settings.ScanpyConfig(figdir=args.outdir)  # set output directory for figures
     # get basename of file for writing outputs
     name = [os.path.splitext(os.path.basename(args.file))[0]]
     # read file into anndata obj
@@ -507,13 +507,13 @@ def de(args):
         dendrogram=args.dendrogram,
         cmap=args.cmap,
         save_to="_{}.png".format("_".join(name)),
-        outdir=args.outdir,
         verbose=args.verbose,
     )
 
 
 def cnmf_markers(args):
     """Plot heatmap/matrix/dotplot of cNMF loadings for desired groups"""
+    sc._settings.ScanpyConfig(figdir=args.outdir)  # set output directory for figures
     # get basename of file for writing outputs
     name = [os.path.splitext(os.path.basename(args.file))[0]]
     # read file into anndata obj
@@ -531,7 +531,6 @@ def cnmf_markers(args):
         dendrogram=args.dendrogram,
         cmap=args.cmap,
         save_to="_cnmf_{}.png".format("_".join(name)),
-        outdir=args.outdir,
     )
 
 
