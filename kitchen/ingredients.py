@@ -531,7 +531,7 @@ def plot_genes(
     dendrogram=True,
     ambient=False,
     cmap="viridis",
-    save_to="de.png",
+    save_to="_de.png",
     verbose=True,
 ):
     """
@@ -649,6 +649,100 @@ def plot_genes(
             )
 
 
+def plot_genes_cnmf(
+    adata,
+    plot_type=["heatmap"],
+    groupby="leiden",
+    attr="varm",
+    keys="cnmf_spectra",
+    indices=None,
+    n_genes=5,
+    dendrogram=True,
+    cmap="viridis",
+    save_to="_de_cnmf.png",
+):
+    """
+    Calculate and plot top cNMF gene loadings
+
+    Parameters:
+        adata (anndata.AnnData): object containing preprocessed counts matrix
+        plot_type (str): one or a list of combination of "heatmap", "dotplot", "matrixplot"
+        groupby (str): .obs key to group cells by. default 'leiden'.
+        attr {'var', 'obs', 'uns', 'varm', 'obsm'}:
+            The attribute of AnnData that contains the score.
+        keys (str or list of str):
+            The scores to look up an array from the attribute of adata.
+        indices (list of int):
+            The column indices of keys for which to plot (e.g. [0,1,2] for first three keys)
+        dendrogram (bool): show dendrogram of cluster similarity
+        cmap (str): valid color map for the plot
+        save_to (str): string to add to plot name using scanpy plot defaults
+    """
+    # calculate arcsinh counts for visualization
+    adata.X = adata.layers["raw_counts"].copy()
+    sc.pp.normalize_total(adata)
+    adata.X = np.arcsinh(adata.X)
+    adata.layers["arcsinh"] = adata.X.copy()
+    adata.X = adata.layers["raw_counts"].copy()  # return raw counts to .X
+
+    if isinstance(plot_type, str):
+        plot_type = [plot_type]
+
+    # default to all usages
+    if indices is None:
+        indices = [x for x in range(getattr(adata, attr)[keys].shape[1])]
+    # get scores for each usage
+    if isinstance(keys, str) and indices is not None:
+        scores = np.array(getattr(adata, attr)[keys])[:, indices]
+        keys = ["{}_{}".format(keys, i + 1) for i in indices]
+    labels = adata.var_names  # search all var_names for top genes based on spectra
+    # get top n_genes for each spectra
+    markers = {}
+    for iscore, score in enumerate(scores.T):
+        markers[keys[iscore]] = []
+        indices = np.argsort(score)[::-1][:n_genes]
+        for x in indices[::-1]:
+            markers[keys[iscore]].append(labels[x])
+
+    if "heatmap" in plot_type:
+        sc.pl.heatmap(
+            adata,
+            markers,
+            dendrogram=dendrogram,
+            groupby=groupby,
+            show_gene_labels=True,
+            layer="arcsinh",
+            var_group_rotation=0,
+            cmap=cmap,
+            save=save_to,
+            show=False,
+        )
+    if "dotplot" in plot_type:
+        sc.pl.dotplot(
+            adata,
+            markers,
+            dendrogram=dendrogram,
+            groupby=groupby,
+            layer="arcsinh",
+            var_group_rotation=0,
+            color_map=cmap,
+            save=save_to,
+            show=False,
+        )
+    if "matrixplot" in plot_type:
+        sc.pl.matrixplot(
+            adata,
+            markers,
+            dendrogram=dendrogram,
+            groupby=groupby,
+            layer="arcsinh",
+            var_group_rotation=0,
+            cmap=cmap,
+            save=save_to,
+            show=False,
+        )
+
+
 def rank_genes_cnmf(
     adata,
     attr="varm",
@@ -684,7 +778,7 @@ def rank_genes_cnmf(
     # get scores for each usage
     if isinstance(keys, str) and indices is not None:
         scores = np.array(getattr(adata, attr)[keys])[:, indices]
-        keys = ["{}{}".format(keys[:-1], i + 1) for i in indices]
+        keys = ["{}_{}".format(keys, i + 1) for i in indices]
     n_panels = len(indices) if isinstance(indices, list) else 1
     if n_panels == 1:
         scores, keys = scores[:, None], [keys]

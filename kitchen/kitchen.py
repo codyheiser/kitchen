@@ -21,6 +21,7 @@ from .ingredients import (
     dim_reduce,
     plot_embedding,
     plot_genes,
+    plot_genes_cnmf,
     rank_genes_cnmf,
 )
 from ._version import get_versions
@@ -401,6 +402,18 @@ def recipe(args):
             save_to="_{}.png".format("_".join(name)),
             verbose=args.verbose,
         )
+        # if there's cnmf results, plot those on a heatmap/matrix/dotplot too
+        if "cnmf_spectra" in a.varm:
+            plot_genes_cnmf(
+                a,
+                plot_type=args.diff_expr,
+                groupby="leiden",
+                attr="varm",
+                keys="cnmf_spectra",
+                indices=None,
+                n_genes=5,
+                save_to="_cnmf_{}.png".format("_".join(name)),
+            )
     # if there's cnmf results, plot loadings
     if "cnmf_spectra" in a.varm:
         _ = rank_genes_cnmf(a, show=False)
@@ -478,6 +491,28 @@ def de(args):
         cmap=args.cmap,
         save_to="_{}.png".format("_".join(name)),
         verbose=args.verbose,
+    )
+
+
+def cnmf_markers(args):
+    """Plot heatmap/matrix/dotplot of cNMF loadings for desired groups"""
+    # get basename of file for writing outputs
+    name = [os.path.splitext(os.path.basename(args.file))[0]]
+    # read file into anndata obj
+    if args.verbose:
+        print("Reading {}".format(args.file), end="")
+    a = sc.read(args.file)
+    if args.verbose:
+        print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
+    # perform DE analysis and plot genes
+    plot_genes_cnmf(
+        a,
+        plot_type=args.plot_type,
+        groupby=args.groupby,
+        n_genes=args.n_genes,
+        dendrogram=args.dendrogram,
+        cmap=args.cmap,
+        save_to="_cnmf_{}.png".format("_".join(name)),
     )
 
 
@@ -948,7 +983,7 @@ def main():
         "-p",
         "--plot-type",
         type=str,
-        help="Type(s) of DE gene expression plots ['heatmap', 'dotplot', 'matrixplot']",
+        help="Type(s) of DE gene expression plot ['heatmap', 'dotplot', 'matrixplot']",
         nargs="*",
         default=None,
     )
@@ -988,6 +1023,54 @@ def main():
         "-q", "--quietly", help="Don't print updates to console", action="store_true",
     )
     de_parser.set_defaults(func=de)
+
+    cnmf_markers_parser = subparsers.add_parser(
+        "cnmf_markers",
+        help="Plot heatmap/matrix/dotplot of cNMF loadings for desired groups",
+    )
+    cnmf_markers_parser.add_argument(
+        "file",
+        type=str,
+        help="Counts file as .h5ad or flat (.csv, .txt) in cells x genes format",
+    )
+    cnmf_markers_parser.add_argument(
+        "-p",
+        "--plot-type",
+        type=str,
+        help="Type(s) of gene expression plot ['heatmap', 'dotplot', 'matrixplot']",
+        nargs="*",
+        default=None,
+    )
+    cnmf_markers_parser.add_argument(
+        "-g",
+        "--groupby",
+        required=False,
+        type=str,
+        help=".obs variable to group cells by for plotting cNMF genes",
+        default="leiden",
+    )
+    cnmf_markers_parser.add_argument(
+        "-n",
+        "--n-genes",
+        type=int,
+        default=5,
+        help="Number of genes to plot per group. Default 5.",
+    )
+    cnmf_markers_parser.add_argument(
+        "-c",
+        "--cmap",
+        required=False,
+        type=str,
+        help="Color map to use in genes plot",
+        default="viridis",
+    )
+    cnmf_markers_parser.add_argument(
+        "-d",
+        "--dendrogram",
+        help="Generate dendrogram of group similarities",
+        action="store_true",
+    )
+    cnmf_markers_parser.set_defaults(func=cnmf_markers)
 
     args = parser.parse_args()
 
