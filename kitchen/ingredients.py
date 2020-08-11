@@ -325,7 +325,9 @@ def subset_adata(adata, subset, verbose=True):
     adata.obs["adata_subset_combined"] = 0
     # create label as union of given subset args
     for i in range(len(subset)):
-        adata.obs.loc[adata.obs[subset[i]] == 1, "adata_subset_combined"] = 1
+        adata.obs.loc[
+            adata.obs[subset[i]].isin(["True", True, 1.0, 1]), "adata_subset_combined"
+        ] = 1
     adata = adata[adata.obs["adata_subset_combined"] == 1, :].copy()
     adata.obs.drop(columns="adata_subset_combined", inplace=True)
     if verbose:
@@ -663,7 +665,7 @@ def plot_genes_cnmf(
     dendrogram=True,
     cmap="viridis",
     save_to="_de_cnmf.png",
-    outdir = "./",
+    outdir="./",
 ):
     """
     Calculate and plot top cNMF gene loadings
