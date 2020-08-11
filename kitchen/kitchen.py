@@ -86,7 +86,7 @@ def h5ad_to_csv(args):
     # swap to desired layer
     if args.layer is not None:
         if args.verbose:
-            print("Using .layers[{}]".format(args.layer))
+            print("Using .layers['{}']".format(args.layer))
         a.X = a.layers[args.layer].copy()
     # check for/create output directory
     check_dir_exists(args.outdir)
@@ -217,6 +217,21 @@ def label_info(args):
     print(adata, "\n")
     for l in args.labels:
         print("{}\n{}\n".format(l, adata.obs[l].value_counts()))
+
+
+def obs_to_categorical(args):
+    """Make .obs label categorical dtype"""
+    if args.verbose:
+        print("Reading {}".format(args.file))
+    adata = sc.read(args.file)
+    for label in args.labels:
+        if args.verbose:
+            print("Converting .obs['{}'] to categorical".format(label))
+        if args.to_bool:
+            adata.obs[label] = adata.obs[label].astype(bool).astype("category")
+        else:
+            adata.obs[label] = adata.obs[label].astype("category")
+    adata.write(args.file, compression="gzip")
 
 
 def add_label(args):
@@ -717,6 +732,36 @@ def main():
         help="List of .obs column names to print value counts for",
     )
     label_info_parser.set_defaults(func=label_info)
+
+    to_categorical_parser = subparsers.add_parser(
+        "to_categorical", help="Make .obs label categorical dtype",
+    )
+    to_categorical_parser.add_argument(
+        "file", type=str, help="Counts matrix as .h5ad file",
+    )
+    to_categorical_parser.add_argument(
+        "-l",
+        "--labels",
+        type=str,
+        nargs="+",
+        required=True,
+        help="List of .obs column names convert to categorical dtype",
+    )
+    to_categorical_parser.add_argument(
+        "-b",
+        "--to-bool",
+        required=False,
+        help="Convert to boolean first (for columns with values of {0,1})",
+        action="store_true",
+    )
+    to_categorical_parser.add_argument(
+        "-q",
+        "--quietly",
+        required=False,
+        help="Run without printing processing updates to console",
+        action="store_true",
+    )
+    to_categorical_parser.set_defaults(func=obs_to_categorical)
 
     add_label_parser = subparsers.add_parser(
         "add_label",
