@@ -532,6 +532,7 @@ def plot_genes(
     ambient=False,
     cmap="viridis",
     save_to="_de.png",
+    outdir="./",
     verbose=True,
 ):
     """
@@ -545,8 +546,10 @@ def plot_genes(
         ambient (bool): include ambient genes as a group in the plot
         cmap (str): valid color map for the plot
         save_to (str): string to add to plot name using scanpy plot defaults
+        outdir (str): path to output directory for plot(s)
         verbose (bool): print updates to console
     """
+    sc._settings.ScanpyConfig(figdir=outdir)  # set output directory for figures
     if verbose:
         print("Performing differential expression analysis...")
     # rank genes with t-test and B-H correction
@@ -660,6 +663,7 @@ def plot_genes_cnmf(
     dendrogram=True,
     cmap="viridis",
     save_to="_de_cnmf.png",
+    outdir = "./",
 ):
     """
     Calculate and plot top cNMF gene loadings
@@ -677,7 +681,9 @@ def plot_genes_cnmf(
         dendrogram (bool): show dendrogram of cluster similarity
         cmap (str): valid color map for the plot
         save_to (str): string to add to plot name using scanpy plot defaults
+        outdir (str): path to output directory for plot(s)
     """
+    sc._settings.ScanpyConfig(figdir=outdir)  # set output directory for figures
     # calculate arcsinh counts for visualization
     adata.X = adata.layers["raw_counts"].copy()
     sc.pp.normalize_total(adata)

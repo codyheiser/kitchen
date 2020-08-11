@@ -415,6 +415,7 @@ def recipe(args):
             groupby="leiden",
             n_genes=5,
             save_to="_{}.png".format("_".join(name)),
+            outdir=args.outdir,
             verbose=args.verbose,
         )
         # if there's cnmf results, plot those on a heatmap/matrix/dotplot too
@@ -428,6 +429,7 @@ def recipe(args):
                 indices=None,
                 n_genes=5,
                 save_to="_cnmf_{}.png".format("_".join(name)),
+                outdir=args.outdir,
             )
     # if there's cnmf results, plot loadings
     if "cnmf_spectra" in a.varm:
@@ -505,6 +507,7 @@ def de(args):
         dendrogram=args.dendrogram,
         cmap=args.cmap,
         save_to="_{}.png".format("_".join(name)),
+        outdir=args.outdir,
         verbose=args.verbose,
     )
 
@@ -528,6 +531,7 @@ def cnmf_markers(args):
         dendrogram=args.dendrogram,
         cmap=args.cmap,
         save_to="_cnmf_{}.png".format("_".join(name)),
+        outdir=args.outdir,
     )
 
 
@@ -1065,6 +1069,14 @@ def main():
         action="store_true",
     )
     de_parser.add_argument(
+        "-o",
+        "--outdir",
+        type=str,
+        help="Output directory for saving plots. Default './'",
+        nargs="?",
+        default=".",
+    )
+    de_parser.add_argument(
         "-q", "--quietly", help="Don't print updates to console", action="store_true",
     )
     de_parser.set_defaults(func=de)
@@ -1114,6 +1126,14 @@ def main():
         "--dendrogram",
         help="Generate dendrogram of group similarities",
         action="store_true",
+    )
+    cnmf_markers_parser.add_argument(
+        "-o",
+        "--outdir",
+        type=str,
+        help="Output directory for saving plots. Default './'",
+        nargs="?",
+        default=".",
     )
     cnmf_markers_parser.add_argument(
         "-q", "--quietly", help="Don't print updates to console", action="store_true",
