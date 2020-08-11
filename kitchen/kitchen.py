@@ -1070,6 +1070,9 @@ def main():
         help="Generate dendrogram of group similarities",
         action="store_true",
     )
+    cnmf_markers_parser.add_argument(
+        "-q", "--quietly", help="Don't print updates to console", action="store_true",
+    )
     cnmf_markers_parser.set_defaults(func=cnmf_markers)
 
     args = parser.parse_args()
