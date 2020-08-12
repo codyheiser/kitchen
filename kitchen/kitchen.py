@@ -239,8 +239,6 @@ def add_label(args):
     Use .obs_names from filtered counts matrix to add binary label to a reference
     anndata object, 1 = present in filt, 0 = not present. Overwrite reference .h5ad file.
     """
-    # get basename of file for writing outputs
-    name = os.path.splitext(os.path.basename(args.ref_file))[0]
     # read reference file into anndata obj
     if args.verbose:
         print("Reading {}".format(args.ref_file))
@@ -362,7 +360,6 @@ def concatenate(args):
 
 def recipe(args):
     """Full automated processing of scRNA-seq data"""
-    sc._settings.ScanpyConfig(figdir=args.outdir)  # set output directory for figures
     # get basename of file for writing outputs
     name = [os.path.splitext(os.path.basename(args.file))[0]]
     if args.subset is not None:
@@ -410,6 +407,7 @@ def recipe(args):
     check_dir_exists(args.outdir)
     # if there's DE to do, plot genes
     if args.diff_expr is not None:
+        os.chdir(args.outdir)  # set output directory for scanpy figures
         plot_genes(
             a,
             plot_type=args.diff_expr,
@@ -488,7 +486,6 @@ def recipe(args):
 
 def de(args):
     """Perform differential expression analysis on a processed .h5ad file and plot results"""
-    sc._settings.ScanpyConfig(figdir=args.outdir)  # set output directory for figures
     # get basename of file for writing outputs
     name = [os.path.splitext(os.path.basename(args.file))[0]]
     # read file into anndata obj
@@ -498,6 +495,7 @@ def de(args):
     if args.verbose:
         print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
     # perform DE analysis and plot genes
+    os.chdir(args.outdir)  # set output directory for scanpy figures
     plot_genes(
         a,
         plot_type=args.plot_type,
@@ -513,7 +511,6 @@ def de(args):
 
 def cnmf_markers(args):
     """Plot heatmap/matrix/dotplot of cNMF loadings for desired groups"""
-    sc._settings.ScanpyConfig(figdir=args.outdir)  # set output directory for figures
     # get basename of file for writing outputs
     name = [os.path.splitext(os.path.basename(args.file))[0]]
     # read file into anndata obj
@@ -522,7 +519,8 @@ def cnmf_markers(args):
     a = sc.read(args.file)
     if args.verbose:
         print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
-    # perform DE analysis and plot genes
+    # plot cNMF marker genes
+    os.chdir(args.outdir)  # set output directory for scanpy figures
     plot_genes_cnmf(
         a,
         plot_type=args.plot_type,
