@@ -407,6 +407,7 @@ def recipe(args):
     check_dir_exists(args.outdir)
     # if there's DE to do, plot genes
     if args.diff_expr is not None:
+        wd = os.getwcd()  # save current working directory for later
         os.chdir(args.outdir)  # set output directory for scanpy figures
         plot_genes(
             a,
@@ -428,6 +429,7 @@ def recipe(args):
                 n_genes=5,
                 save_to="_cnmf_{}.png".format("_".join(name)),
             )
+        os.chdir(wd)  # go back to previous working directory after saving scanpy plots
     # if there's cnmf results, plot loadings
     if "cnmf_spectra" in a.varm:
         _ = rank_genes_cnmf(a, show=False)
