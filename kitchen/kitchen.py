@@ -407,7 +407,7 @@ def recipe(args):
     check_dir_exists(args.outdir)
     # if there's DE to do, plot genes
     if args.diff_expr is not None:
-        wd = os.getwcd()  # save current working directory for later
+        wd = os.getcwd()  # save current working directory for later
         os.chdir(args.outdir)  # set output directory for scanpy figures
         plot_genes(
             a,
