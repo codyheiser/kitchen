@@ -780,7 +780,7 @@ def main():
         type=str,
         help="Filtered counts matrix providing positive labels, as .h5ad file",
     )
-    to_categorical_parser.add_argument(
+    add_label_parser.add_argument(
         "-l",
         "--label",
         type=str,
