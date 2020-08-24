@@ -252,11 +252,11 @@ def add_label(args):
     if args.verbose:
         print("\t", b)
     # add .obs column to ref_file
-    a.obs[args.obs_names] = 0
-    a.obs.loc[b.obs_names, args.obs_name] = 1
+    a.obs[args.label] = 0
+    a.obs.loc[b.obs_names, args.label] = 1
     print(
         "\nTransferring labels to {}:\n{}".format(
-            args.ref_file, a.obs[args.obs_names].value_counts()
+            args.ref_file, a.obs[args.label].value_counts()
         )
     )
     # save file as .h5ad
@@ -748,7 +748,7 @@ def main():
         type=str,
         nargs="+",
         required=True,
-        help="List of .obs column names convert to categorical dtype",
+        help="List of .obs column names to convert to categorical dtype",
     )
     to_categorical_parser.add_argument(
         "-b",
@@ -779,6 +779,13 @@ def main():
         "filt_file",
         type=str,
         help="Filtered counts matrix providing positive labels, as .h5ad file",
+    )
+    to_categorical_parser.add_argument(
+        "-l",
+        "--label",
+        type=str,
+        required=True,
+        help=".obs column name to place final labels in",
     )
     add_label_parser.add_argument(
         "-rm",
