@@ -252,11 +252,11 @@ def add_label(args):
     if args.verbose:
         print("\t", b)
     # add .obs column to ref_file
-    a.obs[args.obs_name] = 0
+    a.obs[args.obs_names] = 0
     a.obs.loc[b.obs_names, args.obs_name] = 1
     print(
         "\nTransferring labels to {}:\n{}".format(
-            args.ref_file, a.obs[args.obs_name].value_counts()
+            args.ref_file, a.obs[args.obs_names].value_counts()
         )
     )
     # save file as .h5ad
