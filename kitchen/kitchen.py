@@ -988,7 +988,7 @@ def main():
         type=str,
         help="Colors to plot on embedding. Can be .obs columns or gene names.",
         nargs="*",
-        default=None,
+        default=[],
     )
     recipe_parser.add_argument(
         "-p",
