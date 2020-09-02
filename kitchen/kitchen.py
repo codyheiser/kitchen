@@ -396,6 +396,7 @@ def recipe(args):
             a,
             use_rep=args.use_rep,
             clust_resolution=args.resolution,
+            paga=args.paga,
             verbose=args.verbose,
             seed=args.seed,
         )
@@ -941,6 +942,12 @@ def main():
         help="Counts file as .h5ad or flat (.csv, .txt) in cells x genes format",
     )
     recipe_parser.add_argument(
+        "-p",
+        "--process",
+        help="Process AnnData (PCA, PAGA, UMAP). Default False",
+        action="store_true",
+    )
+    recipe_parser.add_argument(
         "--min-genes",
         required=False,
         type=int,
@@ -981,6 +988,11 @@ def main():
         help="Calculate cell cycle scores. Default False",
         action="store_true",
     )
+    recipe_parser.add_argument()
+        "--paga",
+        help="Run PAGA to seed UMAP embedding. Default False",
+        action="store_true",
+    )
     recipe_parser.add_argument(
         "-de",
         "--diff_expr",
@@ -996,12 +1008,6 @@ def main():
         help="Colors to plot on embedding. Can be .obs columns or gene names.",
         nargs="*",
         default=[],
-    )
-    recipe_parser.add_argument(
-        "-p",
-        "--process",
-        help="Process AnnData (PCA, PAGA, UMAP). Default False",
-        action="store_true",
     )
     recipe_parser.add_argument(
         "--seed", type=int, help="Random state for generating embeddings.", default=18,

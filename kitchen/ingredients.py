@@ -381,7 +381,13 @@ def cc_score(adata, layer=None, seed=18, verbose=True):
 
 
 def dim_reduce(
-    adata, layer=None, use_rep=None, clust_resolution=1.0, seed=18, verbose=True
+    adata,
+    layer=None,
+    use_rep=None,
+    clust_resolution=1.0,
+    paga=True,
+    seed=18,
+    verbose=True,
 ):
     """
     Reduce dimensions of single-cell dataset using standard methods
@@ -393,6 +399,7 @@ def dim_reduce(
             default None, generate new PCA from layer
         clust_resolution (float): resolution as fraction on [0.0, 1.0] for leiden
             clustering. default 1.0
+        paga (bool): run PAGA to seed UMAP embedding
         seed (int): random state for PCA, neighbors graph and clustering
         verbose (bool): print updates to console
 
@@ -437,11 +444,14 @@ def dim_reduce(
                 (len(adata.obs.leiden.cat.categories) + 1)
             )
         )
-    if verbose:
-        print("Building PAGA graph and UMAP from coordinates")
-    sc.tl.paga(adata)
-    sc.pl.paga(adata, show=False)
-    sc.tl.umap(adata, init_pos="paga", random_state=seed)
+    if paga:
+        if verbose:
+            print("Building PAGA graph and UMAP from coordinates")
+        sc.tl.paga(adata)
+        sc.pl.paga(adata, show=False)
+        sc.tl.umap(adata, init_pos="paga", random_state=seed)
+    else:
+        sc.tl.umap(adata, random_state=seed)
 
 
 def plot_embedding(
@@ -462,16 +472,20 @@ def plot_embedding(
         plot of PAGA, UMAP with Leiden and n_genes overlay, plus additional metrics
         from "colors"
     """
+    if "paga" in adata.uns:
+        cluster_colors = ["paga", "leiden"]
+    else:
+        cluster_colors = ["leiden"]
     if colors is not None:
         # get full list of things to plot on UMAP
         if show_clustering:
-            colors = ["paga", "leiden"] + colors
-            unique_colors = list_union(["paga", "leiden"], colors)
+            colors = cluster_colors + colors
+            unique_colors = list_union(cluster_colors, colors)
         else:
             unique_colors = set(colors)
     else:
         # with no colors provided, plot PAGA graph and leiden clusters
-        colors = ["paga", "leiden"]
+        colors = cluster_colors
         unique_colors = set(colors)
     if verbose:
         print("Plotting embedding with overlays: {}".format(list(unique_colors)))
