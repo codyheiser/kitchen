@@ -988,7 +988,7 @@ def main():
         help="Calculate cell cycle scores. Default False",
         action="store_true",
     )
-    recipe_parser.add_argument()
+    recipe_parser.add_argument(
         "--paga",
         help="Run PAGA to seed UMAP embedding. Default False",
         action="store_true",
