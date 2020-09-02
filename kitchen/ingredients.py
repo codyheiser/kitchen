@@ -260,8 +260,9 @@ def cellranger2(adata, expected=1500, upper_quant=0.99, lower_prop=0.1, verbose=
     tmp = np.sort(np.array(adata.obs["total_counts"]))[::-1]
     thresh = np.quantile(tmp[0:expected], upper_quant) * lower_prop
     adata.uns["knee_thresh"] = thresh
-    adata.obs["CellRanger_2"] = 0
-    adata.obs.loc[adata.obs.total_counts > thresh, "CellRanger_2"] = 1
+    adata.obs["CellRanger_2"] = "False"
+    adata.obs.loc[adata.obs.total_counts > thresh, "CellRanger_2"] = "True"
+    adata.obs["CellRanger_2"] = adata.obs["CellRanger_2"].astype("category")
     if verbose:
         print("Detected knee point: {}".format(round(thresh, 3)))
         print(adata.obs.CellRanger_2.value_counts())
@@ -298,16 +299,20 @@ def cellranger3(
     # call emptydrops to test for nonambient barcodes
     out = find_nonambient_barcodes(
         m,
-        np.array(adata.obs.loc[adata.obs.CellRanger_3 == 1,].index, dtype=m.bcs.dtype),
+        np.array(
+            adata.obs.loc[adata.obs.CellRanger_3 == True,].index, dtype=m.bcs.dtype
+        ),
         min_umi_frac_of_median=min_umi_frac_of_median,
         min_umis_nonambient=min_umis_nonambient,
         max_adj_pvalue=max_adj_pvalue,
     )
     # assign binary labels from emptydrops
     adata.obs.CellRanger_3.iloc[out[0]] = out[-1]
-    adata.obs.CellRanger_3 = adata.obs.CellRanger_3.astype(int)  # convert bool to int
+    adata.obs.CellRanger_3 = adata.obs.CellRanger_3.astype(str).astype(
+        "category"
+    )  # convert to category
     # assign log-likelihoods from emptydrops to .obs
-    adata.obs["CellRanger_3_ll"] = None
+    adata.obs["CellRanger_3_ll"] = 0
     adata.obs.CellRanger_3_ll.iloc[out[0]] = out[1]
 
 
