@@ -534,7 +534,7 @@ def plot_embedding(
                     size=50,
                 )
                 # add top three gene loadings if cNMF
-                if color.str.startswith("usage_"):
+                if color.startswith("usage_"):
                     [
                         axes[0].text(
                             x=0.5,
