@@ -533,6 +533,18 @@ def plot_embedding(
                     legend_fontoutline=leg_fontoutline,
                     size=50,
                 )
+                # add top three gene loadings if cNMF
+                if color.str.startswith("usage_"):
+                    [
+                        axes[0].text(
+                            x=0.5,
+                            y=0.96 - (0.06 * x),
+                            s="" + adata.uns["cnmf_spectra"].loc[x, color],
+                            fontsize=12,
+                            color="k",
+                        )
+                        for x in range(3)
+                    ]
             unique_colors.remove(color)
             i = i + 1
     fig.tight_layout()
