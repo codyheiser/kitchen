@@ -535,11 +535,16 @@ def plot_embedding(
                 )
                 # add top three gene loadings if cNMF
                 if color.startswith("usage_"):
+                    y_range = (
+                        adata.obsm["X_umap"][:, 1].max()
+                        - adata.obsm["X_umap"][:, 1].min()
+                    )
                     [
                         ax.text(
-                            x=0.5,
-                            y=0.96 - (0.06 * x),
-                            s="" + adata.uns["cnmf_markers"].loc[x, color.split("_")[1]],
+                            x=adata.obsm["X_umap"][:, 0].min(),
+                            y=adata.obsm["X_umap"][:, 1].max() - (0.06 * y_range * x),
+                            s=""
+                            + adata.uns["cnmf_markers"].loc[x, color.split("_")[1]],
                             fontsize=12,
                             color="k",
                         )
