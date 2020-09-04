@@ -539,7 +539,7 @@ def plot_embedding(
                         ax.text(
                             x=0.5,
                             y=0.96 - (0.06 * x),
-                            s="" + adata.uns["cnmf_spectra"].loc[x, color],
+                            s="" + adata.uns["cnmf_markers"].loc[x, color.split("_")[1]],
                             fontsize=12,
                             color="k",
                         )
