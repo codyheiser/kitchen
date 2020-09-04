@@ -536,7 +536,7 @@ def plot_embedding(
                 # add top three gene loadings if cNMF
                 if color.startswith("usage_"):
                     [
-                        axes[0].text(
+                        ax.text(
                             x=0.5,
                             y=0.96 - (0.06 * x),
                             s="" + adata.uns["cnmf_spectra"].loc[x, color],
