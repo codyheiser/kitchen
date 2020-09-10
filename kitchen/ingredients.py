@@ -455,7 +455,13 @@ def dim_reduce(
 
 
 def plot_embedding(
-    adata, colors=None, show_clustering=True, ncols=4, save_to=None, verbose=True
+    adata,
+    colors=None,
+    show_clustering=True,
+    n_cnmf_markers=4,
+    ncols=4,
+    save_to=None,
+    verbose=True,
 ):
     """
     Plot reduced-dimension embeddings of single-cell dataset
@@ -464,6 +470,7 @@ def plot_embedding(
         adata (anndata.AnnData): object containing preprocessed counts matrix
         colors (list of str): colors to plot; can be genes or .obs columns
         show_clustering (bool): plot PAGA graph and leiden clusters on first two axes
+        n_cnmf_markers (int): number of top genes to print on cNMF plots
         ncols (int): number of columns in gridspec
         save_to (str): path to .png file for saving figure; default is plt.show()
         verbose (bool): print updates to console
@@ -513,6 +520,7 @@ def plot_embedding(
                     fontoutline=2.5,
                     node_size_scale=3,
                 )
+                ax.set_title(label="PAGA", loc="left", fontweight="bold", fontsize=14)
             else:
                 if color in ["leiden", "louvain", "cluster", "group", "cell_type"]:
                     leg_loc, leg_fontsize, leg_fontoutline = "on data", "x-large", 2.5
@@ -541,15 +549,17 @@ def plot_embedding(
                     )
                     [
                         ax.text(
-                            x=adata.obsm["X_umap"][:, 0].min(),
+                            x=adata.obsm["X_umap"][:, 0].max(),
                             y=adata.obsm["X_umap"][:, 1].max() - (0.06 * y_range * x),
                             s=""
                             + adata.uns["cnmf_markers"].loc[x, color.split("_")[1]],
                             fontsize=12,
                             color="k",
+                            ha="right",
                         )
-                        for x in range(3)
+                        for x in range(n_cnmf_markers)
                     ]
+            ax.set_title(label=color, loc="left", fontweight="bold", fontsize=14)
             unique_colors.remove(color)
             i = i + 1
     fig.tight_layout()
