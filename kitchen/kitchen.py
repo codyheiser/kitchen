@@ -431,33 +431,56 @@ def recipe(args):
                 save_to="_cnmf_{}.png".format("_".join(name)),
             )
         os.chdir(wd)  # go back to previous working directory after saving scanpy plots
-    # if there's cnmf results, plot loadings
-    if "cnmf_spectra" in a.varm:
-        _ = rank_genes_cnmf(a, show=False)
-        if args.verbose:
+    # if there's a cnmf flag, try to plot loadings
+    if args.cnmf:
+        # check for cnmf results in anndata object
+        if "cnmf_spectra" in a.varm:
+            _ = rank_genes_cnmf(a, show=False)
+            if args.verbose:
+                print(
+                    "Saving cNMF loadings to {}/{}_cnmfspectra.png".format(
+                        args.outdir, "_".join(name)
+                    )
+                )
+            plt.savefig("{}/{}_cnmfspectra.png".format(args.outdir, "_".join(name)))
+            if args.verbose:
+                print(
+                    "Saving embeddings to {}/{}_embedding.png".format(
+                        args.outdir, "_".join(name)
+                    )
+                )
+            # save embedding plot with cNMF loadings
+            if args.colors is None:
+                args.colors = []
+            plot_embedding(
+                a,
+                colors=args.colors
+                + a.obs.columns[a.obs.columns.str.startswith("usage_")].tolist(),
+                show_clustering=True,
+                n_cnmf_markers=args.n_cnmf_markers,
+                save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
+                verbose=args.verbose,
+            )
+        else:
             print(
-                "Saving cNMF loadings to {}/{}_cnmfspectra.png".format(
-                    args.outdir, "_".join(name)
+                "cNMF results not detected in {}. Skipping cNMF overlay for embedding.".format(
+                    args.file
                 )
             )
-        plt.savefig("{}/{}_cnmfspectra.png".format(args.outdir, "_".join(name)))
-        if args.verbose:
-            print(
-                "Saving embeddings to {}/{}_embedding.png".format(
-                    args.outdir, "_".join(name)
+            # save embedding plot without cNMF loadings
+            if args.verbose:
+                print(
+                    "Saving embeddings to {}/{}_embedding.png".format(
+                        args.outdir, "_".join(name)
+                    )
                 )
+            plot_embedding(
+                a,
+                colors=args.colors,
+                show_clustering=True,
+                save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
+                verbose=args.verbose,
             )
-        # save embedding plot with cNMF loadings
-        if args.colors is None:
-            args.colors = []
-        plot_embedding(
-            a,
-            colors=args.colors
-            + a.obs.columns[a.obs.columns.str.startswith("usage_")].tolist(),
-            show_clustering=True,
-            save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
-            verbose=args.verbose,
-        )
     else:
         # save embedding plot
         if args.verbose:
@@ -1008,6 +1031,18 @@ def main():
         help="Colors to plot on embedding. Can be .obs columns or gene names.",
         nargs="*",
         default=[],
+    )
+    recipe_parser.add_argument(
+        "--cnmf",
+        help="Plot cNMF usages on embedding. Default False",
+        action="store_true",
+    )
+    recipe_parser.add_argument(
+        "--n-cnmf-markers",
+        required=False,
+        type=int,
+        help="Number of top loaded genes to print on cNMF embeddings. Default 5.",
+        default=5,
     )
     recipe_parser.add_argument(
         "--seed", type=int, help="Random state for generating embeddings.", default=18,
