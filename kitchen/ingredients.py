@@ -516,18 +516,18 @@ def plot_embedding(
                     ax=ax,
                     frameon=False,
                     show=False,
-                    fontsize="x-large",
-                    fontoutline=2.5,
-                    node_size_scale=3,
+                    fontsize="large",
+                    fontoutline=2.0,
+                    node_size_scale=2.5,
                 )
-                ax.set_title(label="PAGA", loc="left", fontweight="bold", fontsize=14)
+                ax.set_title(label="PAGA", loc="left", fontweight="bold", fontsize=16)
             else:
                 if color in ["leiden", "louvain", "cluster", "group", "cell_type"]:
-                    leg_loc, leg_fontsize, leg_fontoutline = "on data", "x-large", 2.5
+                    leg_loc, leg_fontsize, leg_fontoutline = "on data", "large", 2.0
                 else:
                     leg_loc, leg_fontsize, leg_fontoutline = (
                         "right margin",
-                        "medium",
+                        12,
                         None,
                     )
                 sc.pl.umap(
@@ -540,6 +540,7 @@ def plot_embedding(
                     legend_fontsize=leg_fontsize,
                     legend_fontoutline=leg_fontoutline,
                     size=50,
+                    title="",
                 )
                 # add top three gene loadings if cNMF
                 if color.startswith("usage_"):
@@ -559,7 +560,7 @@ def plot_embedding(
                         )
                         for x in range(n_cnmf_markers)
                     ]
-            ax.set_title(label=color, loc="left", fontweight="bold", fontsize=14)
+            ax.set_title(label=color, loc="left", fontweight="bold", fontsize=16)
             unique_colors.remove(color)
             i = i + 1
     fig.tight_layout()
