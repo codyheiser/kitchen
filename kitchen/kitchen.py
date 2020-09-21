@@ -415,6 +415,7 @@ def recipe(args):
             plot_type=args.diff_expr,
             groupby="leiden",
             n_genes=5,
+            cmap=args.cmap,
             save_to="_{}.png".format("_".join(name)),
             verbose=args.verbose,
         )
@@ -428,6 +429,7 @@ def recipe(args):
                 keys="cnmf_spectra",
                 indices=None,
                 n_genes=5,
+                cmap=args.cmap,
                 save_to="_cnmf_{}.png".format("_".join(name)),
             )
         os.chdir(wd)  # go back to previous working directory after saving scanpy plots
@@ -458,6 +460,7 @@ def recipe(args):
                 + a.obs.columns[a.obs.columns.str.startswith("usage_")].tolist(),
                 show_clustering=True,
                 n_cnmf_markers=args.n_cnmf_markers,
+                cmap=args.cmap,
                 save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
                 verbose=args.verbose,
             )
@@ -1033,6 +1036,14 @@ def main():
         default=[],
     )
     recipe_parser.add_argument(
+        "-cm",
+        "--cmap",
+        required=False,
+        type=str,
+        help="Color map to use in UMAP overlays and genes plot",
+        default="viridis",
+    )
+    recipe_parser.add_argument(
         "--cnmf",
         help="Plot cNMF usages on embedding. Default False",
         action="store_true",
@@ -1099,7 +1110,7 @@ def main():
         help="Number of genes to plot per group. Default 5.",
     )
     de_parser.add_argument(
-        "-c",
+        "-cm",
         "--cmap",
         required=False,
         type=str,
@@ -1161,7 +1172,7 @@ def main():
         help="Number of genes to plot per group. Default 5.",
     )
     cnmf_markers_parser.add_argument(
-        "-c",
+        "-cm",
         "--cmap",
         required=False,
         type=str,

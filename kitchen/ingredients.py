@@ -14,7 +14,7 @@ from emptydrops import find_nonambient_barcodes
 from emptydrops.matrix import CountMatrix
 
 sc.set_figure_params(
-    color_map="viridis", frameon=False, dpi=100, dpi_save=200, format="png"
+    color_map="coolwarm", frameon=False, dpi=100, dpi_save=200, format="png"
 )
 
 # define cell cycle phase genes
@@ -460,6 +460,7 @@ def plot_embedding(
     show_clustering=True,
     n_cnmf_markers=5,
     ncols=4,
+    cmap="viridis",
     save_to=None,
     verbose=True,
 ):
@@ -472,6 +473,7 @@ def plot_embedding(
         show_clustering (bool): plot PAGA graph and leiden clusters on first two axes
         n_cnmf_markers (int): number of top genes to print on cNMF plots
         ncols (int): number of columns in gridspec
+        cmap (str): valid color map for the plot
         save_to (str): path to .png file for saving figure; default is plt.show()
         verbose (bool): print updates to console
 
@@ -541,6 +543,7 @@ def plot_embedding(
                     legend_fontoutline=leg_fontoutline,
                     size=50,
                     title="",
+                    color_map=cmap,
                 )
                 # add top three gene loadings if cNMF
                 if color.startswith("usage_"):
