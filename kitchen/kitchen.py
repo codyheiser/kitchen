@@ -481,6 +481,7 @@ def recipe(args):
                 a,
                 colors=args.colors,
                 show_clustering=True,
+                cmap=args.cmap,
                 save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
                 verbose=args.verbose,
             )
@@ -496,6 +497,7 @@ def recipe(args):
             a,
             colors=args.colors,
             show_clustering=True,
+            cmap=args.cmap,
             save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
             verbose=args.verbose,
         )

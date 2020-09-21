@@ -13,9 +13,7 @@ from math import ceil
 from emptydrops import find_nonambient_barcodes
 from emptydrops.matrix import CountMatrix
 
-sc.set_figure_params(
-    color_map="coolwarm", frameon=False, dpi=100, dpi_save=200, format="png"
-)
+sc.set_figure_params(frameon=False, dpi=100, dpi_save=200, format="png")
 
 # define cell cycle phase genes
 #  human genes ('_h') from satija lab list
