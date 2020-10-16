@@ -627,6 +627,7 @@ def plot_genes(
                 markers,
                 dendrogram=dendrogram,
                 groupby=groupby,
+                swap_axes=True,
                 show_gene_labels=True,
                 layer="arcsinh",
                 var_group_rotation=0,
