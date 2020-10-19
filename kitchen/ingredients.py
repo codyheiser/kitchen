@@ -935,7 +935,7 @@ def cluster_pie(
     cdict = {}
     # use existing scanpy colors, if applicable
     if "{}_colors".format(pie_by) in adata.uns:
-        for ic, c in enumerate(a.obs[pie_by].cat.categories):
+        for ic, c in enumerate(adata.obs[pie_by].cat.categories):
             cdict[c] = adata.uns["{}_colors".format(pie_by)][ic]
     else:
         cmap = plt.get_cmap("tab10")
