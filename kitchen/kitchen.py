@@ -23,6 +23,7 @@ from .ingredients import (
     plot_genes,
     plot_genes_cnmf,
     rank_genes_cnmf,
+    cluster_pie,
 )
 from ._version import get_versions
 
@@ -561,6 +562,28 @@ def cnmf_markers(args):
         cmap=args.cmap,
         save_to="_cnmf_{}.png".format("_".join(name)),
     )
+
+
+def pie(args):
+    """plot populational pie charts for desired groups"""
+    # get basename of file for writing outputs
+    name = [os.path.splitext(os.path.basename(args.file))[0]]
+    # read file into anndata obj
+    if args.verbose:
+        print("Reading {}".format(args.file), end="")
+    a = sc.read(args.file)
+    if args.verbose:
+        print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
+    # generate cluster_pie plot
+    os.chdir(args.outdir)  # set output directory for scanpy figures
+    _ = cluster_pie(a, pie_by=args.pieby, groupby=args.groupby)
+    if args.verbose:
+        print(
+            "Saving cluster pie charts to {}/{}_pie.png".format(
+                args.outdir, "_".join(name)
+            )
+        )
+    plt.savefig("{}/{}_pie.png".format(args.outdir, "_".join(name)))
 
 
 def main():
@@ -1140,6 +1163,43 @@ def main():
         "-q", "--quietly", help="Don't print updates to console", action="store_true",
     )
     de_parser.set_defaults(func=de)
+
+    pie_parser = subparsers.add_parser(
+        "pie", help="Plot populational pie charts for desired groups",
+    )
+    pie_parser.add_argument(
+        "file",
+        type=str,
+        help="Counts file as .h5ad or flat (.csv, .txt) in cells x genes format",
+    )
+    pie_parser.add_argument(
+        "-g",
+        "--groupby",
+        required=False,
+        type=str,
+        help=".obs variable to group cells by for plotting pie charts",
+        default="leiden",
+    )
+    pie_parser.add_argument(
+        "-p",
+        "--pieby",
+        required=False,
+        type=str,
+        help=".obs variable to group cells by for pie chart within each groupby category",
+        default="batch",
+    )
+    pie_parser.add_argument(
+        "-o",
+        "--outdir",
+        type=str,
+        help="Output directory for saving plots. Default './'",
+        nargs="?",
+        default=".",
+    )
+    pie_parser.add_argument(
+        "-q", "--quietly", help="Don't print updates to console", action="store_true",
+    )
+    pie_parser.set_defaults(func=pie)
 
     cnmf_markers_parser = subparsers.add_parser(
         "cnmf_markers",

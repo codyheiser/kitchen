@@ -890,6 +890,74 @@ def rank_genes_cnmf(
             labelleft=False,
         )
         plt.grid(False)
-        gs.tight_layout(fig)
+    gs.tight_layout(fig)
+    if show == False:
+        return gs
+
+
+def cluster_pie(
+    adata, pie_by="batch", groupby="leiden", show=None, figsize=(5, 5),
+):
+    """
+    plot pie graphs showing makeup of cluster groups
+
+    Parameters:
+        adata : AnnData
+            The data.
+
+    Returns:
+        matplotlib gridspec with access to the axes.
+    """
+    # get portions for each cluster
+    pies = {}  # init empty dict
+    for c in adata.obs[groupby].cat.categories:
+        pies[c] = (
+            adata.obs.loc[adata.obs[groupby] == c, pie_by].value_counts()
+            / adata.obs[groupby].value_counts()[c]
+        ).to_dict()
+    n_panels = len(adata.obs[groupby].cat.categories)
+    if n_panels <= 5:
+        n_rows, n_cols = 1, n_panels
+    else:
+        n_rows, n_cols = ceil(n_panels / 4), 4
+    fig = plt.figure(figsize=(n_cols * figsize[0], n_rows * figsize[1]))
+    left, bottom = 0.1 / n_cols, 0.1 / n_rows
+    gs = gridspec.GridSpec(
+        nrows=n_rows,
+        ncols=n_cols,
+        wspace=0.1,
+        left=left,
+        bottom=bottom,
+        right=1 - (n_cols - 1) * left - 0.01 / n_cols,
+        top=1 - (n_rows - 1) * bottom - 0.1 / n_rows,
+    )
+    # get pie chart colors
+    cdict = {}
+    # use existing scanpy colors, if applicable
+    if "{}_colors".format(pie_by) in adata.uns:
+        for ic, c in enumerate(a.obs[pie_by].cat.categories):
+            cdict[c] = adata.uns["{}_colors".format(pie_by)][ic]
+    else:
+        cmap = plt.get_cmap("tab10")
+        for ic, c in enumerate(adata.obs[pie_by].cat.categories):
+            cdict[c] = cmap(np.linspace(0, 1, len(adata.obs[pie_by].cat.categories)))[
+                ic
+            ]
+    for ipie, pie in enumerate(pies.keys()):
+        plt.subplot(gs[ipie])
+        plt.pie(
+            pies[pie].values(),
+            labels=pies[pie].keys(),
+            colors=[cdict[x] for x in pies[pie].keys()],
+            radius=0.85,
+            textprops={"fontsize": 12},
+        )
+        plt.title(
+            label="{}_{}".format(groupby, pie),
+            loc="left",
+            fontweight="bold",
+            fontsize=16,
+        )
+    gs.tight_layout(fig)
     if show == False:
         return gs
