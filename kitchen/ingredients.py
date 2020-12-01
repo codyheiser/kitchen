@@ -479,6 +479,8 @@ def plot_embedding(
         plot of PAGA, UMAP with Leiden and n_genes overlay, plus additional metrics
         from "colors"
     """
+    if isinstance(colors, str):  # force colors into list if single string
+        colors = [colors]
     if "paga" in adata.uns:
         cluster_colors = ["paga", "leiden"]
     else:
