@@ -222,6 +222,12 @@ g2m_genes_m = [
 def check_dir_exists(path):
     """
     Checks if directory already exists or not and creates it if it doesn't
+
+    Parameters:
+        path (str): path to directory
+
+    Returns:
+        tries to make directory at path, unless it already exists
     """
     try:
         os.makedirs(path)
@@ -233,6 +239,12 @@ def check_dir_exists(path):
 def list_union(lst1, lst2):
     """
     Combine two lists by the union of their values
+
+    Parameters:
+        lst1, lst2 (list): lists to combine
+
+    Returns:
+        final_list (list): union of values in lst1 and lst2
     """
     final_list = set(lst1).union(set(lst2))
     return final_list
@@ -319,6 +331,16 @@ def subset_adata(adata, subset, verbose=True):
     Subset AnnData object on one or more .obs columns
     columns should contain 0/False for cells to throw out, and 1/True for cells to keep
     keeps union of all labels provided in subset
+
+    Parameters:
+        adata (anndata.AnnData): the data
+        subset (str or list of str): adata.obs labels to use for subsetting
+            labels must be binary (0, "0", False, "False" to toss - 1, "1",
+            True, "True" to keep). multiple labels will keep intersection.
+        verbose (bool): print updates to console
+
+    Returns:
+        new anndata object as subset of adata
     """
     if verbose:
         print("Subsetting AnnData on {}".format(subset), end="")
@@ -457,7 +479,7 @@ def plot_embedding(
     colors=None,
     show_clustering=True,
     n_cnmf_markers=5,
-    ncols=4,
+    ncols=5,
     cmap="viridis",
     save_to=None,
     verbose=True,
@@ -598,6 +620,9 @@ def plot_genes(
         cmap (str): valid color map for the plot
         save_to (str): string to add to plot name using scanpy plot defaults
         verbose (bool): print updates to console
+
+    Returns:
+        matplotlib figure
     """
     if verbose:
         print("Performing differential expression analysis...")
@@ -731,6 +756,9 @@ def plot_genes_cnmf(
         dendrogram (bool): show dendrogram of cluster similarity
         cmap (str): valid color map for the plot
         save_to (str): string to add to plot name using scanpy plot defaults
+
+    Returns:
+        matplotlib figure
     """
     # calculate arcsinh counts for visualization
     adata.X = adata.layers["raw_counts"].copy()
@@ -805,6 +833,7 @@ def rank_genes_cnmf(
     labels=None,
     color="black",
     n_points=20,
+    ncols=5,
     log=False,
     show=None,
     figsize=(5, 5),
@@ -814,17 +843,20 @@ def rank_genes_cnmf(
     See, for example, how this is used in pl.pca_ranking.
 
     Parameters:
-        adata : AnnData
-            The data.
-        attr : {'var', 'obs', 'uns', 'varm', 'obsm'}
-            The attribute of AnnData that contains the score.
-        keys : str or list of str
-            The scores to look up an array from the attribute of adata.
-        indices : list of int
-            The column indices of keys for which to plot (e.g. [0,1,2] for first three keys)
+        adata (anndata.AnnData): the data
+        attr (str): {'var', 'obs', 'uns', 'varm', 'obsm'}
+            the attribute of AnnData that contains the score
+        keys (str or list of str): the scores to look up an array from
+            the attribute of adata
+        indices (list of int): the column indices of keys for which to
+            plot (e.g. [0,1,2] for first three keys)
+        ncols (int): number of columns in gridspec
+        show (bool or None): show figure or just return axes
+        figsize (tuple of float): size of matplotlib figure
+        ncol (int): number of columns for gridspec
 
     Returns:
-        matplotlib gridspec with access to the axes.
+        matplotlib gridspec with access to the axes
     """
     # default to all usages
     if indices is None:
@@ -846,10 +878,10 @@ def rank_genes_cnmf(
         )
     if isinstance(labels, str):
         labels = [labels + str(i + 1) for i in range(scores.shape[0])]
-    if n_panels <= 5:
+    if n_panels <= ncols:
         n_rows, n_cols = 1, n_panels
     else:
-        n_rows, n_cols = ceil(n_panels / 4), 4
+        n_rows, n_cols = ceil(n_panels / ncols), ncols
     fig = plt.figure(figsize=(n_cols * figsize[0], n_rows * figsize[1]))
     left, bottom = 0.1 / n_cols, 0.1 / n_rows
     gs = gridspec.GridSpec(
@@ -898,17 +930,21 @@ def rank_genes_cnmf(
 
 
 def cluster_pie(
-    adata, pie_by="batch", groupby="leiden", show=None, figsize=(5, 5),
+    adata, pie_by="batch", groupby="leiden", ncols=5, show=None, figsize=(5, 5),
 ):
     """
     plot pie graphs showing makeup of cluster groups
 
     Parameters:
-        adata : AnnData
-            The data.
+        adata (anndata.AnnData): the data
+        pie_by (str): adata.obs column to split pie charts by
+        groupby (str): adata.obs column to create pie charts for
+        ncols (int): number of columns in gridspec
+        show (bool or None): show figure or just return axes
+        figsize (tuple of float): size of matplotlib figure
 
     Returns:
-        matplotlib gridspec with access to the axes.
+        matplotlib gridspec with access to the axes
     """
     # get portions for each cluster
     pies = {}  # init empty dict
@@ -918,10 +954,10 @@ def cluster_pie(
             / adata.obs[groupby].value_counts()[c]
         ).to_dict()
     n_panels = len(adata.obs[groupby].cat.categories)
-    if n_panels <= 5:
+    if n_panels <= ncols:
         n_rows, n_cols = 1, n_panels
     else:
-        n_rows, n_cols = ceil(n_panels / 4), 4
+        n_rows, n_cols = ceil(n_panels / ncols), ncols
     fig = plt.figure(figsize=(n_cols * figsize[0], n_rows * figsize[1]))
     left, bottom = 0.1 / n_cols, 0.1 / n_rows
     gs = gridspec.GridSpec(
