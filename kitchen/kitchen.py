@@ -127,6 +127,11 @@ def h5ad_to_csv(args):
         df.to_csv(
             "{}/{}.csv".format(args.outdir, name), sep=",", header=True, index=True
         )
+    if args.rm_h5ad_file:
+        # remove original, h5ad file
+        if args.verbose:
+            print("Removing {}".format(args.file))
+        os.remove(args.file)
 
 
 def transpose(args):
@@ -658,6 +663,12 @@ def main():
         "-s",
         "--separate-indices",
         help="Save indices (.obs and .var names) to separate files",
+        action="store_true",
+    )
+    to_h5ad_parser.add_argument(
+        "-rm",
+        "--rm-h5ad-file",
+        help="Remove original h5ad file. Default False",
         action="store_true",
     )
     to_csv_parser.add_argument(
