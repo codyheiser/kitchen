@@ -255,13 +255,15 @@ def add_label(args):
     # add .obs column to ref_file
     a.obs[args.label] = 0
     a.obs.loc[b.obs_names, args.label] = 1
-    print(
-        "\nTransferring labels to {}:\n{}".format(
-            args.ref_file, a.obs[args.label].value_counts()
+    if args.verbose:
+        print(
+            "\nTransferring labels to {}:\n{}".format(
+                args.ref_file, a.obs[args.label].value_counts()
+            )
         )
-    )
     # save file as .h5ad
-    print("\nWriting counts to {}".format(args.ref_file))
+    if args.verbose:
+        print("\nWriting counts to {}".format(args.ref_file))
     a.write(args.ref_file, compression="gzip")
     if args.rm_orig_file:
         # remove filtered file
@@ -308,7 +310,8 @@ def emptydrops(args):
         max_adj_pvalue=args.max_adj_pval,
     )
     # save file as .h5ad
-    print("Writing counts to {}".format(args.file))
+    if args.verbose:
+        print("Writing counts to {}".format(args.file))
     a.write(args.file, compression="gzip")
 
 
