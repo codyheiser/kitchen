@@ -665,7 +665,7 @@ def main():
         help="Save indices (.obs and .var names) to separate files",
         action="store_true",
     )
-    to_h5ad_parser.add_argument(
+    to_csv_parser.add_argument(
         "-rm",
         "--rm-h5ad-file",
         help="Remove original h5ad file. Default False",
