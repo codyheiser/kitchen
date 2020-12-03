@@ -946,6 +946,13 @@ def cluster_pie(
     Returns:
         matplotlib gridspec with access to the axes
     """
+    if adata.obs[groupby].value_counts().min() == 0:
+        print(
+            "Warning: unused categories detected in adata.obs['{}']; removing prior to building plots...".format(
+                groupby
+            )
+        )
+        adata.obs[groupby] = adata.obs[groupby].cat.remove_unused_categories()
     # get portions for each cluster
     pies = {}  # init empty dict
     for c in adata.obs[groupby].cat.categories:
@@ -988,6 +995,7 @@ def cluster_pie(
             labels=pies[pie].keys(),
             colors=[cdict[x] for x in pies[pie].keys()],
             radius=0.85,
+            wedgeprops=dict(width=0.5),
             textprops={"fontsize": 12},
         )
         plt.title(
