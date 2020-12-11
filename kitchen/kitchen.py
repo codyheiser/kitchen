@@ -127,6 +127,11 @@ def h5ad_to_csv(args):
         df.to_csv(
             "{}/{}.csv".format(args.outdir, name), sep=",", header=True, index=True
         )
+    if args.rm_h5ad_file:
+        # remove original, h5ad file
+        if args.verbose:
+            print("Removing {}".format(args.file))
+        os.remove(args.file)
 
 
 def transpose(args):
@@ -255,13 +260,15 @@ def add_label(args):
     # add .obs column to ref_file
     a.obs[args.label] = 0
     a.obs.loc[b.obs_names, args.label] = 1
-    print(
-        "\nTransferring labels to {}:\n{}".format(
-            args.ref_file, a.obs[args.label].value_counts()
+    if args.verbose:
+        print(
+            "\nTransferring labels to {}:\n{}".format(
+                args.ref_file, a.obs[args.label].value_counts()
+            )
         )
-    )
     # save file as .h5ad
-    print("\nWriting counts to {}".format(args.ref_file))
+    if args.verbose:
+        print("\nWriting counts to {}".format(args.ref_file))
     a.write(args.ref_file, compression="gzip")
     if args.rm_orig_file:
         # remove filtered file
@@ -308,7 +315,8 @@ def emptydrops(args):
         max_adj_pvalue=args.max_adj_pval,
     )
     # save file as .h5ad
-    print("Writing counts to {}".format(args.file))
+    if args.verbose:
+        print("Writing counts to {}".format(args.file))
     a.write(args.file, compression="gzip")
 
 
@@ -655,6 +663,12 @@ def main():
         "-s",
         "--separate-indices",
         help="Save indices (.obs and .var names) to separate files",
+        action="store_true",
+    )
+    to_csv_parser.add_argument(
+        "-rm",
+        "--rm-h5ad-file",
+        help="Remove original h5ad file. Default False",
         action="store_true",
     )
     to_csv_parser.add_argument(
