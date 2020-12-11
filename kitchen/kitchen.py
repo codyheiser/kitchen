@@ -199,7 +199,7 @@ def to_X(args):
         print(a)
     # swap layers
     if args.verbose:
-        print("Putting .layers['{}'] in .X and saving")
+        print("Putting .layers['{}'] in .X and saving".format(args.layer))
     a.X = a.layers[args.layer].copy()
     # save file as .h5ad
     a.write(args.file, compression="gzip")
