@@ -619,9 +619,9 @@ def main():
         "-o",
         "--outdir",
         type=str,
-        help="Output directory for writing h5ad. Default './'",
         nargs="?",
         default=".",
+        help="Output directory for writing h5ad. Default './'",
     )
     to_h5ad_parser.add_argument(
         "-rm",
@@ -648,9 +648,9 @@ def main():
         "-o",
         "--outdir",
         type=str,
-        help="Output directory for writing csv file(s). Default './'",
         nargs="?",
         default=".",
+        help="Output directory for writing csv file(s). Default './'",
     )
     to_csv_parser.add_argument(
         "-l",
@@ -878,23 +878,23 @@ def main():
         "-e",
         "--expected",
         type=int,
-        help="Number of expected cells in the dataset; default 3000",
         nargs="?",
         default=3000,
+        help="Number of expected cells in the dataset; default 3000",
     )
     cellranger2_parser.add_argument(
         "-u",
         "--upper-quant",
         type=float,
-        help="Upper quantile of expected cells for knee point; default 0.99",
         default=0.99,
+        help="Upper quantile of expected cells for knee point; default 0.99",
     )
     cellranger2_parser.add_argument(
         "-l",
         "--lower-prop",
         type=float,
-        help="Lower proportion of cells to set threshold at; default 0.1",
         default=0.1,
+        help="Lower proportion of cells to set threshold at; default 0.1",
     )
     cellranger2_parser.add_argument(
         "-q",
@@ -914,27 +914,27 @@ def main():
     cellranger3_parser.add_argument(
         "--init-counts",
         type=int,
-        help="Initial total counts threshold for calling cells; default 15000",
         nargs="?",
         default=15000,
+        help="Initial total counts threshold for calling cells; default 15000",
     )
     cellranger3_parser.add_argument(
         "--min-umi-frac",
         type=float,
-        help="Minimum total counts for testing barcodes as fraction of median counts for initially labeled cells; default 0.01",
         default=0.01,
+        help="Minimum total counts for testing barcodes as fraction of median counts for initially labeled cells; default 0.01",
     )
     cellranger3_parser.add_argument(
         "--min-umi",
         type=int,
-        help="Minimum total counts for testing barcodes; default 500",
         default=500,
+        help="Minimum total counts for testing barcodes; default 500",
     )
     cellranger3_parser.add_argument(
         "--max-adj-pval",
         type=float,
-        help="Maximum p-value for cell calling after B-H correction; default 0.01",
         default=0.01,
+        help="Maximum p-value for cell calling after B-H correction; default 0.01",
     )
     cellranger3_parser.add_argument(
         "-q",
@@ -962,9 +962,9 @@ def main():
         "-o",
         "--out",
         type=str,
-        help="Path to output .h5ad file. Default './subset.h5ad'",
         nargs="?",
         default="./subset.h5ad",
+        help="Path to output .h5ad file. Default './subset.h5ad'",
     )
     subset_parser.add_argument(
         "-q",
@@ -985,9 +985,9 @@ def main():
         "-o",
         "--out",
         type=str,
-        help="Path to output .h5ad file. Default './concat.h5ad'",
         nargs="?",
         default="./concat.h5ad",
+        help="Path to output .h5ad file. Default './concat.h5ad'",
     )
     concatenate_parser.add_argument(
         "-q",
@@ -1016,14 +1016,14 @@ def main():
         "--min-genes",
         required=False,
         type=int,
-        help="Minimum number of genes detected to keep cell. Default 1.",
         default=1,
+        help="Minimum number of genes detected to keep cell. Default 1.",
     )
     recipe_parser.add_argument(
         "-s",
         "--subset",
-        default=None,
         nargs="*",
+        default=None,
         help=".obs column(s) to subset cells on before embedding",
     )
     recipe_parser.add_argument(
@@ -1038,7 +1038,7 @@ def main():
         "--use-rep",
         type=str,
         default=None,
-        help="Key from .obsm to use for neighbors graph and embedding. Default 'PCA'.",
+        help="Key from .obsm to use for neighbors graph and embedding. Default run PCA.",
     )
     recipe_parser.add_argument(
         "-r",
@@ -1062,48 +1062,51 @@ def main():
         "-de",
         "--diff_expr",
         type=str,
-        help="Type(s) of DE gene expression plots ['heatmap', 'dotplot', 'matrixplot']",
         nargs="*",
         default=None,
+        help="Type(s) of DE gene expression plots ['heatmap', 'dotplot', 'matrixplot']",
     )
     recipe_parser.add_argument(
         "-c",
         "--colors",
         type=str,
-        help="Colors to plot on embedding. Can be .obs columns or gene names.",
         nargs="*",
         default=[],
+        help="Colors to plot on embedding. Can be .obs columns or gene names.",
     )
     recipe_parser.add_argument(
         "-cm",
         "--cmap",
         required=False,
         type=str,
+        default="Reds",
         help="Color map to use in UMAP overlays and genes plot",
-        default="viridis",
     )
     recipe_parser.add_argument(
         "--cnmf",
-        help="Plot cNMF usages on embedding. Default False",
+        help="Plot cNMF usages on embedding. Default False.",
         action="store_true",
     )
     recipe_parser.add_argument(
         "--n-cnmf-markers",
         required=False,
         type=int,
-        help="Number of top loaded genes to print on cNMF embeddings. Default 5.",
-        default=5,
+        default=7,
+        help="Number of top loaded genes to print on cNMF embeddings. Default 7.",
     )
     recipe_parser.add_argument(
-        "--seed", type=int, help="Random state for generating embeddings.", default=18,
+        "--seed",
+        type=int,
+        help="Random state for generating embeddings. Default 18",
+        default=18,
     )
     recipe_parser.add_argument(
         "-o",
         "--outdir",
         type=str,
-        help="Output directory for saving plots. Default './'",
         nargs="?",
         default=".",
+        help="Output directory for saving plots. Default './'",
     )
     recipe_parser.add_argument(
         "-sa",
@@ -1129,17 +1132,17 @@ def main():
         "-p",
         "--plot-type",
         type=str,
-        help="Type(s) of DE gene expression plot ['heatmap', 'dotplot', 'matrixplot']",
         nargs="*",
         default=None,
+        help="Type(s) of DE gene expression plot ['heatmap', 'dotplot', 'matrixplot']",
     )
     de_parser.add_argument(
         "-g",
         "--groupby",
         required=False,
         type=str,
-        help=".obs variable to group cells by for DE analysis",
         default="leiden",
+        help=".obs variable to group cells by for DE analysis",
     )
     de_parser.add_argument(
         "-n",
@@ -1153,8 +1156,8 @@ def main():
         "--cmap",
         required=False,
         type=str,
+        default="Reds",
         help="Color map to use in genes plot",
-        default="viridis",
     )
     de_parser.add_argument(
         "-a", "--ambient", help="Include ambient genes", action="store_true",
@@ -1191,24 +1194,24 @@ def main():
         "--groupby",
         required=False,
         type=str,
-        help=".obs variable to group cells by for plotting pie charts",
         default="leiden",
+        help=".obs variable to group cells by for plotting pie charts",
     )
     pie_parser.add_argument(
         "-p",
         "--pieby",
         required=False,
         type=str,
-        help=".obs variable to group cells by for pie chart within each groupby category",
         default="batch",
+        help=".obs variable to group cells by for pie chart within each groupby category",
     )
     pie_parser.add_argument(
         "-o",
         "--outdir",
         type=str,
-        help="Output directory for saving plots. Default './'",
         nargs="?",
         default=".",
+        help="Output directory for saving plots. Default './'",
     )
     pie_parser.add_argument(
         "-q", "--quietly", help="Don't print updates to console", action="store_true",
@@ -1228,17 +1231,17 @@ def main():
         "-p",
         "--plot-type",
         type=str,
-        help="Type(s) of gene expression plot ['heatmap', 'dotplot', 'matrixplot']",
         nargs="*",
         default=None,
+        help="Type(s) of gene expression plot ['heatmap', 'dotplot', 'matrixplot']",
     )
     cnmf_markers_parser.add_argument(
         "-g",
         "--groupby",
         required=False,
         type=str,
-        help=".obs variable to group cells by for plotting cNMF genes",
         default="leiden",
+        help=".obs variable to group cells by for plotting cNMF genes",
     )
     cnmf_markers_parser.add_argument(
         "-n",
@@ -1252,8 +1255,8 @@ def main():
         "--cmap",
         required=False,
         type=str,
+        default="Reds",
         help="Color map to use in genes plot",
-        default="viridis",
     )
     cnmf_markers_parser.add_argument(
         "-d",
@@ -1265,9 +1268,9 @@ def main():
         "-o",
         "--outdir",
         type=str,
-        help="Output directory for saving plots. Default './'",
         nargs="?",
         default=".",
+        help="Output directory for saving plots. Default './'",
     )
     cnmf_markers_parser.add_argument(
         "-q", "--quietly", help="Don't print updates to console", action="store_true",
