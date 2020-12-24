@@ -478,9 +478,9 @@ def plot_embedding(
     adata,
     colors=None,
     show_clustering=True,
-    n_cnmf_markers=5,
+    n_cnmf_markers=7,
     ncols=5,
-    cmap="viridis",
+    cmap="Reds",
     save_to=None,
     verbose=True,
 ):
