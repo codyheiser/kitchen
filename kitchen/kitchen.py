@@ -417,31 +417,32 @@ def recipe(args):
     check_dir_exists(args.outdir)
     # if there's DE to do, plot genes
     if args.diff_expr is not None:
-        wd = os.getcwd()  # save current working directory for later
-        os.chdir(args.outdir)  # set output directory for scanpy figures
-        plot_genes(
-            a,
-            plot_type=args.diff_expr,
-            groupby="leiden",
-            n_genes=5,
-            cmap=args.cmap,
-            save_to="_{}.png".format("_".join(name)),
-            verbose=args.verbose,
-        )
-        # if there's cnmf results, plot those on a heatmap/matrix/dotplot too
-        if "cnmf_spectra" in a.varm:
-            plot_genes_cnmf(
+        if isinstance(args.diff_expr, str):
+            args.diff_expr = [args.diff_expr]
+        for de in diff_expr:
+            plot_genes(
                 a,
-                plot_type=args.diff_expr,
+                plot_type=de,
                 groupby="leiden",
-                attr="varm",
-                keys="cnmf_spectra",
-                indices=None,
                 n_genes=5,
                 cmap=args.cmap,
-                save_to="_cnmf_{}.png".format("_".join(name)),
+                save_to="{}/{}_{}.png".format(args.outdir, de, "_".join(name)),
+                verbose=args.verbose,
             )
-        os.chdir(wd)  # go back to previous working directory after saving scanpy plots
+        # if there's cnmf results, plot those on a heatmap/matrix/dotplot too
+        if "cnmf_spectra" in a.varm:
+            for de in diff_expr:
+                plot_genes_cnmf(
+                    a,
+                    plot_type=de,
+                    groupby="leiden",
+                    attr="varm",
+                    keys="cnmf_spectra",
+                    indices=None,
+                    n_genes=5,
+                    cmap=args.cmap,
+                    save_to="{}/{}_cnmf_{}.png".format(args.outdir, de, "_".join(name)),
+                )
     # if there's a cnmf flag, try to plot loadings
     if args.cnmf:
         # check for cnmf results in anndata object
@@ -534,19 +535,21 @@ def de(args):
     a = sc.read(args.file)
     if args.verbose:
         print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
+    if isinstance(args.plot_type, str):
+        args.plot_type = [args.plot_type]
     # perform DE analysis and plot genes
-    os.chdir(args.outdir)  # set output directory for scanpy figures
-    plot_genes(
-        a,
-        plot_type=args.plot_type,
-        groupby=args.groupby,
-        n_genes=args.n_genes,
-        ambient=args.ambient,
-        dendrogram=args.dendrogram,
-        cmap=args.cmap,
-        save_to="_{}.png".format("_".join(name)),
-        verbose=args.verbose,
-    )
+    for plot in plot_type:
+        plot_genes(
+            a,
+            plot_type=plot,
+            groupby=args.groupby,
+            n_genes=args.n_genes,
+            ambient=args.ambient,
+            dendrogram=args.dendrogram,
+            cmap=args.cmap,
+            save_to="{}/{}_{}.png".format(args.outdir, plot, "_".join(name)),
+            verbose=args.verbose,
+        )
 
 
 def cnmf_markers(args):
@@ -559,17 +562,19 @@ def cnmf_markers(args):
     a = sc.read(args.file)
     if args.verbose:
         print(" - {} cells and {} genes".format(a.shape[0], a.shape[1]))
+    if isinstance(args.plot_type, str):
+        args.plot_type = [args.plot_type]
     # plot cNMF marker genes
-    os.chdir(args.outdir)  # set output directory for scanpy figures
-    plot_genes_cnmf(
-        a,
-        plot_type=args.plot_type,
-        groupby=args.groupby,
-        n_genes=args.n_genes,
-        dendrogram=args.dendrogram,
-        cmap=args.cmap,
-        save_to="_cnmf_{}.png".format("_".join(name)),
-    )
+    for plot in args.plot_type:
+        plot_genes_cnmf(
+            a,
+            plot_type=plot,
+            groupby=args.groupby,
+            n_genes=args.n_genes,
+            dendrogram=args.dendrogram,
+            cmap=args.cmap,
+            save_to="{}/{}_cnmf_{}.png".format(args.outdir, plot, "_".join(name)),
+        )
 
 
 def pie(args):
