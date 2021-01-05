@@ -646,6 +646,13 @@ def plot_genes(
     adata.layers["arcsinh"] = adata.X.copy()
     adata.X = adata.layers["raw_counts"].copy()  # return raw counts to .X
 
+    # adjust rcParams
+    rcParams['figure.figsize'] = (4, 4)
+    rcParams['figure.subplot.left'] = 0.18
+    rcParams['figure.subplot.right'] = 0.96
+    rcParams['figure.subplot.bottom'] = 0.15
+    rcParams['figure.subplot.top'] = 0.91
+
     if ambient:
         # get markers manually and append ambient genes
         markers = {}
@@ -810,6 +817,13 @@ def plot_genes_cnmf(
         indices = np.argsort(score)[::-1][:n_genes]
         for x in indices[::-1]:
             markers[keys[iscore]].append(labels[x])
+
+    # adjust rcParams
+    rcParams['figure.figsize'] = (4, 4)
+    rcParams['figure.subplot.left'] = 0.18
+    rcParams['figure.subplot.right'] = 0.96
+    rcParams['figure.subplot.bottom'] = 0.15
+    rcParams['figure.subplot.top'] = 0.91
 
     if plot_type == "heatmap":
         myplot = sc.pl.heatmap(
