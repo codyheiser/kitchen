@@ -648,11 +648,11 @@ def plot_genes(
     adata.X = adata.layers["raw_counts"].copy()  # return raw counts to .X
 
     # adjust rcParams
-    rcParams['figure.figsize'] = (4, 4)
-    rcParams['figure.subplot.left'] = 0.18
-    rcParams['figure.subplot.right'] = 0.96
-    rcParams['figure.subplot.bottom'] = 0.15
-    rcParams['figure.subplot.top'] = 0.91
+    rcParams["figure.figsize"] = (4, 4)
+    rcParams["figure.subplot.left"] = 0.18
+    rcParams["figure.subplot.right"] = 0.96
+    rcParams["figure.subplot.bottom"] = 0.15
+    rcParams["figure.subplot.top"] = 0.91
 
     if ambient:
         # get markers manually and append ambient genes
@@ -759,7 +759,7 @@ def plot_genes(
             )
 
     if save_to is not None:
-        plt.savefig(save_to)
+        plt.savefig(save_to, bbox_inches="tight")
     else:
         return myplot
 
@@ -820,11 +820,11 @@ def plot_genes_cnmf(
             markers[keys[iscore]].append(labels[x])
 
     # adjust rcParams
-    rcParams['figure.figsize'] = (4, 4)
-    rcParams['figure.subplot.left'] = 0.18
-    rcParams['figure.subplot.right'] = 0.96
-    rcParams['figure.subplot.bottom'] = 0.15
-    rcParams['figure.subplot.top'] = 0.91
+    rcParams["figure.figsize"] = (4, 4)
+    rcParams["figure.subplot.left"] = 0.18
+    rcParams["figure.subplot.right"] = 0.96
+    rcParams["figure.subplot.bottom"] = 0.15
+    rcParams["figure.subplot.top"] = 0.91
 
     if plot_type == "heatmap":
         myplot = sc.pl.heatmap(
@@ -874,7 +874,7 @@ def plot_genes_cnmf(
         )
 
     if save_to is not None:
-        plt.savefig(save_to)
+        plt.savefig(save_to, bbox_inches="tight")
     else:
         return myplot
 
