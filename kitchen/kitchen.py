@@ -419,7 +419,7 @@ def recipe(args):
     if args.diff_expr is not None:
         if isinstance(args.diff_expr, str):
             args.diff_expr = [args.diff_expr]
-        for de in diff_expr:
+        for de in args.diff_expr:
             plot_genes(
                 a,
                 plot_type=de,
@@ -431,7 +431,7 @@ def recipe(args):
             )
         # if there's cnmf results, plot those on a heatmap/matrix/dotplot too
         if "cnmf_spectra" in a.varm:
-            for de in diff_expr:
+            for de in args.diff_expr:
                 plot_genes_cnmf(
                     a,
                     plot_type=de,
@@ -538,7 +538,7 @@ def de(args):
     if isinstance(args.plot_type, str):
         args.plot_type = [args.plot_type]
     # perform DE analysis and plot genes
-    for plot in plot_type:
+    for plot in args.plot_type:
         plot_genes(
             a,
             plot_type=plot,
