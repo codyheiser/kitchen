@@ -10,6 +10,7 @@ import scanpy as sc
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from math import ceil
+from matplotlib import rcParams
 from emptydrops import find_nonambient_barcodes
 from emptydrops.matrix import CountMatrix
 
