@@ -70,6 +70,51 @@ def to_h5ad(args):
         os.remove(args.file)
 
 
+def mtx_to_h5ad(args):
+    """Convert .mtx files from 10x CellRanger or DropEst to .h5ad"""
+    if args.dropest:
+        if args.verbose:
+            print("Reading DropEst .mtx files from {}".format(args.dir))
+        mtx_file = [x for x in os.listdir(args.dir) if x.endswith("_counts.mtx")][
+            0
+        ]  # get name of .mtx
+        # define filenames
+        mtx = args.dir + "/" + mtx_file
+        genes = args.dir + "/" + mtx_file.split("_counts")[0] + "_features.txt"
+        barcodes = args.dir + "/" + mtx_file.split("_counts")[0] + "_barcodes.txt"
+        # read files
+        a = sc.read_mtx(mtx)  # read matrix
+        g = pd.read_csv(genes, delimiter="\t", header=None)  # read genes
+        b = pd.read_csv(barcodes, delimiter="\t", header=None)  # read barcodes
+        # add gene and barcode names
+        a.obs_names = b[0].values
+        a.var_names = g[0].values
+        if args.verbose:
+            print(
+                "Writing counts to {}/{}.h5ad - {} cells and {} genes".format(
+                    args.outdir, mtx_file.split("_counts")[0], a.shape[0], a.shape[1]
+                )
+            )
+        a.write(
+            "{}/{}.h5ad".format(args.outdir, mtx_file.split("_counts")[0]),
+            compression="gzip",
+        )
+    else:
+        if args.verbose:
+            print("Reading 10x CellRanger .mtx files from {}".format(args.dir))
+        a = sc.read_10x_mtx(args.dir)
+        name = args.dir.split("_gene_bc_matrices")[
+            0
+        ]  # extract name from 10x directory name
+        if args.verbose:
+            print(
+                "Writing counts to {}/{}.h5ad - {} cells and {} genes".format(
+                    args.outdir, name, a.shape[0], a.shape[1]
+                )
+            )
+        a.write("{}/{}.h5ad".format(args.outdir, name), compression="gzip")
+
+
 def h5ad_to_csv(args):
     """Convert counts matrix from .h5ad to flat file (.txt, .csv)"""
     # get basename of file for writing outputs
@@ -243,7 +288,8 @@ def obs_to_categorical(args):
 def add_label(args):
     """
     Use .obs_names from filtered counts matrix to add binary label to a reference
-    anndata object, 1 = present in filt, 0 = not present. Overwrite reference .h5ad file.
+    anndata object, "True" = present in filt, "False" = not present.
+    Overwrite reference .h5ad file.
     """
     # read reference file into anndata obj
     if args.verbose:
@@ -258,8 +304,8 @@ def add_label(args):
     if args.verbose:
         print("\t", b)
     # add .obs column to ref_file
-    a.obs[args.label] = 0
-    a.obs.loc[b.obs_names, args.label] = 1
+    a.obs[args.label] = "False"
+    a.obs.loc[b.obs_names, args.label] = "True"
     if args.verbose:
         print(
             "\nTransferring labels to {}:\n{}".format(
@@ -642,6 +688,37 @@ def main():
         action="store_true",
     )
     to_h5ad_parser.set_defaults(func=to_h5ad)
+
+    mtx_to_h5ad_parser = subparsers.add_parser(
+        "mtx_to_h5ad",
+        help="Convert .mtx files from DropEst or 10x CellRanger to .h5ad format",
+    )
+    mtx_to_h5ad_parser.add_argument(
+        "dir",
+        type=str,
+        help="Directory containing counts matrix as .mtx and text files",
+    )
+    mtx_to_h5ad_parser.add_argument(
+        "-o",
+        "--outdir",
+        type=str,
+        nargs="?",
+        default=".",
+        help="Output directory for writing h5ad. Default './'",
+    )
+    mtx_to_h5ad_parser.add_argument(
+        "--dropest",
+        help="Directory contains DropEst outputs, rather than 10x CellRanger outputs",
+        action="store_true",
+    )
+    mtx_to_h5ad_parser.add_argument(
+        "-q",
+        "--quietly",
+        required=False,
+        help="Run without printing processing updates to console",
+        action="store_true",
+    )
+    mtx_to_h5ad_parser.set_defaults(func=mtx_to_h5ad)
 
     to_csv_parser = subparsers.add_parser(
         "to_csv", help="Save .h5ad counts to .csv file(s)",
