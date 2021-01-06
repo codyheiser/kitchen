@@ -84,6 +84,7 @@ def mtx_to_h5ad(args):
         barcodes = args.dir + "/" + mtx_file.split("_counts")[0] + "_barcodes.txt"
         # read files
         a = sc.read_mtx(mtx)  # read matrix
+        a = a.T  # transpose DropEst matrix to cells x genes
         g = pd.read_csv(genes, delimiter="\t", header=None)  # read genes
         b = pd.read_csv(barcodes, delimiter="\t", header=None)  # read barcodes
         # add gene and barcode names
