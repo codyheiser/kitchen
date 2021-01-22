@@ -10,6 +10,7 @@ import scanpy as sc
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from math import ceil
+from matplotlib import rcParams
 from emptydrops import find_nonambient_barcodes
 from emptydrops.matrix import CountMatrix
 
@@ -478,10 +479,10 @@ def plot_embedding(
     adata,
     colors=None,
     show_clustering=True,
-    n_cnmf_markers=5,
+    n_cnmf_markers=7,
     ncols=5,
     figsize_scale=1.0,
-    cmap="viridis",
+    cmap="Reds",
     save_to=None,
     verbose=True,
     **kwargs,
@@ -585,12 +586,22 @@ def plot_embedding(
                             s=""
                             + adata.uns["cnmf_markers"].loc[x, color.split("_")[1]],
                             fontsize=12,
+                            fontstyle="italic",
                             color="k",
                             ha="right",
                         )
                         for x in range(n_cnmf_markers)
                     ]
-            ax.set_title(label=color, loc="left", fontweight="bold", fontsize=16)
+            if color in adata.var_names:  # italicize title if plotting a gene
+                ax.set_title(
+                    label=color,
+                    loc="left",
+                    fontweight="bold",
+                    fontsize=16,
+                    fontstyle="italic",
+                )
+            else:
+                ax.set_title(label=color, loc="left", fontweight="bold", fontsize=16)
             unique_colors.remove(color)
             i = i + 1
     fig.tight_layout()
@@ -604,13 +615,13 @@ def plot_embedding(
 
 def plot_genes(
     adata,
-    plot_type=["heatmap"],
+    plot_type="heatmap",
     groupby="leiden",
     n_genes=5,
     dendrogram=True,
     ambient=False,
     cmap="viridis",
-    save_to="_de.png",
+    save_to="de.png",
     verbose=True,
 ):
     """
@@ -618,7 +629,7 @@ def plot_genes(
 
     Parameters:
         adata (anndata.AnnData): object containing preprocessed counts matrix
-        plot_type (str): one or a list of combination of "heatmap", "dotplot", "matrixplot"
+        plot_type (str): one of "heatmap", "dotplot", "matrixplot"
         groupby (str): .obs key to group cells by. default 'leiden'.
         dendrogram (bool): show dendrogram of cluster similarity
         ambient (bool): include ambient genes as a group in the plot
@@ -641,8 +652,12 @@ def plot_genes(
     adata.layers["arcsinh"] = adata.X.copy()
     adata.X = adata.layers["raw_counts"].copy()  # return raw counts to .X
 
-    if isinstance(plot_type, str):
-        plot_type = [plot_type]
+    # adjust rcParams
+    rcParams["figure.figsize"] = (4, 4)
+    rcParams["figure.subplot.left"] = 0.18
+    rcParams["figure.subplot.right"] = 0.96
+    rcParams["figure.subplot.bottom"] = 0.15
+    rcParams["figure.subplot.top"] = 0.91
 
     if ambient:
         # get markers manually and append ambient genes
@@ -653,8 +668,8 @@ def plot_genes(
             ]
         markers["ambient"] = adata.var_names[adata.var.ambient].tolist()
 
-        if "heatmap" in plot_type:
-            sc.pl.heatmap(
+        if plot_type == "heatmap":
+            myplot = sc.pl.heatmap(
                 adata,
                 markers,
                 dendrogram=dendrogram,
@@ -664,11 +679,13 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 cmap=cmap,
-                save=save_to,
                 show=False,
             )
-        if "dotplot" in plot_type:
-            sc.pl.dotplot(
+            myplot["heatmap_ax"].set_yticklabels(
+                myplot["heatmap_ax"].get_yticklabels(), fontstyle="italic"
+            )
+        if plot_type == "dotplot":
+            myplot = sc.pl.dotplot(
                 adata,
                 markers,
                 dendrogram=dendrogram,
@@ -676,11 +693,14 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 color_map=cmap,
-                save=save_to,
                 show=False,
+                return_fig=True,
             )
-        if "matrixplot" in plot_type:
-            sc.pl.matrixplot(
+            myplot.get_axes()["mainplot_ax"].set_xticklabels(
+                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
+            )
+        if plot_type == "matrixplot":
+            myplot = sc.pl.matrixplot(
                 adata,
                 markers,
                 dendrogram=dendrogram,
@@ -688,13 +708,16 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 cmap=cmap,
-                save=save_to,
                 show=False,
+                return_fig=True,
+            )
+            myplot.get_axes()["mainplot_ax"].set_xticklabels(
+                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
             )
 
     else:
-        if "heatmap" in plot_type:
-            sc.pl.rank_genes_groups_heatmap(
+        if plot_type == "heatmap":
+            myplot = sc.pl.rank_genes_groups_heatmap(
                 adata,
                 dendrogram=dendrogram,
                 groupby=groupby,
@@ -704,11 +727,13 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 cmap=cmap,
-                save=save_to,
                 show=False,
             )
-        if "dotplot" in plot_type:
-            sc.pl.rank_genes_groups_dotplot(
+            myplot["heatmap_ax"].set_yticklabels(
+                myplot["heatmap_ax"].get_yticklabels(), fontstyle="italic"
+            )
+        if plot_type == "dotplot":
+            myplot = sc.pl.rank_genes_groups_dotplot(
                 adata,
                 dendrogram=dendrogram,
                 groupby=groupby,
@@ -716,11 +741,14 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 color_map=cmap,
-                save=save_to,
                 show=False,
+                return_fig=True,
             )
-        if "matrixplot" in plot_type:
-            sc.pl.rank_genes_groups_matrixplot(
+            myplot.get_axes()["mainplot_ax"].set_xticklabels(
+                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
+            )
+        if plot_type == "matrixplot":
+            myplot = sc.pl.rank_genes_groups_matrixplot(
                 adata,
                 dendrogram=dendrogram,
                 groupby=groupby,
@@ -728,14 +756,22 @@ def plot_genes(
                 layer="arcsinh",
                 var_group_rotation=0,
                 cmap=cmap,
-                save=save_to,
                 show=False,
+                return_fig=True,
             )
+            myplot.get_axes()["mainplot_ax"].set_xticklabels(
+                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
+            )
+
+    if save_to is not None:
+        plt.savefig(save_to, bbox_inches="tight")
+    else:
+        return myplot
 
 
 def plot_genes_cnmf(
     adata,
-    plot_type=["heatmap"],
+    plot_type="heatmap",
     groupby="leiden",
     attr="varm",
     keys="cnmf_spectra",
@@ -743,14 +779,14 @@ def plot_genes_cnmf(
     n_genes=5,
     dendrogram=True,
     cmap="viridis",
-    save_to="_de_cnmf.png",
+    save_to="de_cnmf.png",
 ):
     """
     Calculate and plot top cNMF gene loadings
 
     Parameters:
         adata (anndata.AnnData): object containing preprocessed counts matrix
-        plot_type (str): one or a list of combination of "heatmap", "dotplot", "matrixplot"
+        plot_type (str): one of "heatmap", "dotplot", "matrixplot"
         groupby (str): .obs key to group cells by. default 'leiden'.
         attr {'var', 'obs', 'uns', 'varm', 'obsm'}:
             The attribute of AnnData that contains the score.
@@ -772,9 +808,6 @@ def plot_genes_cnmf(
     adata.layers["arcsinh"] = adata.X.copy()
     adata.X = adata.layers["raw_counts"].copy()  # return raw counts to .X
 
-    if isinstance(plot_type, str):
-        plot_type = [plot_type]
-
     # default to all usages
     if indices is None:
         indices = [x for x in range(getattr(adata, attr)[keys].shape[1])]
@@ -791,8 +824,15 @@ def plot_genes_cnmf(
         for x in indices[::-1]:
             markers[keys[iscore]].append(labels[x])
 
-    if "heatmap" in plot_type:
-        sc.pl.heatmap(
+    # adjust rcParams
+    rcParams["figure.figsize"] = (4, 4)
+    rcParams["figure.subplot.left"] = 0.18
+    rcParams["figure.subplot.right"] = 0.96
+    rcParams["figure.subplot.bottom"] = 0.15
+    rcParams["figure.subplot.top"] = 0.91
+
+    if plot_type == "heatmap":
+        myplot = sc.pl.heatmap(
             adata,
             markers,
             dendrogram=dendrogram,
@@ -800,34 +840,48 @@ def plot_genes_cnmf(
             swap_axes=True,
             show_gene_labels=True,
             layer="arcsinh",
+            var_group_rotation=0,
             cmap=cmap,
-            save=save_to,
             show=False,
         )
-    if "dotplot" in plot_type:
-        sc.pl.dotplot(
+        myplot["heatmap_ax"].set_yticklabels(
+            myplot["heatmap_ax"].get_yticklabels(), fontstyle="italic"
+        )
+    if plot_type == "dotplot":
+        myplot = sc.pl.dotplot(
             adata,
             markers,
             dendrogram=dendrogram,
             groupby=groupby,
             layer="arcsinh",
-            var_group_rotation=45,
+            var_group_rotation=0,
             color_map=cmap,
-            save=save_to,
             show=False,
+            return_fig=True,
         )
-    if "matrixplot" in plot_type:
-        sc.pl.matrixplot(
+        myplot.get_axes()["mainplot_ax"].set_xticklabels(
+            myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
+        )
+    if plot_type == "matrixplot":
+        myplot = sc.pl.matrixplot(
             adata,
             markers,
             dendrogram=dendrogram,
             groupby=groupby,
             layer="arcsinh",
-            var_group_rotation=45,
+            var_group_rotation=0,
             cmap=cmap,
-            save=save_to,
             show=False,
+            return_fig=True,
         )
+        myplot.get_axes()["mainplot_ax"].set_xticklabels(
+            myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
+        )
+
+    if save_to is not None:
+        plt.savefig(save_to, bbox_inches="tight")
+    else:
+        return myplot
 
 
 def rank_genes_cnmf(
@@ -911,6 +965,7 @@ def rank_genes_cnmf(
                 verticalalignment="center",
                 horizontalalignment="right",
                 fontsize="medium",
+                fontstyle="italic",
             )
         plt.title(keys[iscore].replace("_", " "), fontsize="x-large")
         plt.ylim(-0.9, ig + 0.9)
