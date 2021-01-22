@@ -480,9 +480,11 @@ def plot_embedding(
     show_clustering=True,
     n_cnmf_markers=5,
     ncols=5,
+    figsize_scale=1.0,
     cmap="viridis",
     save_to=None,
     verbose=True,
+    **kwargs,
 ):
     """
     Plot reduced-dimension embeddings of single-cell dataset
@@ -493,13 +495,16 @@ def plot_embedding(
         show_clustering (bool): plot PAGA graph and leiden clusters on first two axes
         n_cnmf_markers (int): number of top genes to print on cNMF plots
         ncols (int): number of columns in gridspec
+        figsize_scale (float): scaler for figure size. calculated using ncols to keep
+            each panel square. values < 1.0 will compress figure, > 1.0 will expand.
         cmap (str): valid color map for the plot
         save_to (str): path to .png file for saving figure; default is plt.show()
         verbose (bool): print updates to console
+        **kwargs: args to pass to sc.pl.umap (e.g. "size", "add_outline", etc.)
 
     Returns:
-        plot of PAGA, UMAP with Leiden and n_genes overlay, plus additional metrics
-        from "colors"
+        plot of UMAP embedding with overlays from "colors" as matplotlib gridspec
+            object, unless save_to is not None.
     """
     if isinstance(colors, str):  # force colors into list if single string
         colors = [colors]
@@ -526,7 +531,7 @@ def plot_embedding(
         n_rows, n_cols = 1, n_plots
     else:
         n_rows, n_cols = ceil(n_plots / ncols), ncols
-    fig = plt.figure(figsize=(ncols * n_cols, ncols * n_rows))
+    fig = plt.figure(figsize=(ncols * n_cols * figsize_scale, ncols * n_rows * figsize_scale))
     # arrange axes as subplots
     gs = gridspec.GridSpec(n_rows, n_cols, figure=fig)
     # add plots to axes
@@ -563,9 +568,9 @@ def plot_embedding(
                     legend_loc=leg_loc,
                     legend_fontsize=leg_fontsize,
                     legend_fontoutline=leg_fontoutline,
-                    size=50,
                     title="",
                     color_map=cmap,
+                    **kwargs,
                 )
                 # add top three gene loadings if cNMF
                 if color.startswith("usage_"):
@@ -594,7 +599,7 @@ def plot_embedding(
             print("Saving embeddings to {}".format(save_to))
         plt.savefig(save_to)
     else:
-        plt.show()
+        return fig
 
 
 def plot_genes(
