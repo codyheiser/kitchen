@@ -469,6 +469,7 @@ def recipe(args):
         for de in args.diff_expr:
             plot_genes(
                 a,
+                de_method=args.de_method,
                 plot_type=de,
                 groupby="leiden",
                 n_genes=5,
@@ -588,11 +589,12 @@ def de(args):
     for plot in args.plot_type:
         plot_genes(
             a,
+            de_method=args.de_method,
             plot_type=plot,
             groupby=args.groupby,
             n_genes=args.n_genes,
-            ambient=args.ambient,
             dendrogram=args.dendrogram,
+            ambient=args.ambient,
             cmap=args.cmap,
             save_to="{}/{}_{}.png".format(args.outdir, plot, "_".join(name)),
             verbose=args.verbose,
@@ -1150,6 +1152,14 @@ def main():
         help="Type(s) of DE gene expression plots ['heatmap', 'dotplot', 'matrixplot']",
     )
     recipe_parser.add_argument(
+        "-m",
+        "--de-method",
+        required=False,
+        type=str,
+        default="t-test_overestim_var",
+        help="DE testing method if -de is not None ['t-test_overestim_var', 't-test', 'wilcoxon']",
+    )
+    recipe_parser.add_argument(
         "-c",
         "--colors",
         type=str,
@@ -1210,6 +1220,14 @@ def main():
         "file",
         type=str,
         help="Counts file as .h5ad or flat (.csv, .txt) in cells x genes format",
+    )
+    de_parser.add_argument(
+        "-m",
+        "--de-method",
+        required=False,
+        type=str,
+        default="t-test_overestim_var",
+        help="DE testing method ['t-test_overestim_var', 't-test', 'wilcoxon']",
     )
     de_parser.add_argument(
         "-p",

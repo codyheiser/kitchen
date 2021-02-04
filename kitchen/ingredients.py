@@ -617,39 +617,51 @@ def plot_embedding(
 
 def plot_genes(
     adata,
+    de_method="t-test_overestim_var",
     plot_type="heatmap",
     groupby="leiden",
     n_genes=5,
     dendrogram=True,
     ambient=False,
-    cmap="viridis",
+    cmap="Reds",
     save_to="de.png",
     verbose=True,
-    **kwargs,
 ):
     """
     Calculate and plot rank_genes_groups results
 
     Parameters:
         adata (anndata.AnnData): object containing preprocessed counts matrix
+        de_method (str): one of "t-test", "t-test_overestim_var", "wilcoxon"
         plot_type (str): one of "heatmap", "dotplot", "matrixplot"
-        groupby (str): .obs key to group cells by. default 'leiden'.
+        groupby (str): .obs key to group cells by. default 'leiden'
+        n_genes (int): number of top genes per group to show
         dendrogram (bool): show dendrogram of cluster similarity
         ambient (bool): include ambient genes as a group in the plot
         cmap (str): valid color map for the plot
         save_to (str): string to add to plot name using scanpy plot defaults
         verbose (bool): print updates to console
-        **kwargs: passed to sc.tl.rank_genes_groups
 
     Returns:
         matplotlib figure
     """
     if verbose:
         print("Performing differential expression analysis...")
-    # rank genes with t-test and B-H correction
-    sc.tl.rank_genes_groups(
-        adata, groupby=groupby, layer="log1p_norm", use_raw=False, **kwargs
-    )
+    if de_method in ["t-test", "t-test_overestim_var"]:
+        # rank genes with t-test and B-H correction
+        sc.tl.rank_genes_groups(
+            adata, groupby=groupby, layer="log1p_norm", use_raw=False, method=de_method
+        )
+    elif de_method == "wilcoxon":
+        # rank genes with wilcoxon rank sum test
+        sc.tl.rank_genes_groups(
+            adata, groupby=groupby, layer="raw_counts", use_raw=False, method=de_method
+        )
+    else:
+        print(
+            "Invalid de_method. Must be one of ['t-test','t-test_overestim_var','wilcoxon']."
+        )
+        return
 
     # calculate arcsinh counts for visualization
     adata.X = adata.layers["raw_counts"].copy()
@@ -683,6 +695,7 @@ def plot_genes(
                 swap_axes=True,
                 show_gene_labels=True,
                 layer="arcsinh",
+                standard_scale="var",
                 var_group_rotation=0,
                 cmap=cmap,
                 show=False,
@@ -697,11 +710,14 @@ def plot_genes(
                 dendrogram=dendrogram,
                 groupby=groupby,
                 layer="arcsinh",
+                standard_scale="var",
+                swap_axes=True,
                 var_group_rotation=0,
                 color_map=cmap,
                 show=False,
                 return_fig=True,
             )
+            myplot.style(color_on="square", dot_edge_color=None, dot_edge_lw=1)
             myplot.get_axes()["mainplot_ax"].set_xticklabels(
                 myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
             )
@@ -712,6 +728,7 @@ def plot_genes(
                 dendrogram=dendrogram,
                 groupby=groupby,
                 layer="arcsinh",
+                standard_scale="var",
                 var_group_rotation=0,
                 cmap=cmap,
                 show=False,
@@ -731,6 +748,7 @@ def plot_genes(
                 swap_axes=True,
                 show_gene_labels=True,
                 layer="arcsinh",
+                standard_scale="var",
                 var_group_rotation=0,
                 cmap=cmap,
                 show=False,
@@ -745,11 +763,14 @@ def plot_genes(
                 groupby=groupby,
                 n_genes=n_genes,
                 layer="arcsinh",
+                standard_scale="var",
+                swap_axes=True,
                 var_group_rotation=0,
                 color_map=cmap,
                 show=False,
                 return_fig=True,
             )
+            myplot.style(color_on="square", dot_edge_color=None, dot_edge_lw=1)
             myplot.get_axes()["mainplot_ax"].set_xticklabels(
                 myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
             )
@@ -760,6 +781,7 @@ def plot_genes(
                 groupby=groupby,
                 n_genes=n_genes,
                 layer="arcsinh",
+                standard_scale="var",
                 var_group_rotation=0,
                 cmap=cmap,
                 show=False,
@@ -784,7 +806,7 @@ def plot_genes_cnmf(
     indices=None,
     n_genes=5,
     dendrogram=True,
-    cmap="viridis",
+    cmap="Reds",
     save_to="de_cnmf.png",
 ):
     """
@@ -800,6 +822,7 @@ def plot_genes_cnmf(
             The scores to look up an array from the attribute of adata.
         indices (list of int):
             The column indices of keys for which to plot (e.g. [0,1,2] for first three keys)
+        n_genes (int): number of top genes per group to show
         dendrogram (bool): show dendrogram of cluster similarity
         cmap (str): valid color map for the plot
         save_to (str): string to add to plot name using scanpy plot defaults
@@ -846,6 +869,7 @@ def plot_genes_cnmf(
             swap_axes=True,
             show_gene_labels=True,
             layer="arcsinh",
+            standard_scale="var",
             var_group_rotation=0,
             cmap=cmap,
             show=False,
@@ -860,11 +884,14 @@ def plot_genes_cnmf(
             dendrogram=dendrogram,
             groupby=groupby,
             layer="arcsinh",
+            standard_scale="var",
+            swap_axes=True,
             var_group_rotation=0,
             color_map=cmap,
             show=False,
             return_fig=True,
         )
+        myplot.style(color_on="square", dot_edge_color=None, dot_edge_lw=1)
         myplot.get_axes()["mainplot_ax"].set_xticklabels(
             myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
         )
@@ -875,6 +902,7 @@ def plot_genes_cnmf(
             dendrogram=dendrogram,
             groupby=groupby,
             layer="arcsinh",
+            standard_scale="var",
             var_group_rotation=0,
             cmap=cmap,
             show=False,
