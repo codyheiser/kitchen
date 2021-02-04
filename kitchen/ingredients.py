@@ -532,7 +532,9 @@ def plot_embedding(
         n_rows, n_cols = 1, n_plots
     else:
         n_rows, n_cols = ceil(n_plots / ncols), ncols
-    fig = plt.figure(figsize=(ncols * n_cols * figsize_scale, ncols * n_rows * figsize_scale))
+    fig = plt.figure(
+        figsize=(ncols * n_cols * figsize_scale, ncols * n_rows * figsize_scale)
+    )
     # arrange axes as subplots
     gs = gridspec.GridSpec(n_rows, n_cols, figure=fig)
     # add plots to axes
@@ -623,6 +625,7 @@ def plot_genes(
     cmap="viridis",
     save_to="de.png",
     verbose=True,
+    **kwargs,
 ):
     """
     Calculate and plot rank_genes_groups results
@@ -636,6 +639,7 @@ def plot_genes(
         cmap (str): valid color map for the plot
         save_to (str): string to add to plot name using scanpy plot defaults
         verbose (bool): print updates to console
+        **kwargs: passed to sc.tl.rank_genes_groups
 
     Returns:
         matplotlib figure
@@ -643,7 +647,9 @@ def plot_genes(
     if verbose:
         print("Performing differential expression analysis...")
     # rank genes with t-test and B-H correction
-    sc.tl.rank_genes_groups(adata, groupby=groupby, layer="log1p_norm", use_raw=False)
+    sc.tl.rank_genes_groups(
+        adata, groupby=groupby, layer="log1p_norm", use_raw=False, **kwargs
+    )
 
     # calculate arcsinh counts for visualization
     adata.X = adata.layers["raw_counts"].copy()
