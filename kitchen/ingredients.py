@@ -251,7 +251,14 @@ def list_union(lst1, lst2):
     return final_list
 
 
-def cellranger2(adata, expected=1500, upper_quant=0.99, lower_prop=0.1, verbose=True):
+def cellranger2(
+    adata,
+    expected=1500,
+    upper_quant=0.99,
+    lower_prop=0.1,
+    label="CellRanger_2",
+    verbose=True,
+):
     """
     Label cells using "knee point" method from CellRanger 2.1
 
@@ -261,22 +268,23 @@ def cellranger2(adata, expected=1500, upper_quant=0.99, lower_prop=0.1, verbose=
         upper_quant (float): upper quantile of real cells to test
         lower_prop (float): percentage of expected quantile to calculate 
             total counts threshold for
+        label (str): how to name .obs column containing output
         verbose (bool): print updates to console
 
     Returns:
-        adata edited in place to add .obs["CellRanger_2"] binary label
+        adata edited in place to add .obs[label] binary label
     """
     if "total_counts" not in adata.obs.columns:
         adata.obs["total_counts"] = adata.X.sum(axis=1)
     tmp = np.sort(np.array(adata.obs["total_counts"]))[::-1]
     thresh = np.quantile(tmp[0:expected], upper_quant) * lower_prop
-    adata.uns["knee_thresh"] = thresh
-    adata.obs["CellRanger_2"] = "False"
-    adata.obs.loc[adata.obs.total_counts > thresh, "CellRanger_2"] = "True"
-    adata.obs["CellRanger_2"] = adata.obs["CellRanger_2"].astype("category")
+    adata.uns["{}_knee_thresh".format(label)] = thresh
+    adata.obs[label] = "False"
+    adata.obs.loc[adata.obs.total_counts > thresh, label] = "True"
+    adata.obs[label] = adata.obs[label].astype("category")
     if verbose:
         print("Detected knee point: {}".format(round(thresh, 3)))
-        print(adata.obs.CellRanger_2.value_counts())
+        print(adata.obs[label].value_counts())
 
 
 def cellranger3(

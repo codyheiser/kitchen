@@ -338,6 +338,7 @@ def knee_point(args):
         expected=args.expected,
         upper_quant=args.upper_quant,
         lower_prop=args.lower_prop,
+        label=args.label,
         verbose=args.verbose,
     )
     # save file as .h5ad
@@ -980,6 +981,13 @@ def main():
         type=float,
         default=0.1,
         help="Lower proportion of cells to set threshold at; default 0.1",
+    )
+    cellranger2_parser.add_argument(
+        "-l",
+        "--label",
+        type=str,
+        default="CellRanger_2",
+        help=".obs column name to place final labels in",
     )
     cellranger2_parser.add_argument(
         "-q",
