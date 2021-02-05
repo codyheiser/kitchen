@@ -721,11 +721,12 @@ def plot_genes(
                 standard_scale="var",
                 swap_axes=True,
                 var_group_rotation=0,
-                color_map=cmap,
                 show=False,
                 return_fig=True,
             )
-            myplot.style(color_on="square", dot_edge_color=None, dot_edge_lw=1)
+            myplot.style(
+                cmap=cmap, color_on="square", dot_edge_color=None, dot_edge_lw=1
+            )
             myplot.get_axes()["mainplot_ax"].set_xticklabels(
                 myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
             )
@@ -774,11 +775,12 @@ def plot_genes(
                 standard_scale="var",
                 swap_axes=True,
                 var_group_rotation=0,
-                color_map=cmap,
                 show=False,
                 return_fig=True,
             )
-            myplot.style(color_on="square", dot_edge_color=None, dot_edge_lw=1)
+            myplot.style(
+                cmap=cmap, color_on="square", dot_edge_color=None, dot_edge_lw=1
+            )
             myplot.get_axes()["mainplot_ax"].set_xticklabels(
                 myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
             )
@@ -895,11 +897,10 @@ def plot_genes_cnmf(
             standard_scale="var",
             swap_axes=True,
             var_group_rotation=0,
-            color_map=cmap,
             show=False,
             return_fig=True,
         )
-        myplot.style(color_on="square", dot_edge_color=None, dot_edge_lw=1)
+        myplot.style(cmap=cmap, color_on="square", dot_edge_color=None, dot_edge_lw=1)
         myplot.get_axes()["mainplot_ax"].set_xticklabels(
             myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
         )
