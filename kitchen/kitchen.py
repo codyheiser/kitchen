@@ -976,7 +976,7 @@ def main():
         help="Upper quantile of expected cells for knee point; default 0.99",
     )
     cellranger2_parser.add_argument(
-        "-l",
+        "-lp",
         "--lower-prop",
         type=float,
         default=0.1,
