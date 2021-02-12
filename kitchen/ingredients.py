@@ -720,15 +720,15 @@ def plot_genes(
                 layer="arcsinh",
                 standard_scale="var",
                 swap_axes=True,
-                var_group_rotation=0,
+                var_group_rotation=90,
                 show=False,
                 return_fig=True,
             )
             myplot.style(
                 cmap=cmap, color_on="square", dot_edge_color=None, dot_edge_lw=1
             )
-            myplot.get_axes()["mainplot_ax"].set_xticklabels(
-                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
+            myplot.get_axes()["mainplot_ax"].set_yticklabels(
+                myplot.get_axes()["mainplot_ax"].get_yticklabels(), fontstyle="italic"
             )
         if plot_type == "matrixplot":
             myplot = sc.pl.matrixplot(
@@ -774,15 +774,15 @@ def plot_genes(
                 layer="arcsinh",
                 standard_scale="var",
                 swap_axes=True,
-                var_group_rotation=0,
+                var_group_rotation=90,
                 show=False,
                 return_fig=True,
             )
             myplot.style(
                 cmap=cmap, color_on="square", dot_edge_color=None, dot_edge_lw=1
             )
-            myplot.get_axes()["mainplot_ax"].set_xticklabels(
-                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
+            myplot.get_axes()["mainplot_ax"].set_yticklabels(
+                myplot.get_axes()["mainplot_ax"].get_yticklabels(), fontstyle="italic"
             )
         if plot_type == "matrixplot":
             myplot = sc.pl.rank_genes_groups_matrixplot(
@@ -896,13 +896,13 @@ def plot_genes_cnmf(
             layer="arcsinh",
             standard_scale="var",
             swap_axes=True,
-            var_group_rotation=0,
+            var_group_rotation=90,
             show=False,
             return_fig=True,
         )
         myplot.style(cmap=cmap, color_on="square", dot_edge_color=None, dot_edge_lw=1)
-        myplot.get_axes()["mainplot_ax"].set_xticklabels(
-            myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
+        myplot.get_axes()["mainplot_ax"].set_yticklabels(
+            myplot.get_axes()["mainplot_ax"].get_yticklabels(), fontstyle="italic"
         )
     if plot_type == "matrixplot":
         myplot = sc.pl.matrixplot(
