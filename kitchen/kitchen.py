@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Manipulate .h5ad files and cook scRNA-seq data from command line
-
-@author: C Heiser
 """
 import argparse, os
 import numpy as np

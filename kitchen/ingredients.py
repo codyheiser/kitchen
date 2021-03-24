@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Functions for manipulating .h5ad objects and automated processing of scRNA-seq data
-
-@author: C Heiser
 """
 import os, errno, argparse
 import numpy as np

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-package setup
-
-@author: C Heiser
+Package setup
 """
 import sys
 import os

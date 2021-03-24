@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-package initialization
-
-@author: C Heiser
+Manipulate counts matrix files and cook scRNA-seq data from command line
 """
 from .kitchen import (
     info,
