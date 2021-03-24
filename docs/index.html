@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>kitchen API documentation</title>
+<meta name="description" content="Manipulate counts matrix files and cook scRNA-seq data from command line" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>kitchen</code></h1>
+</header>
+<section id="section-intro">
+<p>Manipulate counts matrix files and cook scRNA-seq data from command line</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># -*- coding: utf-8 -*-
+&#34;&#34;&#34;
+Manipulate counts matrix files and cook scRNA-seq data from command line
+&#34;&#34;&#34;
+from .kitchen import (
+    info,
+    to_h5ad,
+    transpose,
+    rename_obs,
+    add_label,
+    knee_point,
+    subset,
+    concatenate,
+    recipe,
+)
+
+__all__ = [
+    &#34;info&#34;,
+    &#34;to_h5ad&#34;,
+    &#34;transpose&#34;,
+    &#34;rename_obs&#34;,
+    &#34;add_label&#34;,
+    &#34;knee_point&#34;,
+    &#34;subset&#34;,
+    &#34;concatenate&#34;,
+    &#34;recipe&#34;,
+]
+
+from ._version import get_versions
+
+__version__ = get_versions()[&#34;version&#34;]
+del get_versions</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="kitchen.ingredients" href="ingredients.html">kitchen.ingredients</a></code></dt>
+<dd>
+<div class="desc"><p>Functions for manipulating .h5ad objects and automated processing of scRNA-seq data</p></div>
+</dd>
+<dt><code class="name"><a title="kitchen.kitchen" href="kitchen.html">kitchen.kitchen</a></code></dt>
+<dd>
+<div class="desc"><p>Manipulate .h5ad files and cook scRNA-seq data from command line</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="kitchen.add_label"><code class="name flex">
+<span>def <span class="ident">add_label</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uses .obs_names from filtered counts matrix to add binary label to a reference
+anndata object, "True" = present in filt, "False" = not present.
+Overwrites reference .h5ad file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_label(args):
+    &#34;&#34;&#34;
+    Uses .obs_names from filtered counts matrix to add binary label to a reference
+    anndata object, &#34;True&#34; = present in filt, &#34;False&#34; = not present. 
+    Overwrites reference .h5ad file.
+    &#34;&#34;&#34;
+    # read reference file into anndata obj
+    if args.verbose:
+        print(&#34;Reading {}&#34;.format(args.ref_file))
+    a = sc.read(args.ref_file)
+    if args.verbose:
+        print(&#34;\t&#34;, a)
+    # read query file into anndata obj
+    if args.verbose:
+        print(&#34;\nReading {}&#34;.format(args.filt_file))
+    b = sc.read(args.filt_file)
+    if args.verbose:
+        print(&#34;\t&#34;, b)
+    # add .obs column to ref_file
+    a.obs[args.label] = &#34;False&#34;
+    a.obs.loc[b.obs_names, args.label] = &#34;True&#34;
+    if args.verbose:
+        print(
+            &#34;\nTransferring labels to {}:\n{}&#34;.format(
+                args.ref_file, a.obs[args.label].value_counts()
+            )
+        )
+    # save file as .h5ad
+    if args.verbose:
+        print(&#34;\nWriting counts to {}&#34;.format(args.ref_file))
+    a.write(args.ref_file, compression=&#34;gzip&#34;)
+    if args.rm_orig_file:
+        # remove filtered file
+        if args.verbose:
+            print(&#34;\nRemoving {}&#34;.format(args.filt_file))
+        os.remove(args.filt_file)</code></pre>
+</details>
+</dd>
+<dt id="kitchen.concatenate"><code class="name flex">
+<span>def <span class="ident">concatenate</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Concatenates list of anndata objects in .h5ad format, keeping union of genes</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def concatenate(args):
+    &#34;&#34;&#34;Concatenates list of anndata objects in .h5ad format, keeping union of genes&#34;&#34;&#34;
+    # read first file
+    if args.verbose:
+        print(&#34;Reading {}&#34;.format(args.files[0]))
+    adata_0 = sc.read(args.files[0])
+    # read the rest of the files into list
+    adatas = []
+    for f in args.files[1:]:
+        # read file into anndata obj
+        if args.verbose:
+            print(&#34;Reading {}&#34;.format(f))
+        adatas.append(sc.read(f))
+    # concatenate all files
+    if args.verbose:
+        print(&#34;Concatenating files...&#34;)
+    concat = adata_0.concatenate(
+        adatas,
+        join=&#34;outer&#34;,
+        batch_categories=[os.path.splitext(os.path.basename(x))[0] for x in args.files],
+        fill_value=0,
+    )
+    if args.verbose:
+        print(
+            &#34;Final shape: {} cells and {} genes&#34;.format(
+                concat.shape[0], concat.shape[1]
+            )
+        )
+    # save file as .h5ad
+    if args.verbose:
+        print(&#34;Writing counts to {}&#34;.format(args.out))
+    concat.write(args.out, compression=&#34;gzip&#34;)</code></pre>
+</details>
+</dd>
+<dt id="kitchen.info"><code class="name flex">
+<span>def <span class="ident">info</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Prints information about .h5ad file to console</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def info(args):
+    &#34;&#34;&#34;Prints information about .h5ad file to console&#34;&#34;&#34;
+    print(&#34;Reading {}\n&#34;.format(args.file))
+    adata = sc.read(args.file)
+    print(adata, &#34;\n&#34;)
+    print(&#34;.X: {} with {}\n&#34;.format(type(adata.X), adata.X.dtype))
+    print(&#34;obs_names: {}&#34;.format(adata.obs_names))
+    print(&#34;var_names: {}&#34;.format(adata.var_names))</code></pre>
+</details>
+</dd>
+<dt id="kitchen.knee_point"><code class="name flex">
+<span>def <span class="ident">knee_point</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Labels cells using "knee point" method from CellRanger 2.1</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def knee_point(args):
+    &#34;&#34;&#34;Labels cells using &#34;knee point&#34; method from CellRanger 2.1&#34;&#34;&#34;
+    # read file into anndata obj
+    if args.verbose:
+        print(&#34;Reading {}&#34;.format(args.file), end=&#34;&#34;)
+    a = sc.read(args.file)
+    if args.verbose:
+        print(&#34; - {} cells and {} genes&#34;.format(a.shape[0], a.shape[1]))
+    # add knee_point label to anndata
+    cellranger2(
+        a,
+        expected=args.expected,
+        upper_quant=args.upper_quant,
+        lower_prop=args.lower_prop,
+        label=args.label,
+        verbose=args.verbose,
+    )
+    # save file as .h5ad
+    print(&#34;Writing counts to {}&#34;.format(args.file))
+    a.write(args.file, compression=&#34;gzip&#34;)</code></pre>
+</details>
+</dd>
+<dt id="kitchen.recipe"><code class="name flex">
+<span>def <span class="ident">recipe</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Full automated processing of scRNA-seq data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def recipe(args):
+    &#34;&#34;&#34;Full automated processing of scRNA-seq data&#34;&#34;&#34;
+    # get basename of file for writing outputs
+    name = [os.path.splitext(os.path.basename(args.file))[0]]
+    if args.subset is not None:
+        name.append(&#34;_&#34;.join(args.subset))
+    if args.layer is not None:
+        name.append(args.layer)
+    if args.use_rep is not None:
+        name.append(args.use_rep)
+    # read file into anndata obj
+    if args.verbose:
+        print(&#34;Reading {}&#34;.format(args.file), end=&#34;&#34;)
+    a = sc.read(args.file)
+    if args.verbose:
+        print(&#34; - {} cells and {} genes&#34;.format(a.shape[0], a.shape[1]))
+    # subset anndata on .obs column if desired
+    if args.subset is not None:
+        a = subset_adata(a, subset=args.subset)
+    if args.process:
+        # switch to proper layer
+        if args.layer is not None:
+            if args.verbose:
+                print(&#34;Using layer {} to reduce dimensions&#34;.format(args.layer))
+            a.X = a.layers[args.layer].copy()
+        # preprocess with dropkick recipe
+        a = recipe_dropkick(
+            a,
+            X_final=&#34;arcsinh_norm&#34;,
+            verbose=args.verbose,
+            filter=True,
+            min_genes=args.min_genes,
+        )
+        # reduce dimensions
+        dim_reduce(
+            a,
+            use_rep=args.use_rep,
+            clust_resolution=args.resolution,
+            paga=args.paga,
+            verbose=args.verbose,
+            seed=args.seed,
+        )
+    # run cell cycle inference
+    if args.cell_cycle:
+        cc_score(a, verbose=args.verbose)
+        args.colors = [&#34;phase&#34;] + args.colors
+    # make sure output dir exists before saving plots
+    check_dir_exists(args.outdir)
+    # if there&#39;s DE to do, plot genes
+    if args.diff_expr is not None:
+        if isinstance(args.diff_expr, str):
+            args.diff_expr = [args.diff_expr]
+        for de in args.diff_expr:
+            plot_genes(
+                a,
+                de_method=args.de_method,
+                plot_type=de,
+                groupby=&#34;leiden&#34;,
+                n_genes=5,
+                cmap=args.cmap,
+                save_to=&#34;{}/{}_{}.png&#34;.format(args.outdir, de, &#34;_&#34;.join(name)),
+                verbose=args.verbose,
+            )
+        # if there&#39;s cnmf results, plot those on a heatmap/matrix/dotplot too
+        if &#34;cnmf_spectra&#34; in a.varm:
+            for de in args.diff_expr:
+                plot_genes_cnmf(
+                    a,
+                    plot_type=de,
+                    groupby=&#34;leiden&#34;,
+                    attr=&#34;varm&#34;,
+                    keys=&#34;cnmf_spectra&#34;,
+                    indices=None,
+                    n_genes=5,
+                    cmap=args.cmap,
+                    save_to=&#34;{}/{}_cnmf_{}.png&#34;.format(args.outdir, de, &#34;_&#34;.join(name)),
+                )
+    # if there&#39;s a cnmf flag, try to plot loadings
+    if args.cnmf:
+        # check for cnmf results in anndata object
+        if &#34;cnmf_spectra&#34; in a.varm:
+            _ = rank_genes_cnmf(a, show=False)
+            if args.verbose:
+                print(
+                    &#34;Saving cNMF loadings to {}/{}_cnmfspectra.png&#34;.format(
+                        args.outdir, &#34;_&#34;.join(name)
+                    )
+                )
+            plt.savefig(&#34;{}/{}_cnmfspectra.png&#34;.format(args.outdir, &#34;_&#34;.join(name)))
+            if args.verbose:
+                print(
+                    &#34;Saving embeddings to {}/{}_embedding.png&#34;.format(
+                        args.outdir, &#34;_&#34;.join(name)
+                    )
+                )
+            # save embedding plot with cNMF loadings
+            if args.colors is None:
+                args.colors = []
+            plot_embedding(
+                a,
+                colors=args.colors
+                + a.obs.columns[a.obs.columns.str.startswith(&#34;usage_&#34;)].tolist(),
+                show_clustering=True,
+                n_cnmf_markers=args.n_cnmf_markers,
+                cmap=args.cmap,
+                save_to=&#34;{}/{}_embedding.png&#34;.format(args.outdir, &#34;_&#34;.join(name)),
+                verbose=args.verbose,
+            )
+        else:
+            print(
+                &#34;cNMF results not detected in {}. Skipping cNMF overlay for embedding.&#34;.format(
+                    args.file
+                )
+            )
+            # save embedding plot without cNMF loadings
+            if args.verbose:
+                print(
+                    &#34;Saving embeddings to {}/{}_embedding.png&#34;.format(
+                        args.outdir, &#34;_&#34;.join(name)
+                    )
+                )
+            plot_embedding(
+                a,
+                colors=args.colors,
+                show_clustering=True,
+                cmap=args.cmap,
+                save_to=&#34;{}/{}_embedding.png&#34;.format(args.outdir, &#34;_&#34;.join(name)),
+                verbose=args.verbose,
+            )
+    else:
+        # save embedding plot
+        if args.verbose:
+            print(
+                &#34;Saving embeddings to {}/{}_embedding.png&#34;.format(
+                    args.outdir, &#34;_&#34;.join(name)
+                )
+            )
+        plot_embedding(
+            a,
+            colors=args.colors,
+            show_clustering=True,
+            cmap=args.cmap,
+            save_to=&#34;{}/{}_embedding.png&#34;.format(args.outdir, &#34;_&#34;.join(name)),
+            verbose=args.verbose,
+        )
+    # save file as .h5ad
+    if args.save_adata:
+        if args.verbose:
+            print(
+                &#34;Saving AnnData object to to {}/{}_processed.h5ad&#34;.format(
+                    args.outdir, &#34;_&#34;.join(name)
+                )
+            )
+        a.write(
+            &#34;{}/{}_processed.h5ad&#34;.format(args.outdir, &#34;_&#34;.join(name)),
+            compression=&#34;gzip&#34;,
+        )</code></pre>
+</details>
+</dd>
+<dt id="kitchen.rename_obs"><code class="name flex">
+<span>def <span class="ident">rename_obs</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Renames .obs columns in anndata object, and overwrites .h5ad file</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rename_obs(args):
+    &#34;&#34;&#34;Renames .obs columns in anndata object, and overwrites .h5ad file&#34;&#34;&#34;
+    if args.verbose:
+        print(&#34;Reading {}&#34;.format(args.file))
+    adata = sc.read(args.file)
+    if args.verbose:
+        print(&#34;Renaming columns {} to {}&#34;.format(args.old_names, args.new_names))
+    adata.obs.rename(columns=dict(zip(args.old_names, args.new_names)), inplace=True)
+    adata.write(args.file, compression=&#34;gzip&#34;)</code></pre>
+</details>
+</dd>
+<dt id="kitchen.subset"><code class="name flex">
+<span>def <span class="ident">subset</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Subsets anndata object on binary .obs label(s), saves to new .h5ad file</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def subset(args):
+    &#34;&#34;&#34;Subsets anndata object on binary .obs label(s), saves to new .h5ad file&#34;&#34;&#34;
+    if args.verbose:
+        print(&#34;Reading {}&#34;.format(args.file), end=&#34;&#34;)
+    a = sc.read(args.file)
+    if args.verbose:
+        print(&#34; - {} cells and {} genes&#34;.format(a.shape[0], a.shape[1]))
+    a = subset_adata(a, subset=args.subset, verbose=args.verbose)
+    if args.verbose:
+        print(&#34;Writing subsetted counts to {}&#34;.format(args.out))
+    a.write(args.out, compression=&#34;gzip&#34;)</code></pre>
+</details>
+</dd>
+<dt id="kitchen.to_h5ad"><code class="name flex">
+<span>def <span class="ident">to_h5ad</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts counts matrix from flat file (.txt, .csv) to .h5ad</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_h5ad(args):
+    &#34;&#34;&#34;Converts counts matrix from flat file (.txt, .csv) to .h5ad&#34;&#34;&#34;
+    # get basename of file for writing outputs
+    name = os.path.splitext(os.path.basename(args.file))[0]
+    # check to make sure it&#39;s an .h5ad file
+    if os.path.splitext(args.file)[1] == &#34;.h5ad&#34;:
+        raise ValueError(&#34;Input file already in .h5ad format&#34;)
+    # read file into anndata obj
+    if args.verbose:
+        print(&#34;Reading {}&#34;.format(args.file), end=&#34;&#34;)
+    a = sc.read(args.file)
+    if args.verbose:
+        # print information about counts, including names of cells and genes
+        print(&#34; - {} cells and {} genes&#34;.format(a.shape[0], a.shape[1]))
+        print(&#34;obs_names: {}&#34;.format(a.obs_names))
+        print(&#34;var_names: {}&#34;.format(a.var_names))
+    # sparsify counts slot
+    if args.verbose:
+        print(&#34;sparsifying counts...&#34;)
+    a.X = sparse.csr_matrix(a.X, dtype=int)
+    # save file as .h5ad
+    if args.verbose:
+        print(&#34;Writing counts to {}/{}.h5ad&#34;.format(args.outdir, name))
+    check_dir_exists(args.outdir)
+    a.write(&#34;{}/{}.h5ad&#34;.format(args.outdir, name), compression=&#34;gzip&#34;)
+    if args.rm_flat_file:
+        # remove original, noncompressed flat file
+        if args.verbose:
+            print(&#34;Removing {}&#34;.format(args.file))
+        os.remove(args.file)</code></pre>
+</details>
+</dd>
+<dt id="kitchen.transpose"><code class="name flex">
+<span>def <span class="ident">transpose</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Transposes anndata object, replacing obs with var, and overwrites .h5ad file</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transpose(args):
+    &#34;&#34;&#34;Transposes anndata object, replacing obs with var, and overwrites .h5ad file&#34;&#34;&#34;
+    # read file into anndata obj
+    if args.verbose:
+        print(&#34;Reading {}&#34;.format(args.file))
+    a = sc.read(args.file)
+    if args.verbose:
+        print(a)
+    # transpose file
+    if args.verbose:
+        print(&#34;transposing file and saving...&#34;)
+    a = a.T
+    # save file as .h5ad
+    a.write(args.file, compression=&#34;gzip&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="kitchen.ingredients" href="ingredients.html">kitchen.ingredients</a></code></li>
+<li><code><a title="kitchen.kitchen" href="kitchen.html">kitchen.kitchen</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="kitchen.add_label" href="#kitchen.add_label">add_label</a></code></li>
+<li><code><a title="kitchen.concatenate" href="#kitchen.concatenate">concatenate</a></code></li>
+<li><code><a title="kitchen.info" href="#kitchen.info">info</a></code></li>
+<li><code><a title="kitchen.knee_point" href="#kitchen.knee_point">knee_point</a></code></li>
+<li><code><a title="kitchen.recipe" href="#kitchen.recipe">recipe</a></code></li>
+<li><code><a title="kitchen.rename_obs" href="#kitchen.rename_obs">rename_obs</a></code></li>
+<li><code><a title="kitchen.subset" href="#kitchen.subset">subset</a></code></li>
+<li><code><a title="kitchen.to_h5ad" href="#kitchen.to_h5ad">to_h5ad</a></code></li>
+<li><code><a title="kitchen.transpose" href="#kitchen.transpose">transpose</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
