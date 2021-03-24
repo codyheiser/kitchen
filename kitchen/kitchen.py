@@ -29,7 +29,7 @@ from ._version import get_versions
 
 
 def info(args):
-    """Print information about .h5ad file to console"""
+    """Prints information about .h5ad file to console"""
     print("Reading {}\n".format(args.file))
     adata = sc.read(args.file)
     print(adata, "\n")
@@ -39,7 +39,7 @@ def info(args):
 
 
 def to_h5ad(args):
-    """Convert counts matrix from flat file (.txt, .csv) to .h5ad"""
+    """Converts counts matrix from flat file (.txt, .csv) to .h5ad"""
     # get basename of file for writing outputs
     name = os.path.splitext(os.path.basename(args.file))[0]
     # check to make sure it's an .h5ad file
@@ -71,7 +71,7 @@ def to_h5ad(args):
 
 
 def mtx_to_h5ad(args):
-    """Convert .mtx files from 10x CellRanger or DropEst to .h5ad"""
+    """Converts .mtx files from 10x CellRanger or DropEst to .h5ad"""
     if args.dropest:
         if args.verbose:
             print("Reading DropEst .mtx files from {}".format(args.dir))
@@ -117,7 +117,7 @@ def mtx_to_h5ad(args):
 
 
 def h5ad_to_csv(args):
-    """Convert counts matrix from .h5ad to flat file (.txt, .csv)"""
+    """Converts counts matrix from .h5ad to flat file (.txt, .csv)"""
     # get basename of file for writing outputs
     name = os.path.splitext(os.path.basename(args.file))[0]
     # check to make sure it's an .h5ad file
@@ -181,7 +181,7 @@ def h5ad_to_csv(args):
 
 
 def transpose(args):
-    """Transpose anndata object, replacing obs with var, and overwrite .h5ad file"""
+    """Transposes anndata object, replacing obs with var, and overwrites .h5ad file"""
     # read file into anndata obj
     if args.verbose:
         print("Reading {}".format(args.file))
@@ -197,7 +197,7 @@ def transpose(args):
 
 
 def to_sparse(args):
-    """Convert .X slot of anndata object to scipy CSR format, overwrite .h5ad file"""
+    """Converts .X slot of anndata object to scipy CSR format, overwrites .h5ad file"""
     # read file into anndata obj
     if args.verbose:
         print("Reading {}".format(args.file))
@@ -216,7 +216,7 @@ def to_sparse(args):
 
 
 def to_dense(args):
-    """Convert .X slot of anndata object to numpy.matrix format, overwrite .h5ad file"""
+    """Converts .X slot of anndata object to numpy.matrix format, overwrites .h5ad file"""
     # read file into anndata obj
     if args.verbose:
         print("Reading {}".format(args.file))
@@ -236,7 +236,7 @@ def to_dense(args):
 
 
 def to_X(args):
-    """Swap a matrix from .layers to .X slot of anndata object, overwrite .h5ad file"""
+    """Swaps a matrix from .layers to .X slot of anndata object, overwrites .h5ad file"""
     # read file into anndata obj
     if args.verbose:
         print("Reading {}".format(args.file))
@@ -252,7 +252,7 @@ def to_X(args):
 
 
 def rename_obs(args):
-    """Rename .obs columns in anndata object, and overwrite .h5ad file"""
+    """Renames .obs columns in anndata object, and overwrites .h5ad file"""
     if args.verbose:
         print("Reading {}".format(args.file))
     adata = sc.read(args.file)
@@ -263,7 +263,7 @@ def rename_obs(args):
 
 
 def label_info(args):
-    """Print value counts for .obs labels to console"""
+    """Prints value counts for .obs labels to console"""
     print("Reading {}\n".format(args.file))
     adata = sc.read(args.file)
     print(adata, "\n")
@@ -272,7 +272,7 @@ def label_info(args):
 
 
 def obs_to_categorical(args):
-    """Make .obs label categorical dtype"""
+    """Makes .obs label categorical dtype"""
     if args.verbose:
         print("Reading {}".format(args.file))
     adata = sc.read(args.file)
@@ -288,9 +288,9 @@ def obs_to_categorical(args):
 
 def add_label(args):
     """
-    Use .obs_names from filtered counts matrix to add binary label to a reference
-    anndata object, "True" = present in filt, "False" = not present.
-    Overwrite reference .h5ad file.
+    Uses .obs_names from filtered counts matrix to add binary label to a reference
+    anndata object, "True" = present in filt, "False" = not present. 
+    Overwrites reference .h5ad file.
     """
     # read reference file into anndata obj
     if args.verbose:
@@ -325,7 +325,7 @@ def add_label(args):
 
 
 def knee_point(args):
-    """Label cells using "knee point" method from CellRanger 2.1"""
+    """Labels cells using "knee point" method from CellRanger 2.1"""
     # read file into anndata obj
     if args.verbose:
         print("Reading {}".format(args.file), end="")
@@ -347,7 +347,7 @@ def knee_point(args):
 
 
 def emptydrops(args):
-    """Label cells using "emptydrops" method from CellRanger 3.0"""
+    """Labels cells using "emptydrops" method from CellRanger 3.0"""
     # read file into anndata obj
     if args.verbose:
         print("Reading {}".format(args.file), end="")
@@ -369,7 +369,7 @@ def emptydrops(args):
 
 
 def subset(args):
-    """Subset anndata object on binary .obs label(s), save to new .h5ad file"""
+    """Subsets anndata object on binary .obs label(s), saves to new .h5ad file"""
     if args.verbose:
         print("Reading {}".format(args.file), end="")
     a = sc.read(args.file)
@@ -382,7 +382,7 @@ def subset(args):
 
 
 def concatenate(args):
-    """Concatenate list of anndata objects in .h5ad format, keeping union of genes"""
+    """Concatenates list of anndata objects in .h5ad format, keeping union of genes"""
     # read first file
     if args.verbose:
         print("Reading {}".format(args.files[0]))
@@ -575,7 +575,7 @@ def recipe(args):
 
 
 def de(args):
-    """Perform differential expression analysis on a processed .h5ad file and plot results"""
+    """Performs differential expression analysis on a processed .h5ad file and plots results"""
     # get basename of file for writing outputs
     name = [os.path.splitext(os.path.basename(args.file))[0]]
     # read file into anndata obj
@@ -603,7 +603,7 @@ def de(args):
 
 
 def cnmf_markers(args):
-    """Plot heatmap/matrix/dotplot of cNMF loadings for desired groups"""
+    """Plots heatmap/matrix/dotplot of cNMF loadings for desired groups"""
     # get basename of file for writing outputs
     name = [os.path.splitext(os.path.basename(args.file))[0]]
     # read file into anndata obj
@@ -628,7 +628,7 @@ def cnmf_markers(args):
 
 
 def pie(args):
-    """plot populational pie charts for desired groups"""
+    """Plots populational pie charts for desired groups"""
     # get basename of file for writing outputs
     name = [os.path.splitext(os.path.basename(args.file))[0]]
     # read file into anndata obj

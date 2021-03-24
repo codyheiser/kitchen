@@ -224,11 +224,16 @@ def check_dir_exists(path):
     """
     Checks if directory already exists or not and creates it if it doesn't
 
-    Parameters:
-        path (str): path to directory
+    Parameters
+    ----------
 
-    Returns:
-        tries to make directory at path, unless it already exists
+    path : str
+        path to directory
+
+    Returns
+    -------
+
+    tries to make directory at `path`, unless it already exists
     """
     try:
         os.makedirs(path)
@@ -239,13 +244,19 @@ def check_dir_exists(path):
 
 def list_union(lst1, lst2):
     """
-    Combine two lists by the union of their values
+    Combines two lists by the union of their values
 
-    Parameters:
-        lst1, lst2 (list): lists to combine
+    Parameters
+    ----------
 
-    Returns:
-        final_list (list): union of values in lst1 and lst2
+    lst1, lst2 : list
+        lists to combine
+
+    Returns
+    -------
+
+    final_list : list
+        union of values in lst1 and lst2
     """
     final_list = set(lst1).union(set(lst2))
     return final_list
@@ -260,19 +271,28 @@ def cellranger2(
     verbose=True,
 ):
     """
-    Label cells using "knee point" method from CellRanger 2.1
+    Labels cells using "knee point" method from CellRanger 2.1
 
-    Parameters:
-        adata (anndata.AnnData): object containing unfiltered counts
-        expected (int): estimated number of real cells expected in dataset
-        upper_quant (float): upper quantile of real cells to test
-        lower_prop (float): percentage of expected quantile to calculate 
-            total counts threshold for
-        label (str): how to name .obs column containing output
-        verbose (bool): print updates to console
+    Parameters
+    ----------
 
-    Returns:
-        adata edited in place to add .obs[label] binary label
+    adata : anndata.AnnData
+        object containing unfiltered counts
+    expected : int, optional (default=1500)
+        estimated number of real cells expected in dataset
+    upper_quant : float, optional (default=0.99)
+        upper quantile of real cells to test
+    lower_prop : float, optional (default=0.1)
+        percentage of expected quantile to calculate total counts threshold for
+    label : str, optional (default="CellRanger_2")
+        how to name .obs column containing output
+    verbose : bool, optional (default=True)
+        print updates to console
+
+    Returns
+    -------
+
+    adata edited in place to add .obs[label] binary label
     """
     if "total_counts" not in adata.obs.columns:
         adata.obs["total_counts"] = adata.X.sum(axis=1)
@@ -295,19 +315,28 @@ def cellranger3(
     max_adj_pvalue=0.01,
 ):
     """
-    Label cells using "emptydrops" method from CellRanger 3.0
+    Labels cells using "emptydrops" method from CellRanger 3.0
 
-    Parameters:
-        adata (anndata.AnnData): object containing unfiltered counts
-        init_counts (int): initial total counts threshold for calling cells
-        min_umi_frac_of_median (float): minimum total counts for testing barcodes as
-            fraction of median counts for initially labeled cells
-        min_umis_nonambient (float): minimum total counts for testing barcodes
-        max_adj_pvalue (float): maximum p-value for cell calling after B-H correction
+    Parameters
+    ----------
 
-    Returns:
-        adata edited in place to add .obs["CellRanger_3"] binary label 
-            and .obs["CellRanger_3_ll"] log-likelihoods for tested barcodes
+    adata : anndata.AnnData
+        object containing unfiltered counts
+    init_counts : int, optional (default=15000)
+        initial total counts threshold for calling cells
+    min_umi_frac_of_median : float, optional (default=0.01)
+        minimum total counts for testing barcodes as fraction of median counts for 
+        initially labeled cells
+    min_umis_nonambient : float, optional (default=500)
+        minimum total counts for testing barcodes
+    max_adj_pvalue : float, optional (default=0.01)
+        maximum p-value for cell calling after B-H correction
+
+    Returns
+    -------
+
+    adata edited in place to add .obs["CellRanger_3"] binary label 
+    and .obs["CellRanger_3_ll"] log-likelihoods for tested barcodes
     """
     m = CountMatrix.from_anndata(adata)  # create emptydrops object from adata
     if "total_counts" not in adata.obs.columns:
@@ -337,19 +366,28 @@ def cellranger3(
 
 def subset_adata(adata, subset, verbose=True):
     """
-    Subset AnnData object on one or more .obs columns
-    columns should contain 0/False for cells to throw out, and 1/True for cells to keep
-    keeps union of all labels provided in subset
+    Subsets AnnData object on one or more .obs columns
 
-    Parameters:
-        adata (anndata.AnnData): the data
-        subset (str or list of str): adata.obs labels to use for subsetting
-            labels must be binary (0, "0", False, "False" to toss - 1, "1",
-            True, "True" to keep). multiple labels will keep intersection.
-        verbose (bool): print updates to console
+    Columns should contain 0/False for cells to throw out, and 1/True for cells to 
+    keep. Keeps union of all labels provided in subset.
 
-    Returns:
-        new anndata object as subset of adata
+    Parameters
+    ----------
+
+    adata : anndata.AnnData
+        the data
+    subset : str or list of str
+        adata.obs labels to use for subsetting. Labels must be binary (0, "0", False, 
+        "False" to toss - 1, "1", True, "True" to keep). Multiple labels will keep 
+        intersection.
+    verbose : bool, optional (default=True)
+        print updates to console
+
+    Returns
+    -------
+
+    adata : anndata.AnnData
+        new anndata object as subset of `adata`
     """
     if verbose:
         print("Subsetting AnnData on {}".format(subset), end="")
@@ -371,18 +409,26 @@ def subset_adata(adata, subset, verbose=True):
 
 def cc_score(adata, layer=None, seed=18, verbose=True):
     """
-    Calculate cell cycle scores and implied phase for each observation
+    Calculates cell cycle scores and implied phase for each observation
 
-    Parameters:
-        adata (anndata.AnnData): object containing transformed and normalized
-            (arcsinh or log1p) counts in 'layer'.
-        layer (str): key from adata.layers to use for cc phase calculation.
-            default None to use .X
-        seed (int): random state for PCA, neighbors graph and clustering
-        verbose (bool): print updates to console
+    Parameters
+    ----------
 
-    Returns:
-        adata is edited in place to add 'G2M_score', 'S_score', and 'phase' to .obs
+    adata : anndata.AnnData
+        object containing transformed and normalized (arcsinh or log1p) counts in 
+        'layer'.
+    layer : str, optional (default=None)
+        key from adata.layers to use for cc phase calculation. Default None to 
+        use .X
+    seed : int, optional (default=18)
+        random state for PCA, neighbors graph and clustering
+    verbose : bool, optional (default=True)
+        print updates to console
+
+    Returns
+    -------
+
+    adata is edited in place to add 'G2M_score', 'S_score', and 'phase' to .obs
     """
     if layer is not None:
         adata.layers["temp"] = adata.X.copy()
@@ -419,21 +465,32 @@ def dim_reduce(
     verbose=True,
 ):
     """
-    Reduce dimensions of single-cell dataset using standard methods
+    Reduces dimensions of single-cell dataset using standard methods
 
-    Parameters:
-        adata (anndata.AnnData): object containing preprocessed counts matrix
-        layer (str): layer to use; default .X
-        use_rep (str): .obsm key to use for neighbors graph instead of PCA;
-            default None, generate new PCA from layer
-        clust_resolution (float): resolution as fraction on [0.0, 1.0] for leiden
-            clustering. default 1.0
-        paga (bool): run PAGA to seed UMAP embedding
-        seed (int): random state for PCA, neighbors graph and clustering
-        verbose (bool): print updates to console
+    Parameters
+    ----------
 
-    Returns:
-        adata is edited in place, adding PCA, neighbors graph, PAGA, and UMAP
+    adata : anndata.AnnData
+        object containing preprocessed counts matrix
+    layer : str, optional (default=None)
+        layer to use; default None for .X
+    use_rep : str, optional (default=None)
+        .obsm key to use for neighbors graph instead of PCA;
+        default None, generate new PCA from layer
+    clust_resolution : float, optional (default=1.0)
+        resolution as fraction on [0.0, 1.0] for leiden
+        clustering. default 1.0
+    paga : bool, optional (default=True)
+        run PAGA to seed UMAP embedding
+    seed : int, optional (default=18)
+        random state for PCA, neighbors graph and clustering
+    verbose : bool, optional (default=True)
+        print updates to console
+
+    Returns
+    -------
+
+    adata is edited in place, adding PCA, neighbors graph, PAGA, and UMAP
     """
     if use_rep is None:
         if layer is not None:
@@ -496,24 +553,38 @@ def plot_embedding(
     **kwargs,
 ):
     """
-    Plot reduced-dimension embeddings of single-cell dataset
+    Plots reduced-dimension embeddings of single-cell dataset
 
-    Parameters:
-        adata (anndata.AnnData): object containing preprocessed counts matrix
-        colors (list of str): colors to plot; can be genes or .obs columns
-        show_clustering (bool): plot PAGA graph and leiden clusters on first two axes
-        n_cnmf_markers (int): number of top genes to print on cNMF plots
-        ncols (int): number of columns in gridspec
-        figsize_scale (float): scaler for figure size. calculated using ncols to keep
-            each panel square. values < 1.0 will compress figure, > 1.0 will expand.
-        cmap (str): valid color map for the plot
-        save_to (str): path to .png file for saving figure; default is plt.show()
-        verbose (bool): print updates to console
-        **kwargs: args to pass to sc.pl.umap (e.g. "size", "add_outline", etc.)
+    Parameters
+    ----------
 
-    Returns:
-        plot of UMAP embedding with overlays from "colors" as matplotlib gridspec
-            object, unless save_to is not None.
+    adata : anndata.AnnData
+        object containing preprocessed and dimension-reduced counts matrix
+    colors : list of str, optional (default=None)
+        colors to plot; can be genes or .obs columns
+    show_clustering : bool, optional (default=True)
+        plot PAGA graph and leiden clusters on first two axes
+    n_cnmf_markers : int, optional (default=7)
+        number of top genes to print on cNMF plots
+    ncols : int, optional (default=5)
+        number of columns in gridspec
+    figsize_scale : float, optional (default=1.0)
+        scaler for figure size. calculated using ncols to keep each panel square. 
+        values < 1.0 will compress figure, > 1.0 will expand.
+    cmap : str, optional (default="Reds")
+        valid color map for the plot
+    save_to : str, optional (default=None)
+        path to .png file for saving figure; default is plt.show()
+    verbose : bool, optional (default=True)
+        print updates to console
+    **kwargs : optional
+        args to pass to `sc.pl.umap` (e.g. "size", "add_outline", etc.)
+
+    Returns
+    -------
+
+    plot of UMAP embedding with overlays from "colors" as matplotlib gridspec object, 
+    unless `save_to` is not None.
     """
     if isinstance(colors, str):  # force colors into list if single string
         colors = [colors]
@@ -636,22 +707,36 @@ def plot_genes(
     verbose=True,
 ):
     """
-    Calculate and plot rank_genes_groups results
+    Calculates and plot `rank_genes_groups` results
 
-    Parameters:
-        adata (anndata.AnnData): object containing preprocessed counts matrix
-        de_method (str): one of "t-test", "t-test_overestim_var", "wilcoxon"
-        plot_type (str): one of "heatmap", "dotplot", "matrixplot"
-        groupby (str): .obs key to group cells by. default 'leiden'
-        n_genes (int): number of top genes per group to show
-        dendrogram (bool): show dendrogram of cluster similarity
-        ambient (bool): include ambient genes as a group in the plot
-        cmap (str): valid color map for the plot
-        save_to (str): string to add to plot name using scanpy plot defaults
-        verbose (bool): print updates to console
+    Parameters
+    ----------
 
-    Returns:
-        matplotlib figure
+    adata : anndata.AnnData
+        object containing preprocessed and dimension-reduced counts matrix
+    de_method : str, optional (default="t-test_overestim_var")
+        one of "t-test", "t-test_overestim_var", "wilcoxon"
+    plot_type : str, optional (default="heatmap")
+        one of "heatmap", "dotplot", "matrixplot"
+    groupby : str, optional (default="leiden")
+        .obs key to group cells by
+    n_genes : int, optional (default=5)
+        number of top genes per group to show
+    dendrogram : bool, optional (default=True)
+        show dendrogram of cluster similarity
+    ambient : bool, optional (default=False)
+        include ambient genes as a group in the plot
+    cmap : str, optional (default="Reds")
+        valid color map for the plot
+    save_to : str, optional (default="de.png")
+        string to add to plot name using scanpy plot defaults
+    verbose : bool, optional (default=True)
+        print updates to console
+
+    Returns
+    -------
+
+    matplotlib figure
     """
     if verbose:
         print("Performing differential expression analysis...")
@@ -820,25 +905,36 @@ def plot_genes_cnmf(
     save_to="de_cnmf.png",
 ):
     """
-    Calculate and plot top cNMF gene loadings
+    Calculates and plots top cNMF gene loadings
 
-    Parameters:
-        adata (anndata.AnnData): object containing preprocessed counts matrix
-        plot_type (str): one of "heatmap", "dotplot", "matrixplot"
-        groupby (str): .obs key to group cells by. default 'leiden'.
-        attr {'var', 'obs', 'uns', 'varm', 'obsm'}:
-            The attribute of AnnData that contains the score.
-        keys (str or list of str):
-            The scores to look up an array from the attribute of adata.
-        indices (list of int):
-            The column indices of keys for which to plot (e.g. [0,1,2] for first three keys)
-        n_genes (int): number of top genes per group to show
-        dendrogram (bool): show dendrogram of cluster similarity
-        cmap (str): valid color map for the plot
-        save_to (str): string to add to plot name using scanpy plot defaults
+    Parameters
+    ----------
 
-    Returns:
-        matplotlib figure
+    adata : anndata.AnnData
+        object containing preprocessed and dimension-reduced counts matrix
+    plot_type : str, optional (default="heatmap")
+        one of "heatmap", "dotplot", "matrixplot"
+    groupby : str, optional (default="leiden")
+        .obs key to group cells by
+    attr : str {"var", "obs", "uns", "varm", "obsm"}
+        attribute of adata that contains the score
+    keys : str or list of str, optional (default="cnmf_spectra")
+        scores to look up an array from the attribute of adata
+    indices : list of int, optional (default=None)
+        column indices of keys for which to plot (e.g. [0,1,2] for first three keys)
+    n_genes : int, optional (default=5)
+        number of top genes per group to show
+    dendrogram : bool, optional (default=True)
+        show dendrogram of cluster similarity
+    cmap : str, optional (default="Reds")
+        valid color map for the plot
+    save_to : str, optional (default="de.png")
+        string to add to plot name using scanpy plot defaults
+
+    Returns
+    -------
+
+    matplotlib figure
     """
     # calculate arcsinh counts for visualization
     adata.X = adata.layers["raw_counts"].copy()
@@ -941,24 +1037,33 @@ def rank_genes_cnmf(
     figsize=(5, 5),
 ):
     """
-    Plot rankings. [Adapted from scanpy.plotting._anndata.ranking]
-    See, for example, how this is used in pl.pca_ranking.
+    Plots rankings. [Adapted from `scanpy.plotting._anndata.ranking`]
 
-    Parameters:
-        adata (anndata.AnnData): the data
-        attr (str): {'var', 'obs', 'uns', 'varm', 'obsm'}
-            the attribute of AnnData that contains the score
-        keys (str or list of str): the scores to look up an array from
-            the attribute of adata
-        indices (list of int): the column indices of keys for which to
-            plot (e.g. [0,1,2] for first three keys)
-        ncols (int): number of columns in gridspec
-        show (bool or None): show figure or just return axes
-        figsize (tuple of float): size of matplotlib figure
-        ncol (int): number of columns for gridspec
+    See, for example, how this is used in `pl.pca_ranking`.
 
-    Returns:
-        matplotlib gridspec with access to the axes
+    Parameters
+    ----------
+
+    adata : anndata.AnnData
+        the data
+    attr : str {'var', 'obs', 'uns', 'varm', 'obsm'}
+        the attribute of adata that contains the score
+    keys : str or list of str, optional (default="cnmf_spectra")
+        scores to look up an array from the attribute of adata
+    indices : list of int, optional (default=None)
+        the column indices of keys for which to plot (e.g. [0,1,2] for first three 
+        keys)
+    ncols : int, optional (default=5)
+        number of columns in gridspec
+    show : bool, optional (default=None)
+        show figure or just return axes
+    figsize : tuple of float, optional (default=(5,5))
+        size of matplotlib figure
+
+    Returns
+    -------
+
+    matplotlib gridspec with access to the axes
     """
     # default to all usages
     if indices is None:
@@ -1036,18 +1141,28 @@ def cluster_pie(
     adata, pie_by="batch", groupby="leiden", ncols=5, show=None, figsize=(5, 5),
 ):
     """
-    plot pie graphs showing makeup of cluster groups
+    Plots pie graphs showing makeup of cluster groups
 
-    Parameters:
-        adata (anndata.AnnData): the data
-        pie_by (str): adata.obs column to split pie charts by
-        groupby (str): adata.obs column to create pie charts for
-        ncols (int): number of columns in gridspec
-        show (bool or None): show figure or just return axes
-        figsize (tuple of float): size of matplotlib figure
+    Parameters
+    ----------
 
-    Returns:
-        matplotlib gridspec with access to the axes
+    adata : anndata.AnnData
+        the data
+    pie_by : str, optional (default="batch")
+        adata.obs column to split pie charts by
+    groupby : str, optional (default="leiden")
+        adata.obs column to create pie charts for
+    ncols : int, optional (default=5)
+        number of columns in gridspec
+    show : bool, optional (default=None)
+        show figure or just return axes
+    figsize : tuple of float, optional (default=(5,5))
+        size of matplotlib figure
+
+    Returns
+    -------
+
+    matplotlib gridspec with access to the axes
     """
     if adata.obs[groupby].value_counts().min() == 0:
         print(
