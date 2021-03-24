@@ -1,37 +1,31 @@
-## Welcome to GitHub Pages
+# kitchen
 
-You can use the [editor on GitHub](https://github.com/codyheiser/kitchen/edit/master/docs/index.md) to maintain and preview the content for your website in Markdown files.
+[![Latest Version][tag-version]][repo-url]
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## Installation
 
-### Markdown
+You can install a local version of the package (along with python dependencies) by cloning this repository and running the following command from the main directory:
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```bash
+pip install -e .
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+## Cooking in the kitchen
 
-### Jekyll Themes
+This package is intended to automate manipulation and processing of scRNA-seq counts matrices from the command line, eliminating the need for interactive python sessions with repetitive, manual `scanpy` functions.
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/codyheiser/kitchen/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+```bash
+# print out all kitchen command options
+kitchen -h
 
-### Support or Contact
+# ex1: print information about anndata object (saved in .h5ad format) to console
+kitchen info <path/to/.h5ad>
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+# ex2: process a filtered .h5ad file from raw counts, performing unsupervised clustering,
+# cell cycle inference, and UMAP embedding colored by genes, mito percentage,
+# and cell cycle phase, along with leiden clusters and PAGA graph
+kitchen recipe <path/to/.h5ad> -p -cc -c arcsinh_n_genes_by_counts pct_counts_mito phase
+```
+
+[tag-version]: https://img.shields.io/github/v/tag/codyheiser/kitchen
+[repo-url]: https://github.com/codyheiser/kitchen
