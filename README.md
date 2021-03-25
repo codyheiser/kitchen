@@ -29,5 +29,7 @@ kitchen info <path/to/.h5ad>
 kitchen recipe <path/to/.h5ad> -p -cc -c arcsinh_n_genes_by_counts pct_counts_mito phase
 ```
 
+Full documentation is available at [codyheiser.github.io/kitchen/](https://codyheiser.github.io/kitchen/).
+
 [tag-version]: https://img.shields.io/github/v/tag/codyheiser/kitchen
 [repo-url]: https://github.com/codyheiser/kitchen
