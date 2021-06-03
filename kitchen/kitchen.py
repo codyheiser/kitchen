@@ -518,6 +518,7 @@ def recipe(args):
                 show_clustering=True,
                 n_cnmf_markers=args.n_cnmf_markers,
                 cmap=args.cmap,
+                seed=args.seed,
                 save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
                 verbose=args.verbose,
             )
@@ -539,6 +540,7 @@ def recipe(args):
                 colors=args.colors,
                 show_clustering=True,
                 cmap=args.cmap,
+                seed=args.seed,
                 save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
                 verbose=args.verbose,
             )
@@ -555,6 +557,7 @@ def recipe(args):
             colors=args.colors,
             show_clustering=True,
             cmap=args.cmap,
+            seed=args.seed,
             save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
             verbose=args.verbose,
         )

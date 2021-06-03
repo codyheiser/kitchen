@@ -546,6 +546,7 @@ def plot_embedding(
     ncols=5,
     figsize_scale=1.0,
     cmap="Reds",
+    seed=18,
     save_to=None,
     verbose=True,
     **kwargs,
@@ -571,6 +572,8 @@ def plot_embedding(
         values < 1.0 will compress figure, > 1.0 will expand.
     cmap : str, optional (default="Reds")
         valid color map for the plot
+    seed : int, optional (default=18)
+        random state for plotting PAGA
     save_to : str, optional (default=None)
         path to .png file for saving figure; default is plt.show()
     verbose : bool, optional (default=True)
@@ -628,6 +631,7 @@ def plot_embedding(
                     fontsize="large",
                     fontoutline=2.0,
                     node_size_scale=2.5,
+                    random_state=seed,
                 )
                 ax.set_title(label="PAGA", loc="left", fontweight="bold", fontsize=16)
             else:
