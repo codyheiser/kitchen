@@ -335,6 +335,7 @@ Overwrites reference .h5ad file.</p></div>
                 show_clustering=True,
                 n_cnmf_markers=args.n_cnmf_markers,
                 cmap=args.cmap,
+                seed=args.seed,
                 save_to=&#34;{}/{}_embedding.png&#34;.format(args.outdir, &#34;_&#34;.join(name)),
                 verbose=args.verbose,
             )
@@ -356,6 +357,7 @@ Overwrites reference .h5ad file.</p></div>
                 colors=args.colors,
                 show_clustering=True,
                 cmap=args.cmap,
+                seed=args.seed,
                 save_to=&#34;{}/{}_embedding.png&#34;.format(args.outdir, &#34;_&#34;.join(name)),
                 verbose=args.verbose,
             )
@@ -372,6 +374,7 @@ Overwrites reference .h5ad file.</p></div>
             colors=args.colors,
             show_clustering=True,
             cmap=args.cmap,
+            seed=args.seed,
             save_to=&#34;{}/{}_embedding.png&#34;.format(args.outdir, &#34;_&#34;.join(name)),
             verbose=args.verbose,
         )

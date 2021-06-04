@@ -575,6 +575,7 @@ def plot_embedding(
     ncols=5,
     figsize_scale=1.0,
     cmap=&#34;Reds&#34;,
+    seed=18,
     save_to=None,
     verbose=True,
     **kwargs,
@@ -600,6 +601,8 @@ def plot_embedding(
         values &lt; 1.0 will compress figure, &gt; 1.0 will expand.
     cmap : str, optional (default=&#34;Reds&#34;)
         valid color map for the plot
+    seed : int, optional (default=18)
+        random state for plotting PAGA
     save_to : str, optional (default=None)
         path to .png file for saving figure; default is plt.show()
     verbose : bool, optional (default=True)
@@ -657,6 +660,7 @@ def plot_embedding(
                     fontsize=&#34;large&#34;,
                     fontoutline=2.0,
                     node_size_scale=2.5,
+                    random_state=seed,
                 )
                 ax.set_title(label=&#34;PAGA&#34;, loc=&#34;left&#34;, fontweight=&#34;bold&#34;, fontsize=16)
             else:
@@ -1812,7 +1816,7 @@ clustering. default 1.0</dd>
 </details>
 </dd>
 <dt id="kitchen.ingredients.plot_embedding"><code class="name flex">
-<span>def <span class="ident">plot_embedding</span></span>(<span>adata, colors=None, show_clustering=True, n_cnmf_markers=7, ncols=5, figsize_scale=1.0, cmap='Reds', save_to=None, verbose=True, **kwargs)</span>
+<span>def <span class="ident">plot_embedding</span></span>(<span>adata, colors=None, show_clustering=True, n_cnmf_markers=7, ncols=5, figsize_scale=1.0, cmap='Reds', seed=18, save_to=None, verbose=True, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plots reduced-dimension embeddings of single-cell dataset</p>
@@ -1833,6 +1837,8 @@ clustering. default 1.0</dd>
 values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
 <dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional <code>(default="Reds")</code></dt>
 <dd>valid color map for the plot</dd>
+<dt><strong><code>seed</code></strong> :&ensp;<code>int</code>, optional <code>(default=18)</code></dt>
+<dd>random state for plotting PAGA</dd>
 <dt><strong><code>save_to</code></strong> :&ensp;<code>str</code>, optional <code>(default=None)</code></dt>
 <dd>path to .png file for saving figure; default is plt.show()</dd>
 <dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
@@ -1858,6 +1864,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
     ncols=5,
     figsize_scale=1.0,
     cmap=&#34;Reds&#34;,
+    seed=18,
     save_to=None,
     verbose=True,
     **kwargs,
@@ -1883,6 +1890,8 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
         values &lt; 1.0 will compress figure, &gt; 1.0 will expand.
     cmap : str, optional (default=&#34;Reds&#34;)
         valid color map for the plot
+    seed : int, optional (default=18)
+        random state for plotting PAGA
     save_to : str, optional (default=None)
         path to .png file for saving figure; default is plt.show()
     verbose : bool, optional (default=True)
@@ -1940,6 +1949,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
                     fontsize=&#34;large&#34;,
                     fontoutline=2.0,
                     node_size_scale=2.5,
+                    random_state=seed,
                 )
                 ax.set_title(label=&#34;PAGA&#34;, loc=&#34;left&#34;, fontweight=&#34;bold&#34;, fontsize=16)
             else:
