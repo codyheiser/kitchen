@@ -352,7 +352,7 @@ def cellranger3(
     init_counts : int, optional (default=15000)
         initial total counts threshold for calling cells
     min_umi_frac_of_median : float, optional (default=0.01)
-        minimum total counts for testing barcodes as fraction of median counts for 
+        minimum total counts for testing barcodes as fraction of median counts for
         initially labeled cells
     min_umis_nonambient : float, optional (default=500)
         minimum total counts for testing barcodes
@@ -362,7 +362,7 @@ def cellranger3(
     Returns
     -------
 
-    adata edited in place to add .obs[&#34;CellRanger_3&#34;] binary label 
+    adata edited in place to add .obs[&#34;CellRanger_3&#34;] binary label
     and .obs[&#34;CellRanger_3_ll&#34;] log-likelihoods for tested barcodes
     &#34;&#34;&#34;
     m = CountMatrix.from_anndata(adata)  # create emptydrops object from adata
@@ -375,7 +375,10 @@ def cellranger3(
     out = find_nonambient_barcodes(
         m,
         np.array(
-            adata.obs.loc[adata.obs.CellRanger_3 == True,].index, dtype=m.bcs.dtype
+            adata.obs.loc[
+                adata.obs.CellRanger_3 == True,
+            ].index,
+            dtype=m.bcs.dtype,
         ),
         min_umi_frac_of_median=min_umi_frac_of_median,
         min_umis_nonambient=min_umis_nonambient,
@@ -395,7 +398,7 @@ def subset_adata(adata, subset, verbose=True):
     &#34;&#34;&#34;
     Subsets AnnData object on one or more .obs columns
 
-    Columns should contain 0/False for cells to throw out, and 1/True for cells to 
+    Columns should contain 0/False for cells to throw out, and 1/True for cells to
     keep. Keeps union of all labels provided in subset.
 
     Parameters
@@ -404,8 +407,8 @@ def subset_adata(adata, subset, verbose=True):
     adata : anndata.AnnData
         the data
     subset : str or list of str
-        adata.obs labels to use for subsetting. Labels must be binary (0, &#34;0&#34;, False, 
-        &#34;False&#34; to toss - 1, &#34;1&#34;, True, &#34;True&#34; to keep). Multiple labels will keep 
+        adata.obs labels to use for subsetting. Labels must be binary (0, &#34;0&#34;, False,
+        &#34;False&#34; to toss - 1, &#34;1&#34;, True, &#34;True&#34; to keep). Multiple labels will keep
         intersection.
     verbose : bool, optional (default=True)
         print updates to console
@@ -442,10 +445,10 @@ def cc_score(adata, layer=None, seed=18, verbose=True):
     ----------
 
     adata : anndata.AnnData
-        object containing transformed and normalized (arcsinh or log1p) counts in 
+        object containing transformed and normalized (arcsinh or log1p) counts in
         &#39;layer&#39;.
     layer : str, optional (default=None)
-        key from adata.layers to use for cc phase calculation. Default None to 
+        key from adata.layers to use for cc phase calculation. Default None to
         use .X
     seed : int, optional (default=18)
         random state for PCA, neighbors graph and clustering
@@ -597,7 +600,7 @@ def plot_embedding(
     ncols : int, optional (default=5)
         number of columns in gridspec
     figsize_scale : float, optional (default=1.0)
-        scaler for figure size. calculated using ncols to keep each panel square. 
+        scaler for figure size. calculated using ncols to keep each panel square.
         values &lt; 1.0 will compress figure, &gt; 1.0 will expand.
     cmap : str, optional (default=&#34;Reds&#34;)
         valid color map for the plot
@@ -613,7 +616,7 @@ def plot_embedding(
     Returns
     -------
 
-    plot of UMAP embedding with overlays from &#34;colors&#34; as matplotlib gridspec object, 
+    plot of UMAP embedding with overlays from &#34;colors&#34; as matplotlib gridspec object,
     unless `save_to` is not None.
     &#34;&#34;&#34;
     if isinstance(colors, str):  # force colors into list if single string
@@ -736,6 +739,7 @@ def plot_genes(
     cmap=&#34;Reds&#34;,
     save_to=&#34;de.png&#34;,
     verbose=True,
+    **kwargs,
 ):
     &#34;&#34;&#34;
     Calculates and plot `rank_genes_groups` results
@@ -763,6 +767,8 @@ def plot_genes(
         string to add to plot name using scanpy plot defaults
     verbose : bool, optional (default=True)
         print updates to console
+    **kwargs : optional
+        keyword args to add to sc.pl.matrixplot, sc.pl.dotplot, or sc.pl.heatmap
 
     Returns
     -------
@@ -823,6 +829,7 @@ def plot_genes(
                 var_group_rotation=0,
                 cmap=cmap,
                 show=False,
+                **kwargs,
             )
             myplot[&#34;heatmap_ax&#34;].set_yticklabels(
                 myplot[&#34;heatmap_ax&#34;].get_yticklabels(), fontstyle=&#34;italic&#34;
@@ -839,6 +846,7 @@ def plot_genes(
                 var_group_rotation=90,
                 show=False,
                 return_fig=True,
+                **kwargs,
             )
             myplot.style(
                 cmap=cmap, color_on=&#34;square&#34;, dot_edge_color=None, dot_edge_lw=1
@@ -858,6 +866,7 @@ def plot_genes(
                 cmap=cmap,
                 show=False,
                 return_fig=True,
+                **kwargs,
             )
             myplot.get_axes()[&#34;mainplot_ax&#34;].set_xticklabels(
                 myplot.get_axes()[&#34;mainplot_ax&#34;].get_xticklabels(), fontstyle=&#34;italic&#34;
@@ -877,6 +886,7 @@ def plot_genes(
                 var_group_rotation=0,
                 cmap=cmap,
                 show=False,
+                **kwargs,
             )
             myplot[&#34;heatmap_ax&#34;].set_yticklabels(
                 myplot[&#34;heatmap_ax&#34;].get_yticklabels(), fontstyle=&#34;italic&#34;
@@ -893,6 +903,7 @@ def plot_genes(
                 var_group_rotation=90,
                 show=False,
                 return_fig=True,
+                **kwargs,
             )
             myplot.style(
                 cmap=cmap, color_on=&#34;square&#34;, dot_edge_color=None, dot_edge_lw=1
@@ -912,6 +923,7 @@ def plot_genes(
                 cmap=cmap,
                 show=False,
                 return_fig=True,
+                **kwargs,
             )
             myplot.get_axes()[&#34;mainplot_ax&#34;].set_xticklabels(
                 myplot.get_axes()[&#34;mainplot_ax&#34;].get_xticklabels(), fontstyle=&#34;italic&#34;
@@ -934,6 +946,7 @@ def plot_genes_cnmf(
     dendrogram=True,
     cmap=&#34;Reds&#34;,
     save_to=&#34;de_cnmf.png&#34;,
+    **kwargs,
 ):
     &#34;&#34;&#34;
     Calculates and plots top cNMF gene loadings
@@ -961,6 +974,8 @@ def plot_genes_cnmf(
         valid color map for the plot
     save_to : str, optional (default=&#34;de.png&#34;)
         string to add to plot name using scanpy plot defaults
+    **kwargs : optional
+        keyword args to add to sc.pl.matrixplot, sc.pl.dotplot, or sc.pl.heatmap
 
     Returns
     -------
@@ -1010,6 +1025,7 @@ def plot_genes_cnmf(
             var_group_rotation=0,
             cmap=cmap,
             show=False,
+            **kwargs,
         )
         myplot[&#34;heatmap_ax&#34;].set_yticklabels(
             myplot[&#34;heatmap_ax&#34;].get_yticklabels(), fontstyle=&#34;italic&#34;
@@ -1026,6 +1042,7 @@ def plot_genes_cnmf(
             var_group_rotation=90,
             show=False,
             return_fig=True,
+            **kwargs,
         )
         myplot.style(cmap=cmap, color_on=&#34;square&#34;, dot_edge_color=None, dot_edge_lw=1)
         myplot.get_axes()[&#34;mainplot_ax&#34;].set_yticklabels(
@@ -1043,6 +1060,7 @@ def plot_genes_cnmf(
             cmap=cmap,
             show=False,
             return_fig=True,
+            **kwargs,
         )
         myplot.get_axes()[&#34;mainplot_ax&#34;].set_xticklabels(
             myplot.get_axes()[&#34;mainplot_ax&#34;].get_xticklabels(), fontstyle=&#34;italic&#34;
@@ -1060,6 +1078,7 @@ def rank_genes_cnmf(
     keys=&#34;cnmf_spectra&#34;,
     indices=None,
     labels=None,
+    titles=None,
     color=&#34;black&#34;,
     n_points=20,
     ncols=5,
@@ -1082,8 +1101,12 @@ def rank_genes_cnmf(
     keys : str or list of str, optional (default=&#34;cnmf_spectra&#34;)
         scores to look up an array from the attribute of adata
     indices : list of int, optional (default=None)
-        the column indices of keys for which to plot (e.g. [0,1,2] for first three 
+        the column indices of keys for which to plot (e.g. [0,1,2] for first three
         keys)
+    labels : list of str, optional (default=None)
+        Labels to use for features displayed as plt.txt objects on the axes
+    titles : list of str, optional (default=None)
+        Labels for titles of each plot panel, in order
     ncols : int, optional (default=5)
         number of columns in gridspec
     show : bool, optional (default=None)
@@ -1114,6 +1137,8 @@ def rank_genes_cnmf(
             if attr in {&#34;var&#34;, &#34;varm&#34;}
             else np.arange(scores.shape[0]).astype(str)
         )
+    if titles is not None:
+        assert len(titles) == n_panels, &#34;Must provide {} titles&#34;.format(n_panels)
     if isinstance(labels, str):
         labels = [labels + str(i + 1) for i in range(scores.shape[0])]
     if n_panels &lt;= ncols:
@@ -1140,13 +1165,15 @@ def rank_genes_cnmf(
                 y=ig,
                 s=labels[g],
                 color=color,
-                # rotation=&#34;vertical&#34;,
                 verticalalignment=&#34;center&#34;,
                 horizontalalignment=&#34;right&#34;,
                 fontsize=&#34;medium&#34;,
                 fontstyle=&#34;italic&#34;,
             )
-        plt.title(keys[iscore].replace(&#34;_&#34;, &#34; &#34;), fontsize=&#34;x-large&#34;)
+        if titles is not None:
+            plt.title(titles[iscore], fontsize=&#34;x-large&#34;)
+        else:
+            plt.title(keys[iscore].replace(&#34;_&#34;, &#34; &#34;), fontsize=&#34;x-large&#34;)
         plt.ylim(-0.9, ig + 0.9)
         score_min, score_max = np.min(score[indices]), np.max(score[indices])
         plt.xlim(
@@ -1169,7 +1196,12 @@ def rank_genes_cnmf(
 
 
 def cluster_pie(
-    adata, pie_by=&#34;batch&#34;, groupby=&#34;leiden&#34;, ncols=5, show=None, figsize=(5, 5),
+    adata,
+    pie_by=&#34;batch&#34;,
+    groupby=&#34;leiden&#34;,
+    ncols=5,
+    show=None,
+    figsize=(5, 5),
 ):
     &#34;&#34;&#34;
     Plots pie graphs showing makeup of cluster groups
@@ -1300,10 +1332,10 @@ use .X</dd>
     ----------
 
     adata : anndata.AnnData
-        object containing transformed and normalized (arcsinh or log1p) counts in 
+        object containing transformed and normalized (arcsinh or log1p) counts in
         &#39;layer&#39;.
     layer : str, optional (default=None)
-        key from adata.layers to use for cc phase calculation. Default None to 
+        key from adata.layers to use for cc phase calculation. Default None to
         use .X
     seed : int, optional (default=18)
         random state for PCA, neighbors graph and clustering
@@ -1462,7 +1494,7 @@ initially labeled cells</dd>
     init_counts : int, optional (default=15000)
         initial total counts threshold for calling cells
     min_umi_frac_of_median : float, optional (default=0.01)
-        minimum total counts for testing barcodes as fraction of median counts for 
+        minimum total counts for testing barcodes as fraction of median counts for
         initially labeled cells
     min_umis_nonambient : float, optional (default=500)
         minimum total counts for testing barcodes
@@ -1472,7 +1504,7 @@ initially labeled cells</dd>
     Returns
     -------
 
-    adata edited in place to add .obs[&#34;CellRanger_3&#34;] binary label 
+    adata edited in place to add .obs[&#34;CellRanger_3&#34;] binary label
     and .obs[&#34;CellRanger_3_ll&#34;] log-likelihoods for tested barcodes
     &#34;&#34;&#34;
     m = CountMatrix.from_anndata(adata)  # create emptydrops object from adata
@@ -1485,7 +1517,10 @@ initially labeled cells</dd>
     out = find_nonambient_barcodes(
         m,
         np.array(
-            adata.obs.loc[adata.obs.CellRanger_3 == True,].index, dtype=m.bcs.dtype
+            adata.obs.loc[
+                adata.obs.CellRanger_3 == True,
+            ].index,
+            dtype=m.bcs.dtype,
         ),
         min_umi_frac_of_median=min_umi_frac_of_median,
         min_umis_nonambient=min_umis_nonambient,
@@ -1569,7 +1604,12 @@ initially labeled cells</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def cluster_pie(
-    adata, pie_by=&#34;batch&#34;, groupby=&#34;leiden&#34;, ncols=5, show=None, figsize=(5, 5),
+    adata,
+    pie_by=&#34;batch&#34;,
+    groupby=&#34;leiden&#34;,
+    ncols=5,
+    show=None,
+    figsize=(5, 5),
 ):
     &#34;&#34;&#34;
     Plots pie graphs showing makeup of cluster groups
@@ -1886,7 +1926,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
     ncols : int, optional (default=5)
         number of columns in gridspec
     figsize_scale : float, optional (default=1.0)
-        scaler for figure size. calculated using ncols to keep each panel square. 
+        scaler for figure size. calculated using ncols to keep each panel square.
         values &lt; 1.0 will compress figure, &gt; 1.0 will expand.
     cmap : str, optional (default=&#34;Reds&#34;)
         valid color map for the plot
@@ -1902,7 +1942,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
     Returns
     -------
 
-    plot of UMAP embedding with overlays from &#34;colors&#34; as matplotlib gridspec object, 
+    plot of UMAP embedding with overlays from &#34;colors&#34; as matplotlib gridspec object,
     unless `save_to` is not None.
     &#34;&#34;&#34;
     if isinstance(colors, str):  # force colors into list if single string
@@ -2015,7 +2055,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
 </details>
 </dd>
 <dt id="kitchen.ingredients.plot_genes"><code class="name flex">
-<span>def <span class="ident">plot_genes</span></span>(<span>adata, de_method='t-test_overestim_var', plot_type='heatmap', groupby='leiden', n_genes=5, dendrogram=True, ambient=False, cmap='Reds', save_to='de.png', verbose=True)</span>
+<span>def <span class="ident">plot_genes</span></span>(<span>adata, de_method='t-test_overestim_var', plot_type='heatmap', groupby='leiden', n_genes=5, dendrogram=True, ambient=False, cmap='Reds', save_to='de.png', verbose=True, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculates and plot <code>rank_genes_groups</code> results</p>
@@ -2041,6 +2081,8 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
 <dd>string to add to plot name using scanpy plot defaults</dd>
 <dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
 <dd>print updates to console</dd>
+<dt><strong><code>**kwargs</code></strong> :&ensp;<code>optional</code></dt>
+<dd>keyword args to add to sc.pl.matrixplot, sc.pl.dotplot, or sc.pl.heatmap</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -2062,6 +2104,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
     cmap=&#34;Reds&#34;,
     save_to=&#34;de.png&#34;,
     verbose=True,
+    **kwargs,
 ):
     &#34;&#34;&#34;
     Calculates and plot `rank_genes_groups` results
@@ -2089,6 +2132,8 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
         string to add to plot name using scanpy plot defaults
     verbose : bool, optional (default=True)
         print updates to console
+    **kwargs : optional
+        keyword args to add to sc.pl.matrixplot, sc.pl.dotplot, or sc.pl.heatmap
 
     Returns
     -------
@@ -2149,6 +2194,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
                 var_group_rotation=0,
                 cmap=cmap,
                 show=False,
+                **kwargs,
             )
             myplot[&#34;heatmap_ax&#34;].set_yticklabels(
                 myplot[&#34;heatmap_ax&#34;].get_yticklabels(), fontstyle=&#34;italic&#34;
@@ -2165,6 +2211,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
                 var_group_rotation=90,
                 show=False,
                 return_fig=True,
+                **kwargs,
             )
             myplot.style(
                 cmap=cmap, color_on=&#34;square&#34;, dot_edge_color=None, dot_edge_lw=1
@@ -2184,6 +2231,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
                 cmap=cmap,
                 show=False,
                 return_fig=True,
+                **kwargs,
             )
             myplot.get_axes()[&#34;mainplot_ax&#34;].set_xticklabels(
                 myplot.get_axes()[&#34;mainplot_ax&#34;].get_xticklabels(), fontstyle=&#34;italic&#34;
@@ -2203,6 +2251,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
                 var_group_rotation=0,
                 cmap=cmap,
                 show=False,
+                **kwargs,
             )
             myplot[&#34;heatmap_ax&#34;].set_yticklabels(
                 myplot[&#34;heatmap_ax&#34;].get_yticklabels(), fontstyle=&#34;italic&#34;
@@ -2219,6 +2268,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
                 var_group_rotation=90,
                 show=False,
                 return_fig=True,
+                **kwargs,
             )
             myplot.style(
                 cmap=cmap, color_on=&#34;square&#34;, dot_edge_color=None, dot_edge_lw=1
@@ -2238,6 +2288,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
                 cmap=cmap,
                 show=False,
                 return_fig=True,
+                **kwargs,
             )
             myplot.get_axes()[&#34;mainplot_ax&#34;].set_xticklabels(
                 myplot.get_axes()[&#34;mainplot_ax&#34;].get_xticklabels(), fontstyle=&#34;italic&#34;
@@ -2250,7 +2301,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
 </details>
 </dd>
 <dt id="kitchen.ingredients.plot_genes_cnmf"><code class="name flex">
-<span>def <span class="ident">plot_genes_cnmf</span></span>(<span>adata, plot_type='heatmap', groupby='leiden', attr='varm', keys='cnmf_spectra', indices=None, n_genes=5, dendrogram=True, cmap='Reds', save_to='de_cnmf.png')</span>
+<span>def <span class="ident">plot_genes_cnmf</span></span>(<span>adata, plot_type='heatmap', groupby='leiden', attr='varm', keys='cnmf_spectra', indices=None, n_genes=5, dendrogram=True, cmap='Reds', save_to='de_cnmf.png', **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculates and plots top cNMF gene loadings</p>
@@ -2276,6 +2327,8 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
 <dd>valid color map for the plot</dd>
 <dt><strong><code>save_to</code></strong> :&ensp;<code>str</code>, optional <code>(default="de.png")</code></dt>
 <dd>string to add to plot name using scanpy plot defaults</dd>
+<dt><strong><code>**kwargs</code></strong> :&ensp;<code>optional</code></dt>
+<dd>keyword args to add to sc.pl.matrixplot, sc.pl.dotplot, or sc.pl.heatmap</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -2297,6 +2350,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
     dendrogram=True,
     cmap=&#34;Reds&#34;,
     save_to=&#34;de_cnmf.png&#34;,
+    **kwargs,
 ):
     &#34;&#34;&#34;
     Calculates and plots top cNMF gene loadings
@@ -2324,6 +2378,8 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
         valid color map for the plot
     save_to : str, optional (default=&#34;de.png&#34;)
         string to add to plot name using scanpy plot defaults
+    **kwargs : optional
+        keyword args to add to sc.pl.matrixplot, sc.pl.dotplot, or sc.pl.heatmap
 
     Returns
     -------
@@ -2373,6 +2429,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
             var_group_rotation=0,
             cmap=cmap,
             show=False,
+            **kwargs,
         )
         myplot[&#34;heatmap_ax&#34;].set_yticklabels(
             myplot[&#34;heatmap_ax&#34;].get_yticklabels(), fontstyle=&#34;italic&#34;
@@ -2389,6 +2446,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
             var_group_rotation=90,
             show=False,
             return_fig=True,
+            **kwargs,
         )
         myplot.style(cmap=cmap, color_on=&#34;square&#34;, dot_edge_color=None, dot_edge_lw=1)
         myplot.get_axes()[&#34;mainplot_ax&#34;].set_yticklabels(
@@ -2406,6 +2464,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
             cmap=cmap,
             show=False,
             return_fig=True,
+            **kwargs,
         )
         myplot.get_axes()[&#34;mainplot_ax&#34;].set_xticklabels(
             myplot.get_axes()[&#34;mainplot_ax&#34;].get_xticklabels(), fontstyle=&#34;italic&#34;
@@ -2418,7 +2477,7 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
 </details>
 </dd>
 <dt id="kitchen.ingredients.rank_genes_cnmf"><code class="name flex">
-<span>def <span class="ident">rank_genes_cnmf</span></span>(<span>adata, attr='varm', keys='cnmf_spectra', indices=None, labels=None, color='black', n_points=20, ncols=5, log=False, show=None, figsize=(5, 5))</span>
+<span>def <span class="ident">rank_genes_cnmf</span></span>(<span>adata, attr='varm', keys='cnmf_spectra', indices=None, labels=None, titles=None, color='black', n_points=20, ncols=5, log=False, show=None, figsize=(5, 5))</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plots rankings. [Adapted from <code>scanpy.plotting._anndata.ranking</code>]</p>
@@ -2434,6 +2493,10 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
 <dt><strong><code>indices</code></strong> :&ensp;<code>list</code> of <code>int</code>, optional <code>(default=None)</code></dt>
 <dd>the column indices of keys for which to plot (e.g. [0,1,2] for first three
 keys)</dd>
+<dt><strong><code>labels</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=None)</code></dt>
+<dd>Labels to use for features displayed as plt.txt objects on the axes</dd>
+<dt><strong><code>titles</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=None)</code></dt>
+<dd>Labels for titles of each plot panel, in order</dd>
 <dt><strong><code>ncols</code></strong> :&ensp;<code>int</code>, optional <code>(default=5)</code></dt>
 <dd>number of columns in gridspec</dd>
 <dt><strong><code>show</code></strong> :&ensp;<code>bool</code>, optional <code>(default=None)</code></dt>
@@ -2456,6 +2519,7 @@ keys)</dd>
     keys=&#34;cnmf_spectra&#34;,
     indices=None,
     labels=None,
+    titles=None,
     color=&#34;black&#34;,
     n_points=20,
     ncols=5,
@@ -2478,8 +2542,12 @@ keys)</dd>
     keys : str or list of str, optional (default=&#34;cnmf_spectra&#34;)
         scores to look up an array from the attribute of adata
     indices : list of int, optional (default=None)
-        the column indices of keys for which to plot (e.g. [0,1,2] for first three 
+        the column indices of keys for which to plot (e.g. [0,1,2] for first three
         keys)
+    labels : list of str, optional (default=None)
+        Labels to use for features displayed as plt.txt objects on the axes
+    titles : list of str, optional (default=None)
+        Labels for titles of each plot panel, in order
     ncols : int, optional (default=5)
         number of columns in gridspec
     show : bool, optional (default=None)
@@ -2510,6 +2578,8 @@ keys)</dd>
             if attr in {&#34;var&#34;, &#34;varm&#34;}
             else np.arange(scores.shape[0]).astype(str)
         )
+    if titles is not None:
+        assert len(titles) == n_panels, &#34;Must provide {} titles&#34;.format(n_panels)
     if isinstance(labels, str):
         labels = [labels + str(i + 1) for i in range(scores.shape[0])]
     if n_panels &lt;= ncols:
@@ -2536,13 +2606,15 @@ keys)</dd>
                 y=ig,
                 s=labels[g],
                 color=color,
-                # rotation=&#34;vertical&#34;,
                 verticalalignment=&#34;center&#34;,
                 horizontalalignment=&#34;right&#34;,
                 fontsize=&#34;medium&#34;,
                 fontstyle=&#34;italic&#34;,
             )
-        plt.title(keys[iscore].replace(&#34;_&#34;, &#34; &#34;), fontsize=&#34;x-large&#34;)
+        if titles is not None:
+            plt.title(titles[iscore], fontsize=&#34;x-large&#34;)
+        else:
+            plt.title(keys[iscore].replace(&#34;_&#34;, &#34; &#34;), fontsize=&#34;x-large&#34;)
         plt.ylim(-0.9, ig + 0.9)
         score_min, score_max = np.min(score[indices]), np.max(score[indices])
         plt.xlim(
@@ -2595,7 +2667,7 @@ intersection.</dd>
     &#34;&#34;&#34;
     Subsets AnnData object on one or more .obs columns
 
-    Columns should contain 0/False for cells to throw out, and 1/True for cells to 
+    Columns should contain 0/False for cells to throw out, and 1/True for cells to
     keep. Keeps union of all labels provided in subset.
 
     Parameters
@@ -2604,8 +2676,8 @@ intersection.</dd>
     adata : anndata.AnnData
         the data
     subset : str or list of str
-        adata.obs labels to use for subsetting. Labels must be binary (0, &#34;0&#34;, False, 
-        &#34;False&#34; to toss - 1, &#34;1&#34;, True, &#34;True&#34; to keep). Multiple labels will keep 
+        adata.obs labels to use for subsetting. Labels must be binary (0, &#34;0&#34;, False,
+        &#34;False&#34; to toss - 1, &#34;1&#34;, True, &#34;True&#34; to keep). Multiple labels will keep
         intersection.
     verbose : bool, optional (default=True)
         print updates to console
