@@ -500,13 +500,21 @@ def dim_reduce(
             adata.X = adata.layers[layer].copy()
         if verbose:
             print(
-                "Performing PCA and building kNN graph with {} nearest neighbors".format(
-                    int(np.sqrt(adata.n_obs))
+                "Performing {}-component PCA and building kNN graph with {} neighbors".format(
+                    "50" if adata.n_obs >= 50 else adata.n_obs,
+                    int(np.sqrt(adata.n_obs)),
                 )
             )
-        sc.pp.pca(adata, n_comps=50, random_state=seed)
+        sc.pp.pca(
+            adata,
+            n_comps=50 if adata.n_obs >= 50 else adata.n_obs - 1,
+            random_state=seed,
+        )
         sc.pp.neighbors(
-            adata, n_neighbors=int(np.sqrt(adata.n_obs)), n_pcs=20, random_state=seed
+            adata,
+            n_neighbors=int(np.sqrt(adata.n_obs)),
+            n_pcs=20 if adata.n_obs >= 50 else int(0.4 * (adata.n_obs - 1)),
+            random_state=seed,
         )
     else:
         if verbose:

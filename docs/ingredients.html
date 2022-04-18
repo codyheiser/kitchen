@@ -529,13 +529,21 @@ def dim_reduce(
             adata.X = adata.layers[layer].copy()
         if verbose:
             print(
-                &#34;Performing PCA and building kNN graph with {} nearest neighbors&#34;.format(
-                    int(np.sqrt(adata.n_obs))
+                &#34;Performing {}-component PCA and building kNN graph with {} neighbors&#34;.format(
+                    &#34;50&#34; if adata.n_obs &gt;= 50 else adata.n_obs,
+                    int(np.sqrt(adata.n_obs)),
                 )
             )
-        sc.pp.pca(adata, n_comps=50, random_state=seed)
+        sc.pp.pca(
+            adata,
+            n_comps=50 if adata.n_obs &gt;= 50 else adata.n_obs - 1,
+            random_state=seed,
+        )
         sc.pp.neighbors(
-            adata, n_neighbors=int(np.sqrt(adata.n_obs)), n_pcs=20, random_state=seed
+            adata,
+            n_neighbors=int(np.sqrt(adata.n_obs)),
+            n_pcs=20 if adata.n_obs &gt;= 50 else int(0.4 * (adata.n_obs - 1)),
+            random_state=seed,
         )
     else:
         if verbose:
@@ -1775,13 +1783,21 @@ clustering. default 1.0</dd>
             adata.X = adata.layers[layer].copy()
         if verbose:
             print(
-                &#34;Performing PCA and building kNN graph with {} nearest neighbors&#34;.format(
-                    int(np.sqrt(adata.n_obs))
+                &#34;Performing {}-component PCA and building kNN graph with {} neighbors&#34;.format(
+                    &#34;50&#34; if adata.n_obs &gt;= 50 else adata.n_obs,
+                    int(np.sqrt(adata.n_obs)),
                 )
             )
-        sc.pp.pca(adata, n_comps=50, random_state=seed)
+        sc.pp.pca(
+            adata,
+            n_comps=50 if adata.n_obs &gt;= 50 else adata.n_obs - 1,
+            random_state=seed,
+        )
         sc.pp.neighbors(
-            adata, n_neighbors=int(np.sqrt(adata.n_obs)), n_pcs=20, random_state=seed
+            adata,
+            n_neighbors=int(np.sqrt(adata.n_obs)),
+            n_pcs=20 if adata.n_obs &gt;= 50 else int(0.4 * (adata.n_obs - 1)),
+            random_state=seed,
         )
     else:
         if verbose:
