@@ -287,7 +287,7 @@ def obs_to_categorical(args):
 def add_label(args):
     """
     Uses .obs_names from filtered counts matrix to add binary label to a reference
-    anndata object, "True" = present in filt, "False" = not present. 
+    anndata object, "True" = present in filt, "False" = not present.
     Overwrites reference .h5ad file.
     """
     # read reference file into anndata obj
@@ -521,6 +521,7 @@ def recipe(args):
                 seed=args.seed,
                 save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
                 verbose=args.verbose,
+                size=args.point_size,
             )
         else:
             print(
@@ -543,6 +544,7 @@ def recipe(args):
                 seed=args.seed,
                 save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
                 verbose=args.verbose,
+                size=args.point_size,
             )
     else:
         # save embedding plot
@@ -560,6 +562,7 @@ def recipe(args):
             seed=args.seed,
             save_to="{}/{}_embedding.png".format(args.outdir, "_".join(name)),
             verbose=args.verbose,
+            size=args.point_size,
         )
     # save file as .h5ad
     if args.save_adata:
@@ -653,23 +656,32 @@ def pie(args):
 def main():
     parser = argparse.ArgumentParser(prog="kitchen")
     parser.add_argument(
-        "-V", "--version", action="version", version=get_versions()["version"],
+        "-V",
+        "--version",
+        action="version",
+        version=get_versions()["version"],
     )
     subparsers = parser.add_subparsers()
 
     info_parser = subparsers.add_parser(
-        "info", help="Show information about .h5ad file",
+        "info",
+        help="Show information about .h5ad file",
     )
     info_parser.add_argument(
-        "file", type=str, help="Counts matrix as .h5ad file",
+        "file",
+        type=str,
+        help="Counts matrix as .h5ad file",
     )
     info_parser.set_defaults(func=info)
 
     to_h5ad_parser = subparsers.add_parser(
-        "to_h5ad", help="Convert counts matrix to .h5ad format",
+        "to_h5ad",
+        help="Convert counts matrix to .h5ad format",
     )
     to_h5ad_parser.add_argument(
-        "file", type=str, help="Counts matrix as comma or tab delimited text file",
+        "file",
+        type=str,
+        help="Counts matrix as comma or tab delimited text file",
     )
     to_h5ad_parser.add_argument(
         "-o",
@@ -726,10 +738,13 @@ def main():
     mtx_to_h5ad_parser.set_defaults(func=mtx_to_h5ad)
 
     to_csv_parser = subparsers.add_parser(
-        "to_csv", help="Save .h5ad counts to .csv file(s)",
+        "to_csv",
+        help="Save .h5ad counts to .csv file(s)",
     )
     to_csv_parser.add_argument(
-        "file", type=str, help="Counts matrix as .h5ad file",
+        "file",
+        type=str,
+        help="Counts matrix as .h5ad file",
     )
     to_csv_parser.add_argument(
         "-o",
@@ -768,7 +783,8 @@ def main():
     to_csv_parser.set_defaults(func=h5ad_to_csv)
 
     transpose_parser = subparsers.add_parser(
-        "transpose", help="Transpose counts matrix and save as .h5ad",
+        "transpose",
+        help="Transpose counts matrix and save as .h5ad",
     )
     transpose_parser.add_argument(
         "file",
@@ -821,10 +837,13 @@ def main():
     to_dense_parser.set_defaults(func=to_dense)
 
     to_X_parser = subparsers.add_parser(
-        "to_X", help="Swap a matrix from .layers to .X slot of anndata object",
+        "to_X",
+        help="Swap a matrix from .layers to .X slot of anndata object",
     )
     to_X_parser.add_argument(
-        "file", type=str, help="Counts matrix as .h5ad file",
+        "file",
+        type=str,
+        help="Counts matrix as .h5ad file",
     )
     to_X_parser.add_argument(
         "-l",
@@ -843,10 +862,13 @@ def main():
     to_X_parser.set_defaults(func=to_X)
 
     rename_obs_parser = subparsers.add_parser(
-        "rename_obs", help="Rename .obs columns in .h5ad file",
+        "rename_obs",
+        help="Rename .obs columns in .h5ad file",
     )
     rename_obs_parser.add_argument(
-        "file", type=str, help="Counts matrix as .h5ad file",
+        "file",
+        type=str,
+        help="Counts matrix as .h5ad file",
     )
     rename_obs_parser.add_argument(
         "-o",
@@ -874,10 +896,13 @@ def main():
     rename_obs_parser.set_defaults(func=rename_obs)
 
     label_info_parser = subparsers.add_parser(
-        "label_info", help="Print value counts for .obs labels to console",
+        "label_info",
+        help="Print value counts for .obs labels to console",
     )
     label_info_parser.add_argument(
-        "file", type=str, help="Counts matrix as .h5ad file",
+        "file",
+        type=str,
+        help="Counts matrix as .h5ad file",
     )
     label_info_parser.add_argument(
         "-l",
@@ -890,10 +915,13 @@ def main():
     label_info_parser.set_defaults(func=label_info)
 
     to_categorical_parser = subparsers.add_parser(
-        "to_categorical", help="Make .obs label categorical dtype",
+        "to_categorical",
+        help="Make .obs label categorical dtype",
     )
     to_categorical_parser.add_argument(
-        "file", type=str, help="Counts matrix as .h5ad file",
+        "file",
+        type=str,
+        help="Counts matrix as .h5ad file",
     )
     to_categorical_parser.add_argument(
         "-l",
@@ -956,10 +984,13 @@ def main():
     add_label_parser.set_defaults(func=add_label)
 
     cellranger2_parser = subparsers.add_parser(
-        "cellranger2", help="Label cells using 'knee point' method from CellRanger 2.1",
+        "cellranger2",
+        help="Label cells using 'knee point' method from CellRanger 2.1",
     )
     cellranger2_parser.add_argument(
-        "file", type=str, help="Counts matrix as .h5ad file",
+        "file",
+        type=str,
+        help="Counts matrix as .h5ad file",
     )
     cellranger2_parser.add_argument(
         "-e",
@@ -1000,10 +1031,13 @@ def main():
     cellranger2_parser.set_defaults(func=knee_point)
 
     cellranger3_parser = subparsers.add_parser(
-        "cellranger3", help="Label cells using 'emptydrops' method from CellRanger 3.0",
+        "cellranger3",
+        help="Label cells using 'emptydrops' method from CellRanger 3.0",
     )
     cellranger3_parser.add_argument(
-        "file", type=str, help="Counts matrix as .h5ad file",
+        "file",
+        type=str,
+        help="Counts matrix as .h5ad file",
     )
     cellranger3_parser.add_argument(
         "--init-counts",
@@ -1040,10 +1074,13 @@ def main():
     cellranger3_parser.set_defaults(func=emptydrops)
 
     subset_parser = subparsers.add_parser(
-        "subset", help="Subset AnnData object on one or more .obs columns",
+        "subset",
+        help="Subset AnnData object on one or more .obs columns",
     )
     subset_parser.add_argument(
-        "file", type=str, help="Counts matrix as .h5ad file",
+        "file",
+        type=str,
+        help="Counts matrix as .h5ad file",
     )
     subset_parser.add_argument(
         "-s",
@@ -1070,7 +1107,8 @@ def main():
     subset_parser.set_defaults(func=subset)
 
     concatenate_parser = subparsers.add_parser(
-        "concatenate", help="Combine multiple .h5ad files",
+        "concatenate",
+        help="Combine multiple .h5ad files",
     )
     concatenate_parser.add_argument(
         "files", type=str, nargs="*", help="List of .h5ad files to concatenate"
@@ -1093,7 +1131,8 @@ def main():
     concatenate_parser.set_defaults(func=concatenate)
 
     recipe_parser = subparsers.add_parser(
-        "recipe", help="Full automated processing of scRNA-seq data from command line",
+        "recipe",
+        help="Full automated processing of scRNA-seq data from command line",
     )
     recipe_parser.add_argument(
         "file",
@@ -1181,8 +1220,16 @@ def main():
         "--cmap",
         required=False,
         type=str,
-        default="Reds",
-        help="Color map to use in UMAP overlays and genes plot",
+        default="viridis",
+        help="Color map to use in embedding overlays and genes plot",
+    )
+    recipe_parser.add_argument(
+        "-ps",
+        "--point-size",
+        required=False,
+        type=int,
+        default=None,
+        help="Size of points in embedding. Default 120000/n_cells.",
     )
     recipe_parser.add_argument(
         "--cnmf",
@@ -1217,7 +1264,10 @@ def main():
         action="store_true",
     )
     recipe_parser.add_argument(
-        "-q", "--quietly", help="Don't print updates to console", action="store_true",
+        "-q",
+        "--quietly",
+        help="Don't print updates to console",
+        action="store_true",
     )
     recipe_parser.set_defaults(func=recipe)
 
@@ -1270,7 +1320,10 @@ def main():
         help="Color map to use in genes plot",
     )
     de_parser.add_argument(
-        "-a", "--ambient", help="Include ambient genes", action="store_true",
+        "-a",
+        "--ambient",
+        help="Include ambient genes",
+        action="store_true",
     )
     de_parser.add_argument(
         "-d",
@@ -1287,12 +1340,16 @@ def main():
         default=".",
     )
     de_parser.add_argument(
-        "-q", "--quietly", help="Don't print updates to console", action="store_true",
+        "-q",
+        "--quietly",
+        help="Don't print updates to console",
+        action="store_true",
     )
     de_parser.set_defaults(func=de)
 
     pie_parser = subparsers.add_parser(
-        "pie", help="Plot populational pie charts for desired groups",
+        "pie",
+        help="Plot populational pie charts for desired groups",
     )
     pie_parser.add_argument(
         "file",
@@ -1324,7 +1381,10 @@ def main():
         help="Output directory for saving plots. Default './'",
     )
     pie_parser.add_argument(
-        "-q", "--quietly", help="Don't print updates to console", action="store_true",
+        "-q",
+        "--quietly",
+        help="Don't print updates to console",
+        action="store_true",
     )
     pie_parser.set_defaults(func=pie)
 
@@ -1383,7 +1443,10 @@ def main():
         help="Output directory for saving plots. Default './'",
     )
     cnmf_markers_parser.add_argument(
-        "-q", "--quietly", help="Don't print updates to console", action="store_true",
+        "-q",
+        "--quietly",
+        help="Don't print updates to console",
+        action="store_true",
     )
     cnmf_markers_parser.set_defaults(func=cnmf_markers)
 

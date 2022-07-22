@@ -551,12 +551,13 @@ def dim_reduce(
 
 def plot_embedding(
     adata,
+    basis="X_umap",
     colors=None,
     show_clustering=True,
     n_cnmf_markers=7,
     ncols=5,
     figsize_scale=1.0,
-    cmap="Reds",
+    cmap="viridis",
     seed=18,
     save_to=None,
     verbose=True,
@@ -570,6 +571,8 @@ def plot_embedding(
 
     adata : anndata.AnnData
         object containing preprocessed and dimension-reduced counts matrix
+    basis : str, optional (default="X_umap")
+        key from `adata.obsm` containing embedding coordinates
     colors : list of str, optional (default=None)
         colors to plot; can be genes or .obs columns
     show_clustering : bool, optional (default=True)
@@ -581,7 +584,7 @@ def plot_embedding(
     figsize_scale : float, optional (default=1.0)
         scaler for figure size. calculated using ncols to keep each panel square.
         values < 1.0 will compress figure, > 1.0 will expand.
-    cmap : str, optional (default="Reds")
+    cmap : str, optional (default="viridis")
         valid color map for the plot
     seed : int, optional (default=18)
         random state for plotting PAGA
@@ -590,12 +593,12 @@ def plot_embedding(
     verbose : bool, optional (default=True)
         print updates to console
     **kwargs : optional
-        args to pass to `sc.pl.umap` (e.g. "size", "add_outline", etc.)
+        args to pass to `sc.pl.embedding` (e.g. "size", "add_outline", etc.)
 
     Returns
     -------
 
-    plot of UMAP embedding with overlays from "colors" as matplotlib gridspec object,
+    plot of embedding with overlays from "colors" as matplotlib gridspec object,
     unless `save_to` is not None.
     """
     if isinstance(colors, str):  # force colors into list if single string
@@ -605,7 +608,7 @@ def plot_embedding(
     else:
         cluster_colors = ["leiden"]
     if colors is not None:
-        # get full list of things to plot on UMAP
+        # get full list of things to plot on embedding
         if show_clustering:
             colors = cluster_colors + colors
             unique_colors = list_union(cluster_colors, colors)
@@ -654,8 +657,9 @@ def plot_embedding(
                         12,
                         None,
                     )
-                sc.pl.umap(
+                sc.pl.embedding(
                     adata,
+                    basis=basis,
                     color=color,
                     ax=ax,
                     frameon=False,
@@ -670,13 +674,12 @@ def plot_embedding(
                 # add top three gene loadings if cNMF
                 if color.startswith("usage_"):
                     y_range = (
-                        adata.obsm["X_umap"][:, 1].max()
-                        - adata.obsm["X_umap"][:, 1].min()
+                        adata.obsm[basis][:, 1].max() - adata.obsm[basis][:, 1].min()
                     )
                     [
                         ax.text(
-                            x=adata.obsm["X_umap"][:, 0].max(),
-                            y=adata.obsm["X_umap"][:, 1].max() - (0.06 * y_range * x),
+                            x=adata.obsm[basis][:, 0].max(),
+                            y=adata.obsm[basis][:, 1].max() - (0.06 * y_range * x),
                             s=""
                             + adata.uns["cnmf_markers"].loc[x, color.split("_")[1]],
                             fontsize=12,
