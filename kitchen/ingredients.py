@@ -527,7 +527,6 @@ def dim_reduce(
             adata,
             n_neighbors=int(np.sqrt(adata.n_obs)),
             use_rep=use_rep,
-            n_pcs=0,
             random_state=seed,
         )
     if verbose:
