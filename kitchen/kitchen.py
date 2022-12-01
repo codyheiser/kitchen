@@ -773,7 +773,7 @@ def main():
     )
     to_csv_parser.add_argument(
         "-obs",
-        "-obs-only",
+        "--obs-only",
         help="Save .obs dataframe from .h5ad object to csv file, not counts matrix.",
         action="store_true",
     )
