@@ -135,7 +135,11 @@ def h5ad_to_csv(args):
         a.X = a.layers[args.layer].copy()
     # check for/create output directory
     check_dir_exists(args.outdir)
-    if args.separate_indices:
+    if args.obs_only:
+        if args.verbose:
+            print("Writing .obs dataframe to {}/{}_obs.csv".format(args.outdir, name))
+        a.obs.to_csv("{}/{}_obs.csv".format(args.outdir, name))
+    elif args.separate_indices:
         if args.verbose:
             print("Writing counts to {}/{}_X.csv".format(args.outdir, name))
         if isinstance(a.X, sparse.csr.csr_matrix):
@@ -765,6 +769,12 @@ def main():
         "-s",
         "--separate-indices",
         help="Save indices (.obs and .var names) to separate files",
+        action="store_true",
+    )
+    to_csv_parser.add_argument(
+        "-obs",
+        "-obs-only",
+        help="Save .obs dataframe from .h5ad object to csv file, not counts matrix.",
         action="store_true",
     )
     to_csv_parser.add_argument(

@@ -164,7 +164,11 @@ def h5ad_to_csv(args):
         a.X = a.layers[args.layer].copy()
     # check for/create output directory
     check_dir_exists(args.outdir)
-    if args.separate_indices:
+    if args.obs_only:
+        if args.verbose:
+            print(&#34;Writing .obs dataframe to {}/{}_obs.csv&#34;.format(args.outdir, name))
+        a.obs.to_csv(&#34;{}/{}_obs.csv&#34;.format(args.outdir, name))
+    elif args.separate_indices:
         if args.verbose:
             print(&#34;Writing counts to {}/{}_X.csv&#34;.format(args.outdir, name))
         if isinstance(a.X, sparse.csr.csr_matrix):
@@ -794,6 +798,12 @@ def main():
         &#34;-s&#34;,
         &#34;--separate-indices&#34;,
         help=&#34;Save indices (.obs and .var names) to separate files&#34;,
+        action=&#34;store_true&#34;,
+    )
+    to_csv_parser.add_argument(
+        &#34;-obs&#34;,
+        &#34;-obs-only&#34;,
+        help=&#34;Save .obs dataframe from .h5ad object to csv file, not counts matrix.&#34;,
         action=&#34;store_true&#34;,
     )
     to_csv_parser.add_argument(
@@ -1724,7 +1734,11 @@ Overwrites reference .h5ad file.</p></div>
         a.X = a.layers[args.layer].copy()
     # check for/create output directory
     check_dir_exists(args.outdir)
-    if args.separate_indices:
+    if args.obs_only:
+        if args.verbose:
+            print(&#34;Writing .obs dataframe to {}/{}_obs.csv&#34;.format(args.outdir, name))
+        a.obs.to_csv(&#34;{}/{}_obs.csv&#34;.format(args.outdir, name))
+    elif args.separate_indices:
         if args.verbose:
             print(&#34;Writing counts to {}/{}_X.csv&#34;.format(args.outdir, name))
         if isinstance(a.X, sparse.csr.csr_matrix):
@@ -1956,6 +1970,12 @@ Overwrites reference .h5ad file.</p></div>
         &#34;-s&#34;,
         &#34;--separate-indices&#34;,
         help=&#34;Save indices (.obs and .var names) to separate files&#34;,
+        action=&#34;store_true&#34;,
+    )
+    to_csv_parser.add_argument(
+        &#34;-obs&#34;,
+        &#34;-obs-only&#34;,
+        help=&#34;Save .obs dataframe from .h5ad object to csv file, not counts matrix.&#34;,
         action=&#34;store_true&#34;,
     )
     to_csv_parser.add_argument(
