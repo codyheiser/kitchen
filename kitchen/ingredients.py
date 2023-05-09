@@ -553,8 +553,9 @@ def plot_embedding(
     basis="X_umap",
     colors=None,
     show_clustering=True,
-    n_cnmf_markers=7,
+    basis="X_umap",
     ncols=5,
+    n_cnmf_markers=7,
     figsize_scale=1.0,
     cmap="viridis",
     seed=18,
@@ -567,7 +568,6 @@ def plot_embedding(
 
     Parameters
     ----------
-
     adata : anndata.AnnData
         object containing preprocessed and dimension-reduced counts matrix
     basis : str, optional (default="X_umap")
@@ -576,10 +576,12 @@ def plot_embedding(
         colors to plot; can be genes or .obs columns
     show_clustering : bool, optional (default=True)
         plot PAGA graph and leiden clusters on first two axes
-    n_cnmf_markers : int, optional (default=7)
-        number of top genes to print on cNMF plots
+    basis : str, optional (default="X_umap")
+        embedding to plot - key from `adata.obsm`
     ncols : int, optional (default=5)
         number of columns in gridspec
+    n_cnmf_markers : int, optional (default=7)
+        number of top genes to print on cNMF plots
     figsize_scale : float, optional (default=1.0)
         scaler for figure size. calculated using ncols to keep each panel square.
         values < 1.0 will compress figure, > 1.0 will expand.
@@ -596,7 +598,6 @@ def plot_embedding(
 
     Returns
     -------
-
     plot of embedding with overlays from "colors" as matplotlib gridspec object,
     unless `save_to` is not None.
     """
@@ -673,7 +674,8 @@ def plot_embedding(
                 # add top three gene loadings if cNMF
                 if color.startswith("usage_"):
                     y_range = (
-                        adata.obsm[basis][:, 1].max() - adata.obsm[basis][:, 1].min()
+                        adata.obsm[basis][:, 1].max()
+                        - adata.obsm[basis][:, 1].min()
                     )
                     [
                         ax.text(
