@@ -553,7 +553,6 @@ def plot_embedding(
     basis="X_umap",
     colors=None,
     show_clustering=True,
-    basis="X_umap",
     ncols=5,
     n_cnmf_markers=7,
     figsize_scale=1.0,
@@ -674,8 +673,7 @@ def plot_embedding(
                 # add top three gene loadings if cNMF
                 if color.startswith("usage_"):
                     y_range = (
-                        adata.obsm[basis][:, 1].max()
-                        - adata.obsm[basis][:, 1].min()
+                        adata.obsm[basis][:, 1].max() - adata.obsm[basis][:, 1].min()
                     )
                     [
                         ax.text(
