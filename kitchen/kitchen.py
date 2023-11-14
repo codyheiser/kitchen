@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 import matplotlib.pyplot as plt
+import seaborn as sns
 from scipy import sparse
 from dropkick import recipe_dropkick
 
@@ -498,7 +499,8 @@ def recipe(args):
     if args.cnmf:
         # check for cnmf results in anndata object
         if "cnmf_spectra" in a.varm:
-            _ = rank_genes_cnmf(a, show=False)
+            with sns.axes_style("white"):
+                _ = rank_genes_cnmf(a, show=False)
             if args.verbose:
                 print(
                     "Saving cNMF loadings to {}/{}_cnmfspectra.png".format(
