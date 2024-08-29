@@ -2,7 +2,7 @@
 """
 Functions for manipulating .h5ad objects and automated processing of scRNA-seq data
 """
-import os, errno, argparse
+import os, errno
 import numpy as np
 import scanpy as sc
 import matplotlib.pyplot as plt
@@ -12,7 +12,9 @@ from matplotlib import rcParams
 from emptydrops import find_nonambient_barcodes
 from emptydrops.matrix import CountMatrix
 
-sc.set_figure_params(frameon=False, dpi=100, dpi_save=200, format="png")
+from .plotting import custom_heatmap
+
+sc.set_figure_params(frameon=False, dpi=200, dpi_save=300, format="png")
 
 # define cell cycle phase genes
 #  human genes ('_h') from satija lab list
@@ -346,9 +348,7 @@ def cellranger3(
     out = find_nonambient_barcodes(
         m,
         np.array(
-            adata.obs.loc[
-                adata.obs.CellRanger_3 == True,
-            ].index,
+            adata.obs.loc[adata.obs.CellRanger_3 == True,].index,
             dtype=m.bcs.dtype,
         ),
         min_umi_frac_of_median=min_umi_frac_of_median,
@@ -548,176 +548,17 @@ def dim_reduce(
         sc.tl.umap(adata, random_state=seed)
 
 
-def plot_embedding(
-    adata,
-    basis="X_umap",
-    colors=None,
-    show_clustering=True,
-    ncols=5,
-    n_cnmf_markers=7,
-    figsize_scale=1.0,
-    cmap="viridis",
-    seed=18,
-    save_to=None,
-    verbose=True,
-    **kwargs,
-):
-    """
-    Plots reduced-dimension embeddings of single-cell dataset
-
-    Parameters
-    ----------
-    adata : anndata.AnnData
-        object containing preprocessed and dimension-reduced counts matrix
-    basis : str, optional (default="X_umap")
-        key from `adata.obsm` containing embedding coordinates
-    colors : list of str, optional (default=None)
-        colors to plot; can be genes or .obs columns
-    show_clustering : bool, optional (default=True)
-        plot PAGA graph and leiden clusters on first two axes
-    basis : str, optional (default="X_umap")
-        embedding to plot - key from `adata.obsm`
-    ncols : int, optional (default=5)
-        number of columns in gridspec
-    n_cnmf_markers : int, optional (default=7)
-        number of top genes to print on cNMF plots
-    figsize_scale : float, optional (default=1.0)
-        scaler for figure size. calculated using ncols to keep each panel square.
-        values < 1.0 will compress figure, > 1.0 will expand.
-    cmap : str, optional (default="viridis")
-        valid color map for the plot
-    seed : int, optional (default=18)
-        random state for plotting PAGA
-    save_to : str, optional (default=None)
-        path to .png file for saving figure; default is plt.show()
-    verbose : bool, optional (default=True)
-        print updates to console
-    **kwargs : optional
-        args to pass to `sc.pl.embedding` (e.g. "size", "add_outline", etc.)
-
-    Returns
-    -------
-    plot of embedding with overlays from "colors" as matplotlib gridspec object,
-    unless `save_to` is not None.
-    """
-    if isinstance(colors, str):  # force colors into list if single string
-        colors = [colors]
-    if "paga" in adata.uns:
-        cluster_colors = ["paga", "leiden"]
-    else:
-        cluster_colors = ["leiden"]
-    if colors is not None:
-        # get full list of things to plot on embedding
-        if show_clustering:
-            colors = cluster_colors + colors
-            unique_colors = list_union(cluster_colors, colors)
-        else:
-            unique_colors = set(colors)
-    else:
-        # with no colors provided, plot PAGA graph and leiden clusters
-        colors = cluster_colors
-        unique_colors = set(colors)
-    if verbose:
-        print("Plotting embedding with overlays: {}".format(list(unique_colors)))
-    # set up figure size based on number of plots
-    n_plots = len(unique_colors)
-    if n_plots <= ncols:
-        n_rows, n_cols = 1, n_plots
-    else:
-        n_rows, n_cols = ceil(n_plots / ncols), ncols
-    fig = plt.figure(
-        figsize=(ncols * n_cols * figsize_scale, ncols * n_rows * figsize_scale)
-    )
-    # arrange axes as subplots
-    gs = gridspec.GridSpec(n_rows, n_cols, figure=fig)
-    # add plots to axes
-    i = 0
-    for color in colors:
-        if color in unique_colors:
-            ax = plt.subplot(gs[i])
-            if color.lower() == "paga":
-                sc.pl.paga(
-                    adata,
-                    ax=ax,
-                    frameon=False,
-                    show=False,
-                    fontsize="large",
-                    fontoutline=2.0,
-                    node_size_scale=2.5,
-                    random_state=seed,
-                )
-                ax.set_title(label="PAGA", loc="left", fontweight="bold", fontsize=16)
-            else:
-                if color in ["leiden", "louvain", "cluster", "group", "cell_type"]:
-                    leg_loc, leg_fontsize, leg_fontoutline = "on data", "large", 2.0
-                else:
-                    leg_loc, leg_fontsize, leg_fontoutline = (
-                        "right margin",
-                        12,
-                        None,
-                    )
-                sc.pl.embedding(
-                    adata,
-                    basis=basis,
-                    color=color,
-                    ax=ax,
-                    frameon=False,
-                    show=False,
-                    legend_loc=leg_loc,
-                    legend_fontsize=leg_fontsize,
-                    legend_fontoutline=leg_fontoutline,
-                    title="",
-                    color_map=cmap,
-                    **kwargs,
-                )
-                # add top three gene loadings if cNMF
-                if color.startswith("usage_"):
-                    y_range = (
-                        adata.obsm[basis][:, 1].max() - adata.obsm[basis][:, 1].min()
-                    )
-                    [
-                        ax.text(
-                            x=adata.obsm[basis][:, 0].max(),
-                            y=adata.obsm[basis][:, 1].max() - (0.06 * y_range * x),
-                            s=""
-                            + adata.uns["cnmf_markers"].loc[x, color.split("_")[1]],
-                            fontsize=12,
-                            fontstyle="italic",
-                            color="k",
-                            ha="right",
-                        )
-                        for x in range(n_cnmf_markers)
-                    ]
-            if color in adata.var_names:  # italicize title if plotting a gene
-                ax.set_title(
-                    label=color,
-                    loc="left",
-                    fontweight="bold",
-                    fontsize=16,
-                    fontstyle="italic",
-                )
-            else:
-                ax.set_title(label=color, loc="left", fontweight="bold", fontsize=16)
-            unique_colors.remove(color)
-            i = i + 1
-    fig.tight_layout()
-    if save_to is not None:
-        if verbose:
-            print("Saving embeddings to {}".format(save_to))
-        plt.savefig(save_to)
-    else:
-        return fig
-
-
 def plot_genes(
     adata,
     de_method="t-test_overestim_var",
-    plot_type="heatmap",
+    layer="log1p_norm",
     groupby="leiden",
+    ambient=False,
+    plot_type=None,
     n_genes=5,
     dendrogram=True,
-    ambient=False,
-    cmap="Reds",
+    cmap="Greys",
+    figsize_scale=1.0,
     save_to="de.png",
     verbose=True,
     **kwargs,
@@ -727,193 +568,109 @@ def plot_genes(
 
     Parameters
     ----------
-
     adata : anndata.AnnData
         object containing preprocessed and dimension-reduced counts matrix
     de_method : str, optional (default="t-test_overestim_var")
         one of "t-test", "t-test_overestim_var", "wilcoxon"
-    plot_type : str, optional (default="heatmap")
-        one of "heatmap", "dotplot", "matrixplot"
+    layer : str, optional (default="log1p_norm")
+        one of `adata.layers` to use for DEG analysis. Recommended to use 'raw_counts'
+        if `de_method=='wilcoxon'` and 'log1p_norm' if `de_method=='t-test'`.
     groupby : str, optional (default="leiden")
-        .obs key to group cells by
+        `adata.obs` key to group cells by
+    ambient : bool, optional (default=False)
+        include ambient genes as a group in the plot/output dictionary
+    plot_type : str, optional (default=`None`)
+        One of "dotplot", "matrixplot", "dotmatrix", "stacked_violin", or "heatmap".
+        If `None`, don't plot, just return DEGs as dictionary.
     n_genes : int, optional (default=5)
         number of top genes per group to show
     dendrogram : bool, optional (default=True)
         show dendrogram of cluster similarity
-    ambient : bool, optional (default=False)
-        include ambient genes as a group in the plot
-    cmap : str, optional (default="Reds")
-        valid color map for the plot
+    cmap : str, optional (default="Greys")
+        matplotlib colormap for dots
+    figsize_scale : float, optional (default=1.0)
+        scale dimensions of the figure
     save_to : str, optional (default="de.png")
         string to add to plot name using scanpy plot defaults
     verbose : bool, optional (default=True)
         print updates to console
     **kwargs : optional
-        keyword args to add to sc.pl.matrixplot, sc.pl.dotplot, or sc.pl.heatmap
+        keyword args to add to `kitchen.plotting.custom_heatmap`
 
     Returns
     -------
-
-    matplotlib figure
+    markers : dict
+        dictionary of top `n_genes` DEGs per group
+    myplot : matplotlib.Figure
+        `custom_heatmap` object if `plot_type!=None`
     """
     if verbose:
         print("Performing differential expression analysis...")
-    if de_method in ["t-test", "t-test_overestim_var"]:
-        # rank genes with t-test and B-H correction
-        sc.tl.rank_genes_groups(
-            adata, groupby=groupby, layer="log1p_norm", use_raw=False, method=de_method
-        )
-    elif de_method == "wilcoxon":
-        # rank genes with wilcoxon rank sum test
-        sc.tl.rank_genes_groups(
-            adata, groupby=groupby, layer="raw_counts", use_raw=False, method=de_method
-        )
-    else:
-        print(
-            "Invalid de_method. Must be one of ['t-test','t-test_overestim_var','wilcoxon']."
-        )
-        return
+    assert de_method in [
+        "t-test",
+        "t-test_overestim_var",
+        "wilcoxon",
+    ], "Invalid de_method. Must be one of ['t-test','t-test_overestim_var','wilcoxon']."
+    sc.tl.rank_genes_groups(
+        adata, groupby=groupby, layer=layer, use_raw=False, method=de_method
+    )
 
-    # calculate arcsinh counts for visualization
-    adata.X = adata.layers["raw_counts"].copy()
-    sc.pp.normalize_total(adata)
-    adata.X = np.arcsinh(adata.X)
-    adata.layers["arcsinh"] = adata.X.copy()
-    adata.X = adata.layers["raw_counts"].copy()  # return raw counts to .X
+    # unique groups in DEG analysis
+    groups = adata.obs[groupby].unique().tolist()
 
-    # adjust rcParams
-    rcParams["figure.figsize"] = (4, 4)
-    rcParams["figure.subplot.left"] = 0.18
-    rcParams["figure.subplot.right"] = 0.96
-    rcParams["figure.subplot.bottom"] = 0.15
-    rcParams["figure.subplot.top"] = 0.91
-
+    # get markers manually
+    markers = {}
+    for clu in groups:
+        markers[clu] = [
+            adata.uns["rank_genes_groups"]["names"][x][clu] for x in range(n_genes)
+        ]
+    # append ambient genes
     if ambient:
-        # get markers manually and append ambient genes
-        markers = {}
-        for clu in adata.obs[groupby].unique().tolist():
-            markers[clu] = [
-                adata.uns["rank_genes_groups"]["names"][x][clu] for x in range(n_genes)
-            ]
         markers["ambient"] = adata.var_names[adata.var.ambient].tolist()
 
-        if plot_type == "heatmap":
-            myplot = sc.pl.heatmap(
-                adata,
-                markers,
-                dendrogram=dendrogram,
-                groupby=groupby,
-                swap_axes=True,
-                show_gene_labels=True,
-                layer="arcsinh",
-                standard_scale="var",
-                var_group_rotation=0,
-                cmap=cmap,
-                show=False,
-                **kwargs,
+    # total and unique features on plot
+    features = [item for sublist in markers.values() for item in sublist]
+    unique_features = list(set(features))
+
+    print(
+        "Detected {} total genes and {} unique genes across {} groups".format(
+            len(features), len(unique_features), len(groups)
+        )
+    )
+
+    # plotting workflow if desired
+    if plot_type is not None:
+        # plot dimensions (long vertical)
+        if plot_type in ["dotplot", "matrixplot", "stacked_violin"]:
+            figsize = (
+                len(groups) / 2 * figsize_scale,
+                len(features) / 10 * figsize_scale,
             )
-            myplot["heatmap_ax"].set_yticklabels(
-                myplot["heatmap_ax"].get_yticklabels(), fontstyle="italic"
-            )
-        if plot_type == "dotplot":
-            myplot = sc.pl.dotplot(
-                adata,
-                markers,
-                dendrogram=dendrogram,
-                groupby=groupby,
-                layer="arcsinh",
-                standard_scale="var",
-                swap_axes=True,
-                var_group_rotation=90,
-                show=False,
-                return_fig=True,
-                **kwargs,
-            )
-            myplot.style(
-                cmap=cmap, color_on="square", dot_edge_color=None, dot_edge_lw=1
-            )
-            myplot.get_axes()["mainplot_ax"].set_yticklabels(
-                myplot.get_axes()["mainplot_ax"].get_yticklabels(), fontstyle="italic"
-            )
-        if plot_type == "matrixplot":
-            myplot = sc.pl.matrixplot(
-                adata,
-                markers,
-                dendrogram=dendrogram,
-                groupby=groupby,
-                layer="arcsinh",
-                standard_scale="var",
-                var_group_rotation=0,
-                cmap=cmap,
-                show=False,
-                return_fig=True,
-                **kwargs,
-            )
-            myplot.get_axes()["mainplot_ax"].set_xticklabels(
-                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
+        # plot dimensions (long horizontal)
+        elif plot_type == "heatmap":
+            figsize = (
+                len(features) / 10 * figsize_scale,
+                len(groups) / 2 * figsize_scale,
             )
 
-    else:
-        if plot_type == "heatmap":
-            myplot = sc.pl.rank_genes_groups_heatmap(
-                adata,
-                dendrogram=dendrogram,
-                groupby=groupby,
-                n_genes=n_genes,
-                swap_axes=True,
-                show_gene_labels=True,
-                layer="arcsinh",
-                standard_scale="var",
-                var_group_rotation=0,
-                cmap=cmap,
-                show=False,
-                **kwargs,
-            )
-            myplot["heatmap_ax"].set_yticklabels(
-                myplot["heatmap_ax"].get_yticklabels(), fontstyle="italic"
-            )
-        if plot_type == "dotplot":
-            myplot = sc.pl.rank_genes_groups_dotplot(
-                adata,
-                dendrogram=dendrogram,
-                groupby=groupby,
-                n_genes=n_genes,
-                layer="arcsinh",
-                standard_scale="var",
-                swap_axes=True,
-                var_group_rotation=90,
-                show=False,
-                return_fig=True,
-                **kwargs,
-            )
-            myplot.style(
-                cmap=cmap, color_on="square", dot_edge_color=None, dot_edge_lw=1
-            )
-            myplot.get_axes()["mainplot_ax"].set_yticklabels(
-                myplot.get_axes()["mainplot_ax"].get_yticklabels(), fontstyle="italic"
-            )
-        if plot_type == "matrixplot":
-            myplot = sc.pl.rank_genes_groups_matrixplot(
-                adata,
-                dendrogram=dendrogram,
-                groupby=groupby,
-                n_genes=n_genes,
-                layer="arcsinh",
-                standard_scale="var",
-                var_group_rotation=0,
-                cmap=cmap,
-                show=False,
-                return_fig=True,
-                **kwargs,
-            )
-            myplot.get_axes()["mainplot_ax"].set_xticklabels(
-                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
-            )
+        # build plot
+        my_plot = custom_heatmap(
+            adata,
+            groupby=groupby,
+            features=unique_features,
+            layer=layer,
+            vars_dict=markers,
+            cluster_obs=dendrogram,
+            plot_type=plot_type,
+            cmap=cmap,
+            figsize=figsize,
+            save=save_to,
+            **kwargs,
+        )
+        return (markers, my_plot)
 
-    if save_to is not None:
-        plt.savefig(save_to, bbox_inches="tight")
     else:
-        return myplot
+        return markers
 
 
 def plot_genes_cnmf(
@@ -925,7 +682,8 @@ def plot_genes_cnmf(
     indices=None,
     n_genes=5,
     dendrogram=True,
-    cmap="Reds",
+    figsize_scale=1.0,
+    cmap="Greys",
     save_to="de_cnmf.png",
     **kwargs,
 ):
@@ -934,11 +692,10 @@ def plot_genes_cnmf(
 
     Parameters
     ----------
-
     adata : anndata.AnnData
         object containing preprocessed and dimension-reduced counts matrix
-    plot_type : str, optional (default="heatmap")
-        one of "heatmap", "dotplot", "matrixplot"
+    plot_type : str, optional (default=`None`)
+        One of "dotplot", "matrixplot", "dotmatrix", "stacked_violin", or "heatmap".
     groupby : str, optional (default="leiden")
         .obs key to group cells by
     attr : str {"var", "obs", "uns", "varm", "obsm"}
@@ -951,7 +708,9 @@ def plot_genes_cnmf(
         number of top genes per group to show
     dendrogram : bool, optional (default=True)
         show dendrogram of cluster similarity
-    cmap : str, optional (default="Reds")
+    figsize_scale : float, optional (default=1.0)
+        scale dimensions of the figure
+    cmap : str, optional (default="Greys")
         valid color map for the plot
     save_to : str, optional (default="de.png")
         string to add to plot name using scanpy plot defaults
@@ -960,8 +719,10 @@ def plot_genes_cnmf(
 
     Returns
     -------
-
-    matplotlib figure
+    markers : dict
+        dictionary of top `n_genes` features per NMF factor
+    myplot : matplotlib.Figure
+        `custom_heatmap` object
     """
     # calculate arcsinh counts for visualization
     adata.X = adata.layers["raw_counts"].copy()
@@ -986,71 +747,34 @@ def plot_genes_cnmf(
         for x in indices[::-1]:
             markers[keys[iscore]].append(labels[x])
 
-    # adjust rcParams
-    rcParams["figure.figsize"] = (4, 4)
-    rcParams["figure.subplot.left"] = 0.18
-    rcParams["figure.subplot.right"] = 0.96
-    rcParams["figure.subplot.bottom"] = 0.15
-    rcParams["figure.subplot.top"] = 0.91
+    # total and unique features on plot
+    features = [item for sublist in markers.values() for item in sublist]
+    unique_features = list(set(features))
 
-    if plot_type == "heatmap":
-        myplot = sc.pl.heatmap(
-            adata,
-            markers,
-            dendrogram=dendrogram,
-            groupby=groupby,
-            swap_axes=True,
-            show_gene_labels=True,
-            layer="arcsinh",
-            standard_scale="var",
-            var_group_rotation=0,
-            cmap=cmap,
-            show=False,
-            **kwargs,
-        )
-        myplot["heatmap_ax"].set_yticklabels(
-            myplot["heatmap_ax"].get_yticklabels(), fontstyle="italic"
-        )
-    if plot_type == "dotplot":
-        myplot = sc.pl.dotplot(
-            adata,
-            markers,
-            dendrogram=dendrogram,
-            groupby=groupby,
-            layer="arcsinh",
-            standard_scale="var",
-            swap_axes=True,
-            var_group_rotation=90,
-            show=False,
-            return_fig=True,
-            **kwargs,
-        )
-        myplot.style(cmap=cmap, color_on="square", dot_edge_color=None, dot_edge_lw=1)
-        myplot.get_axes()["mainplot_ax"].set_yticklabels(
-            myplot.get_axes()["mainplot_ax"].get_yticklabels(), fontstyle="italic"
-        )
-    if plot_type == "matrixplot":
-        myplot = sc.pl.matrixplot(
-            adata,
-            markers,
-            dendrogram=dendrogram,
-            groupby=groupby,
-            layer="arcsinh",
-            standard_scale="var",
-            var_group_rotation=0,
-            cmap=cmap,
-            show=False,
-            return_fig=True,
-            **kwargs,
-        )
-        myplot.get_axes()["mainplot_ax"].set_xticklabels(
-            myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
-        )
+    # unique groups in DEG analysis
+    groups = adata.obs[groupby].unique().tolist()
 
-    if save_to is not None:
-        plt.savefig(save_to, bbox_inches="tight")
-    else:
-        return myplot
+    # plot dimensions (long vertical)
+    if plot_type in ["dotplot", "matrixplot", "stacked_violin"]:
+        figsize = (len(groups) / 2 * figsize_scale, len(features) / 10 * figsize_scale)
+    # plot dimensions (long horizontal)
+    elif plot_type == "heatmap":
+        figsize = (len(features) / 10 * figsize_scale, len(groups) / 2 * figsize_scale)
+
+    # build plot
+    my_plot = custom_heatmap(
+        adata,
+        groupby=groupby,
+        features=unique_features,
+        vars_dict=markers,
+        cluster_obs=dendrogram,
+        plot_type=plot_type,
+        cmap=cmap,
+        figsize=figsize,
+        save=save_to,
+        **kwargs,
+    )
+    return (markers, my_plot)
 
 
 def rank_genes_cnmf(
@@ -1171,101 +895,6 @@ def rank_genes_cnmf(
             labelleft=False,
         )
         plt.grid(False)
-    gs.tight_layout(fig)
-    if show == False:
-        return gs
-
-
-def cluster_pie(
-    adata,
-    pie_by="batch",
-    groupby="leiden",
-    ncols=5,
-    show=None,
-    figsize=(5, 5),
-):
-    """
-    Plots pie graphs showing makeup of cluster groups
-
-    Parameters
-    ----------
-
-    adata : anndata.AnnData
-        the data
-    pie_by : str, optional (default="batch")
-        adata.obs column to split pie charts by
-    groupby : str, optional (default="leiden")
-        adata.obs column to create pie charts for
-    ncols : int, optional (default=5)
-        number of columns in gridspec
-    show : bool, optional (default=None)
-        show figure or just return axes
-    figsize : tuple of float, optional (default=(5,5))
-        size of matplotlib figure
-
-    Returns
-    -------
-
-    matplotlib gridspec with access to the axes
-    """
-    if adata.obs[groupby].value_counts().min() == 0:
-        print(
-            "Warning: unused categories detected in adata.obs['{}']; removing prior to building plots...".format(
-                groupby
-            )
-        )
-        adata.obs[groupby] = adata.obs[groupby].cat.remove_unused_categories()
-    # get portions for each cluster
-    pies = {}  # init empty dict
-    for c in adata.obs[groupby].cat.categories:
-        pies[c] = (
-            adata.obs.loc[adata.obs[groupby] == c, pie_by].value_counts()
-            / adata.obs[groupby].value_counts()[c]
-        ).to_dict()
-    n_panels = len(adata.obs[groupby].cat.categories)
-    if n_panels <= ncols:
-        n_rows, n_cols = 1, n_panels
-    else:
-        n_rows, n_cols = ceil(n_panels / ncols), ncols
-    fig = plt.figure(figsize=(n_cols * figsize[0], n_rows * figsize[1]))
-    left, bottom = 0.1 / n_cols, 0.1 / n_rows
-    gs = gridspec.GridSpec(
-        nrows=n_rows,
-        ncols=n_cols,
-        wspace=0.1,
-        left=left,
-        bottom=bottom,
-        right=1 - (n_cols - 1) * left - 0.01 / n_cols,
-        top=1 - (n_rows - 1) * bottom - 0.1 / n_rows,
-    )
-    # get pie chart colors
-    cdict = {}
-    # use existing scanpy colors, if applicable
-    if "{}_colors".format(pie_by) in adata.uns:
-        for ic, c in enumerate(adata.obs[pie_by].cat.categories):
-            cdict[c] = adata.uns["{}_colors".format(pie_by)][ic]
-    else:
-        cmap = plt.get_cmap("tab10")
-        for ic, c in enumerate(adata.obs[pie_by].cat.categories):
-            cdict[c] = cmap(np.linspace(0, 1, len(adata.obs[pie_by].cat.categories)))[
-                ic
-            ]
-    for ipie, pie in enumerate(pies.keys()):
-        plt.subplot(gs[ipie])
-        plt.pie(
-            pies[pie].values(),
-            labels=pies[pie].keys(),
-            colors=[cdict[x] for x in pies[pie].keys()],
-            radius=0.85,
-            wedgeprops=dict(width=0.5),
-            textprops={"fontsize": 12},
-        )
-        plt.title(
-            label="{}_{}".format(groupby, pie),
-            loc="left",
-            fontweight="bold",
-            fontsize=16,
-        )
     gs.tight_layout(fig)
     if show == False:
         return gs

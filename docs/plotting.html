@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.0">
+<title>kitchen.plotting API documentation</title>
+<meta name="description" content="Custom plotting functions for data in `pd.DataFrame`, `anndata.AnnData`, and
+`decoupler` formats">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>kitchen.plotting</code></h1>
+</header>
+<section id="section-intro">
+<p>Custom plotting functions for data in <code>pd.DataFrame</code>, <code>anndata.AnnData</code>, and
+<code>decoupler</code> formats</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="kitchen.plotting.boxplots_group"><code class="name flex">
+<span>def <span class="ident">boxplots_group</span></span>(<span>a, features, groupby, groupby_order=None, groupby_colordict=None, layer=None, log_scale=None, pseudocount=1.0, sig=True, bonferroni=False, ylabel=None, titles=None, legend=True, size=3, panelsize=(3, 3), ncols=6, outdir='./', save_prefix='', dpi=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot trends from
+<code>a.obs</code> metadata. Save all plots in
+grid of single <code>.png</code> file.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>Union[anndata.Anndata, pd.DataFrame]</code></dt>
+<dd>The annotated data matrix of shape <code>n_obs</code> by <code>n_vars</code>. Rows correspond to
+samples and columns to genes. Can also be <code>pd.DataFrame</code>.</dd>
+<dt><strong><code>features</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
+<dd>List of genes, <code>.obs</code> columns, or DataFrame columns to plot (if <code>a</code> is
+<code>pd.DataFrame</code>) (y variable)</dd>
+<dt><strong><code>groupby</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
+<dd>Columns from <code>a</code> or <code>a.obs</code> to group by (x variable)</dd>
+<dt><strong><code>groupby_order</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>List of values in <code>a[groupby]</code> or <code>a.obs[groupby]</code> specifying the order of
+groups on x-axis. If <code>groupby</code> is a list, <code>groupby_order</code> should also be a list
+with corresponding orders in each element.</dd>
+<dt><strong><code>groupby_colordict</code></strong> :&ensp;<code>dictionary</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Dictionary of group, color pairs from <code>groupby</code> to color boxes and points by</dd>
+<dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Key from <code>layers</code> attribute of <code>adata</code> if present</dd>
+<dt><strong><code>log_scale</code></strong> :&ensp;<code>int</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Set axis scale(s) to log. Numeric values are interpreted as the desired base
+(e.g. 10). When <code>None</code>, plot defers to the existing Axes scale.</dd>
+<dt><strong><code>pseudocount</code></strong> :&ensp;<code>float</code>, optional <code>(default=1.0)</code></dt>
+<dd>Pseudocount to add to values before log-transforming with base=<code>log_scale</code></dd>
+<dt><strong><code>sig</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
+<dd>Perform significance testing (2-way t-test) between all groups and add
+significance bars to plot(s)</dd>
+<dt><strong><code>bonferroni</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
+<dd>Adjust significance p-values with simple Bonferroni correction</dd>
+<dt><strong><code>ylabel</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Label for y axes. If <code>None</code> use <code>colors</code>.</dd>
+<dt><strong><code>titles</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Titles for each set of axes. If <code>None</code> use <code>features</code>.</dd>
+<dt><strong><code>legend</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
+<dd>Add legend to plot</dd>
+<dt><strong><code>size</code></strong> :&ensp;<code>int</code>, optional <code>(default=3)</code></dt>
+<dd>Size of the jitter points</dd>
+<dt><strong><code>panelsize</code></strong> :&ensp;<code>tuple</code> of <code>float</code>, optional <code>(default=(3, 3))</code></dt>
+<dd>Size of each panel in output figure in inches</dd>
+<dt><strong><code>ncols</code></strong> :&ensp;<code>int</code>, optional <code>(default=5)</code></dt>
+<dd>Number of columns in gridspec</dd>
+<dt><strong><code>outdir</code></strong> :&ensp;<code>str</code>, optional <code>(default="./")</code></dt>
+<dd>Path to output directory for saving plots</dd>
+<dt><strong><code>save_prefix</code></strong> :&ensp;<code>str</code>, optional <code>(default="")</code></dt>
+<dd>Prefix to add to filenames for saving</dd>
+<dt><strong><code>dpi</code></strong> :&ensp;<code>float</code>, optional <code>(default=300)</code></dt>
+<dd>Resolution in dots per inch for saving figure. Ignored if <code>save_prefix</code> is
+<code>None</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>gs</code></strong> :&ensp;<code>gridspec.GridSpec</code></dt>
+<dd>Return gridspec object if <code>save==None</code>. Otherwise, write to <code>.png</code> in
+<code>outdir/</code>.</dd>
+<dt><strong><code>sig_out</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary of t-test statistics if <code>sig==True</code>. Otherwise, write to <code>.csv</code> in
+<code>outdir/</code>.</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.build_gridspec"><code class="name flex">
+<span>def <span class="ident">build_gridspec</span></span>(<span>panels, ncols, panelsize=(3, 3))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create <code>gridspec.GridSpec</code> object from a list of panels</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>panels</code></strong> :&ensp;<code>list</code> or <code>str</code></dt>
+<dd>List of panels in plot grid. If string, only one panel is made.</dd>
+<dt><strong><code>ncols</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of columns in grid. Number of rows is calculated from <code>len(panels)</code> and
+<code>ncols</code>.</dd>
+<dt><strong><code>panelsize</code></strong> :&ensp;<code>tuple</code> of <code>float</code>, optional <code>(default=(3,3))</code></dt>
+<dd>Size in inches of each panel within the plot grid.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>gs</code></strong> :&ensp;<code>gridspec.GridSpec</code></dt>
+<dd>GridSpec object</dd>
+<dt><strong><code>fig</code></strong> :&ensp;<code>matplotlib.Figure</code></dt>
+<dd>Figure object</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.cluster_pie"><code class="name flex">
+<span>def <span class="ident">cluster_pie</span></span>(<span>adata, pie_by='batch', groupby='leiden', ncols=5, show=None, figsize=(5, 5))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plots pie graphs showing makeup of cluster groups</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
+<dd>the data</dd>
+<dt><strong><code>pie_by</code></strong> :&ensp;<code>str</code>, optional <code>(default="batch")</code></dt>
+<dd>adata.obs column to split pie charts by</dd>
+<dt><strong><code>groupby</code></strong> :&ensp;<code>str</code>, optional <code>(default="leiden")</code></dt>
+<dd>adata.obs column to create pie charts for</dd>
+<dt><strong><code>ncols</code></strong> :&ensp;<code>int</code>, optional <code>(default=5)</code></dt>
+<dd>number of columns in gridspec</dd>
+<dt><strong><code>show</code></strong> :&ensp;<code>bool</code>, optional <code>(default=None)</code></dt>
+<dd>show figure or just return axes</dd>
+<dt><strong><code>figsize</code></strong> :&ensp;<code>tuple</code> of <code>float</code>, optional <code>(default=(5,5))</code></dt>
+<dd>size of matplotlib figure</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>matplotlib gridspec with access to the axes</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.custom_heatmap"><code class="name flex">
+<span>def <span class="ident">custom_heatmap</span></span>(<span>adata, groupby, features, layer=None, cluster_vars=False, vars_dict=None, groupby_order=None, groupby_colordict=None, cluster_obs=False, plot_type='dotplot', cmap='Greys', log_scale=None, linthresh=1.0, italicize_vars=True, colorbar_title='Mean expression\nin group', figsize=(5, 5), save=None, dpi=300, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Custom wrapper around <code>sc.pl.dotplot</code>, <code>sc.pl.matrixplot</code>, and
+<code>sc.pl.stacked_violin</code></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>adata</code></strong> :&ensp;<code>sc.AnnData</code></dt>
+<dd>AnnData object to plot from</dd>
+<dt><strong><code>groupby</code></strong> :&ensp;<code>str</code></dt>
+<dd>Categorical column of <code>adata.obs</code> to group dotplot by</dd>
+<dt><strong><code>features</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
+<dd>List of features from <code>adata.obs.columns</code> or <code>adata.var_names</code> to plot</dd>
+<dt><strong><code>layer</code></strong> :&ensp;<code>str</code></dt>
+<dd>Key from <code>adata.layers</code> to use for plotting gene values</dd>
+<dt><strong><code>cluster_vars</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
+<dd>Hierarchically cluster <code>features</code> for a prettier dotplot. If <code>True</code>, return
+<code>features</code> in their new order (first return variable).</dd>
+<dt><strong><code>vars_dict</code></strong> :&ensp;<code>dict</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Dictionary of groups of vars to highlight with brackets on dotplot. Keys are
+variable group names and values are list of variables found in <code>features</code>.</dd>
+<dt><strong><code>groupby_order</code></strong> :&ensp;<code>list</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Explicit order for groups of observations from <code>adata.obs[groupby]</code></dd>
+<dt><strong><code>groupby_colordict</code></strong> :&ensp;<code>dict</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Dictionary mapping <code>groupby</code> categories (keys) to colors (values). Black
+outline will be added to provide contrast to light colors.</dd>
+<dt><strong><code>cluster_obs</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
+<dd>Hierarchically cluster <code>groupby</code> observations and show dendrogram</dd>
+<dt><strong><code>plot_type</code></strong> :&ensp;<code>str</code>, optional <code>(default="dotplot")</code></dt>
+<dd>One of "dotplot", "matrixplot", "dotmatrix", "stacked_violin", or "heatmap"</dd>
+<dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional <code>(default="Greys")</code></dt>
+<dd>matplotlib colormap for dots</dd>
+<dt><strong><code>log_scale</code></strong> :&ensp;<code>int</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Set axis scale(s) to symlog. Numeric values are interpreted as the desired base
+(e.g. 10). When <code>None</code>, plot defers to the existing Axes scale.</dd>
+<dt><strong><code>linthresh</code></strong> :&ensp;<code>float</code>, optional <code>(default=1.0)</code></dt>
+<dd>The range within which the color scale is linear (to avoid having the plot go
+to infinity around zero).</dd>
+<dt><strong><code>italicize_vars</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
+<dd>Whether or not to italicize variable names on plot</dd>
+<dt><strong><code>colorbar_title</code></strong> :&ensp;<code>str</code>, optional <code>(default="Mean expression\nin group")</code></dt>
+<dd>Title for colorbar key</dd>
+<dt><strong><code>figsize</code></strong> :&ensp;<code>tuple</code> of <code>float</code>, optional <code>(default=(5,5))</code></dt>
+<dd>Size of the figure in inches</dd>
+<dt><strong><code>save</code></strong> :&ensp;<code>str</code> or <code>None</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Path to file to save image to. If <code>None</code>, return figure object (second return
+variable if <code>cluster_vars == True</code>).</dd>
+<dt><strong><code>dpi</code></strong> :&ensp;<code>float</code>, optional <code>(default=300)</code></dt>
+<dd>Resolution in dots per inch for saving figure. Ignored if <code>save</code> is <code>None</code>.</dd>
+<dt><strong><code>**kwargs</code></strong></dt>
+<dd>Keyword arguments to pass to <code>sc.pl.dotplot</code>, <code>sc.pl.matrixplot</code>, or
+<code>sc.pl.stacked_violin</code></dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>features_ordered</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
+<dd>If <code>cluster_vars == True</code>, reordered <code>features</code> based on hierarchical
+clustering</dd>
+<dt><strong><code>figure</code></strong> :&ensp;<code>sc._plotting object (DotPlot, matrixplot, stacked_violin)</code></dt>
+<dd>If <code>save == None</code>, scanpy plotting object is returned</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.decoupler_dotplot"><code class="name flex">
+<span>def <span class="ident">decoupler_dotplot</span></span>(<span>df, x, y, c, s, largest_dot=50, cmap='coolwarm', title=None, figsize=(3, 5), ax=None, return_fig=False, save=None, dpi=200)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot results of <code>decoupler</code> enrichment analysis as dots.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>DataFrame</code></dt>
+<dd>Results of enrichment analysis.</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column name of <code>df</code> to use as continous value.</dd>
+<dt><strong><code>y</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column name of <code>df</code> to use as labels.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column name of <code>df</code> to use for coloring.</dd>
+<dt><strong><code>s</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column name of <code>df</code> to use for dot size.</dd>
+<dt><strong><code>largest_dot</code></strong> :&ensp;<code>int</code></dt>
+<dd>Parameter to control the size of the dots in points.</dd>
+<dt><strong><code>cmap</code></strong> :&ensp;<code>str</code></dt>
+<dd>Colormap to use.</dd>
+<dt><strong><code>title</code></strong> :&ensp;<code>str, None</code></dt>
+<dd>Text to write as title of the plot.</dd>
+<dt><strong><code>figsize</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>Figure size.</dd>
+<dt><strong><code>ax</code></strong> :&ensp;<code>Axes, None</code></dt>
+<dd>A matplotlib axes object. If None returns new figure.</dd>
+<dt><strong><code>return_fig</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to return a Figure object or not.</dd>
+<dt><strong><code>save</code></strong> :&ensp;<code>str, None</code></dt>
+<dd>Path to where to save the plot. Infer the filetype if ending in
+{<code>.pdf</code>, <code>.png</code>, <code>.svg</code>}.</dd>
+<dt><strong><code>dpi</code></strong> :&ensp;<code>float</code>, optional <code>(default=200)</code></dt>
+<dd>Resolution in dots per inch for saving figure. Ignored if <code>save</code> is <code>None</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>fig</code></strong> :&ensp;<code>matplotlib.Figure, None</code></dt>
+<dd>If <code>return_fig==True</code>, returns figure object.</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.decoupler_dotplot_facet"><code class="name flex">
+<span>def <span class="ident">decoupler_dotplot_facet</span></span>(<span>df, group_col='group', x='Combined score', y='Term', c='FDR p-value', s='Overlap ratio', top_n=None, ncols=4, figsize_scale=1.5, save=None, dpi=200, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot results of <code>decoupler</code> enrichment analysis as dots, faceted by group</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>DataFrame</code></dt>
+<dd>results of enrichment analysis.</dd>
+<dt><strong><code>group_col</code></strong> :&ensp;<code>str</code></dt>
+<dd>column from <code>df</code> to facet by</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>str</code></dt>
+<dd>column name of <code>df</code> to use as continous value.</dd>
+<dt><strong><code>y</code></strong> :&ensp;<code>str</code></dt>
+<dd>column name of <code>df</code> to use as labels.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>str</code></dt>
+<dd>column name of <code>df</code> to use for coloring.</dd>
+<dt><strong><code>s</code></strong> :&ensp;<code>str</code></dt>
+<dd>column name of <code>df</code> to use for dot size.</dd>
+<dt><strong><code>top_n</code></strong> :&ensp;<code>int</code></dt>
+<dd>number of top terms to plot per group. If <code>None</code> show all terms.</dd>
+<dt><strong><code>ncols</code></strong> :&ensp;<code>int</code></dt>
+<dd>number of columns for faceting. If <code>None</code> use <code>len(df[group_col].unique())</code></dd>
+<dt><strong><code>figsize_scale</code></strong> :&ensp;<code>float</code></dt>
+<dd>scale size of <code>matplotlib</code> figure</dd>
+<dt><strong><code>save</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to file to save image to. If <code>None</code>, return axes objects</dd>
+<dt><strong><code>dpi</code></strong> :&ensp;<code>float</code>, optional <code>(default=200)</code></dt>
+<dd>Resolution in dots per inch for saving figure. Ignored if <code>save</code> is <code>None</code>.</dd>
+<dt><strong><code>**kwargs</code></strong></dt>
+<dd>keyword arguments to pass to <code><a title="kitchen.plotting.decoupler_dotplot" href="#kitchen.plotting.decoupler_dotplot">decoupler_dotplot()</a></code> function</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>fig</code></strong> :&ensp;<code>matplotlib.Figure</code></dt>
+<dd>Return figure object if <code>save==None</code>. Otherwise, write to <code>save</code>.</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.jointgrid_boxplots_category"><code class="name flex">
+<span>def <span class="ident">jointgrid_boxplots_category</span></span>(<span>a, x, y, color, figheight=5, sig=True, bonferroni=False, cmap_dict=None, stripplot=True, outdir='./', save_prefix=None, dpi=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Jointplot with scatter between two variables and marginal boxplots showing
+distributions and stats across a third variable (color)</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>Union[anndata.Anndata, pd.DataFrame]</code></dt>
+<dd>The annotated data matrix of shape <code>n_obs</code> by <code>n_vars</code>. Rows correspond to
+samples and columns to genes. Can also be <code>pd.DataFrame</code>.</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column from <code>a</code> or <code>a.obs</code> to plot on x axis of jointgrid</dd>
+<dt><strong><code>y</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column from <code>a</code> or <code>a.obs</code> to plot on y axis of jointgrid</dd>
+<dt><strong><code>color</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column from <code>a</code> or <code>a.obs</code> containing categories for marginal boxplots and
+statistics in <code>x</code> and <code>y</code>.</dd>
+<dt><strong><code>figheight</code></strong> :&ensp;<code>float</code>, optional <code>(default=5)</code></dt>
+<dd>Size of output figure in inches (it will be square)</dd>
+<dt><strong><code>sig</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
+<dd>Perform significance testing (2-way t-test) between all groups and add
+significance bars to marginal boxplots</dd>
+<dt><strong><code>bonferroni</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
+<dd>Adjust significance p-values with simple Bonferroni correction</dd>
+<dt><strong><code>cmap_dict</code></strong> :&ensp;<code>dictionary</code>, optional <code>(default=None)</code></dt>
+<dd>Dictionary of group, color pairs from <code>color</code> to color boxes and points by</dd>
+<dt><strong><code>stripplot</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
+<dd>Plot stripplot with jittered points over marginal boxplots</dd>
+<dt><strong><code>outdir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to output directory for saving plots</dd>
+<dt><strong><code>save_prefix</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Prefix to add to filenames for saving. If <code>None</code>, don't save anything.</dd>
+<dt><strong><code>dpi</code></strong> :&ensp;<code>float</code>, optional <code>(default=300)</code></dt>
+<dd>Resolution in dots per inch for saving figure. Ignored if <code>save_prefix</code> is
+<code>None</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt>If <code>save_prefix!=None</code>, saves plot as <code>.png</code> file to <code>outdir</code> and stats (if</dt>
+<dt><code>sig==True</code>) to <code>.csv</code> file.</dt>
+<dt><strong><code>g</code></strong> :&ensp;<code>sns.JointGrid</code></dt>
+<dd>Plot object</dd>
+<dt><strong><code>sig_out</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing statistics (if <code>sig==True</code>)</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.jointgrid_boxplots_threshold"><code class="name flex">
+<span>def <span class="ident">jointgrid_boxplots_threshold</span></span>(<span>a, x, y, color, x_thresh, figheight=5, sig=True, cmap_dict=None, stripplot=True, dodge_by_color=False, outdir='./', save_prefix=None, dpi=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Jointplot with scatter between two variables and marginal boxplots showing
+distributions and stats across a third variable (color, x values in y margin)
+and a threshold of x (x_thresh, y values in x margin)</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>Union[anndata.Anndata, pd.DataFrame]</code></dt>
+<dd>The annotated data matrix of shape <code>n_obs</code> by <code>n_vars</code>. Rows correspond to
+samples and columns to genes. Can also be <code>pd.DataFrame</code>.</dd>
+<dt><strong><code>x</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column from <code>a</code> or <code>a.obs</code> to plot on x axis of jointgrid</dd>
+<dt><strong><code>y</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column from <code>a</code> or <code>a.obs</code> to plot on y axis of jointgrid</dd>
+<dt><strong><code>color</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column from <code>a</code> or <code>a.obs</code> containing categories for marginal boxplots and
+statistics in <code>x</code> and <code>y</code>.</dd>
+<dt><strong><code>x_thresh</code></strong> :&ensp;<code>float</code></dt>
+<dd>Threshold along <code>x</code> for which to split points by and plot marginal boxplots
+for <code>y</code></dd>
+<dt><strong><code>figheight</code></strong> :&ensp;<code>float</code>, optional <code>(default=5)</code></dt>
+<dd>Size of output figure in inches (it will be square)</dd>
+<dt><strong><code>sig</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
+<dd>Perform significance testing (2-way t-test) between all groups and add
+significance bars to marginal boxplots</dd>
+<dt><strong><code>cmap_dict</code></strong> :&ensp;<code>dictionary</code>, optional <code>(default=None)</code></dt>
+<dd>Dictionary of group, color pairs from <code>color</code> to color boxes and points by</dd>
+<dt><strong><code>stripplot</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
+<dd>Plot stripplot with jittered points over marginal boxplots</dd>
+<dt><strong><code>dodge_by_color</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
+<dd>Dodge boxplots and stripplots in y-marginal axes by <code>color</code>. If <code>False</code>, only
+one boxplot per category ("-lo" and "-hi" based on <code>x_thresh</code>), with jitterplot
+points colored by <code>color</code> if <code>stripplot==True</code>.</dd>
+<dt><strong><code>outdir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to output directory for saving plots</dd>
+<dt><strong><code>save_prefix</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Prefix to add to filenames for saving. If <code>None</code>, don't save anything.</dd>
+<dt><strong><code>dpi</code></strong> :&ensp;<code>float</code>, optional <code>(default=300)</code></dt>
+<dd>Resolution in dots per inch for saving figure. Ignored if <code>save_prefix</code> is
+<code>None</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt>If <code>save_prefix!=None</code>, saves plot as <code>.png</code> file to <code>outdir</code> and stats (if</dt>
+<dt><code>sig==True</code>) to <code>.csv</code> file.</dt>
+<dt><strong><code>g</code></strong> :&ensp;<code>sns.JointGrid</code></dt>
+<dd>Plot object</dd>
+<dt><strong><code>sig_out</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing statistics (if <code>sig==True</code>)</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.myexpm1"><code class="name flex">
+<span>def <span class="ident">myexpm1</span></span>(<span>x, base=2, pseudocount=0.1, myround=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Custom expm1 function</p></div>
+</dd>
+<dt id="kitchen.plotting.mylog1p"><code class="name flex">
+<span>def <span class="ident">mylog1p</span></span>(<span>x, base=2, pseudocount=0.1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Custom log1p function</p></div>
+</dd>
+<dt id="kitchen.plotting.myround"><code class="name flex">
+<span>def <span class="ident">myround</span></span>(<span>x, n_precision=3)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Custom rounding function</p></div>
+</dd>
+<dt id="kitchen.plotting.pie_from_col"><code class="name flex">
+<span>def <span class="ident">pie_from_col</span></span>(<span>df, col, title=None, figsize=(8, 8), save_to=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a pie chart from the values in a pd.DataFrame column</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>Dataframe from which to plot</dd>
+<dt><strong><code>col</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column in <code>df</code> to create pie chart for</dd>
+<dt><strong><code>title</code></strong> :&ensp;<code>str</code></dt>
+<dd>Title of plot</dd>
+<dt><strong><code>figsize</code></strong> :&ensp;<code>tuple</code> of <code>float</code>, optional <code>(default=(8,8))</code></dt>
+<dd>Size of figure</dd>
+<dt><strong><code>save_to</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Path to image file to save plot to</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.plot_embedding"><code class="name flex">
+<span>def <span class="ident">plot_embedding</span></span>(<span>adata, basis='X_umap', colors=None, show_clustering=True, ncols=5, n_cnmf_markers=7, figsize_scale=1.0, cmap='viridis', seed=18, save_to=None, verbose=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plots reduced-dimension embeddings of single-cell dataset</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
+<dd>object containing preprocessed and dimension-reduced counts matrix</dd>
+<dt><strong><code>basis</code></strong> :&ensp;<code>str</code>, optional <code>(default="X_umap")</code></dt>
+<dd>key from <code>adata.obsm</code> containing embedding coordinates</dd>
+<dt><strong><code>colors</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=None)</code></dt>
+<dd>colors to plot; can be genes or .obs columns</dd>
+<dt><strong><code>show_clustering</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
+<dd>plot PAGA graph and leiden clusters on first two axes</dd>
+<dt><strong><code>basis</code></strong> :&ensp;<code>str</code>, optional <code>(default="X_umap")</code></dt>
+<dd>embedding to plot - key from <code>adata.obsm</code></dd>
+<dt><strong><code>ncols</code></strong> :&ensp;<code>int</code>, optional <code>(default=5)</code></dt>
+<dd>number of columns in gridspec</dd>
+<dt><strong><code>n_cnmf_markers</code></strong> :&ensp;<code>int</code>, optional <code>(default=7)</code></dt>
+<dd>number of top genes to print on cNMF plots</dd>
+<dt><strong><code>figsize_scale</code></strong> :&ensp;<code>float</code>, optional <code>(default=1.0)</code></dt>
+<dd>scaler for figure size. calculated using ncols to keep each panel square.
+values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
+<dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional <code>(default="viridis")</code></dt>
+<dd>valid color map for the plot</dd>
+<dt><strong><code>seed</code></strong> :&ensp;<code>int</code>, optional <code>(default=18)</code></dt>
+<dd>random state for plotting PAGA</dd>
+<dt><strong><code>save_to</code></strong> :&ensp;<code>str</code>, optional <code>(default=None)</code></dt>
+<dd>path to .png file for saving figure; default is plt.show()</dd>
+<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
+<dd>print updates to console</dd>
+<dt><strong><code>**kwargs</code></strong> :&ensp;<code>optional</code></dt>
+<dd>args to pass to <code>sc.pl.embedding</code> (e.g. "size", "add_outline", etc.)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>plot</code> of <code>embedding with overlays from "colors" as matplotlib gridspec object,</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<p>unless <code>save_to</code> is not None.</p></div>
+</dd>
+<dt id="kitchen.plotting.save_plot"><code class="name flex">
+<span>def <span class="ident">save_plot</span></span>(<span>fig, ax, save)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="kitchen.plotting.significance_bar"><code class="name flex">
+<span>def <span class="ident">significance_bar</span></span>(<span>start, end, height, displaystring, linewidth=1.2, markersize=8, boxpad=0.3, fontsize=15, color='k', ax=None, horizontal=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Draw significance bracket on matplotlib figure</p></div>
+</dd>
+<dt id="kitchen.plotting.split_violin"><code class="name flex">
+<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, points_colorby=None, gene_symbols=None, layer=None, log_scale=None, pseudocount=1.0, scale='width', plot_type='violin', split=True, strip=True, jitter=True, size=1, panelsize=(3, 3), ncols=1, ylabel=None, titles=None, legend=True, save=None, dpi=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot genes grouped by one variable and split by another</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>Union[anndata.Anndata, pd.DataFrame]</code></dt>
+<dd>The annotated data matrix of shape <code>n_obs</code> by <code>n_vars</code>. Rows correspond to
+samples and columns to genes. Can also be <code>pd.DataFrame</code>.</dd>
+<dt><strong><code>features</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
+<dd>List of genes, <code>.obs</code> columns, or DataFrame columns to plot (if <code>a</code> is
+<code>pd.DataFrame</code>).</dd>
+<dt><strong><code>groupby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Column from <code>a</code> or <code>a.obs</code> to group by (x variable)</dd>
+<dt><strong><code>groupby_order</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>List of values in <code>a[groupby]</code> or <code>a.obs[groupby]</code> specifying the order of
+groups on x-axis. If <code>groupby</code> is a list, <code>groupby_order</code> should also be a list
+with corresponding orders in each element.</dd>
+<dt><strong><code>splitby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Categorical <code>.obs</code> column to split violins by.</dd>
+<dt><strong><code>splitby_order</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Order of categories in <code>adata.obs[splitby]</code>.</dd>
+<dt><strong><code>points_colorby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Categorical <code>.obs</code> column to color stripplot points by.</dd>
+<dt><strong><code>gene_symbols</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Key for field in <code>.var</code> that stores gene symbols if you do not want to
+use <code>.var_names</code> displayed in the plot.</dd>
+<dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Key from <code>layers</code> attribute of <code>adata</code> if present</dd>
+<dt><strong><code>log_scale</code></strong> :&ensp;<code>int</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Set axis scale(s) to log. Numeric values are interpreted as the desired base
+(e.g. 10). When <code>None</code>, plot defers to the existing Axes scale.</dd>
+<dt><strong><code>pseudocount</code></strong> :&ensp;<code>float</code>, optional <code>(default=1.0)</code></dt>
+<dd>Pseudocount to add to values before log-transforming with base=<code>log_scale</code></dd>
+<dt><strong><code>scale</code></strong> :&ensp;<code>str</code>, optional <code>(default="width")</code></dt>
+<dd>See :func:<code>~seaborn.violinplot</code>.</dd>
+<dt><strong><code>plot_type</code></strong> :&ensp;<code>str</code>, optional <code>(default="violin")</code></dt>
+<dd>"violin" for violinplot, "box" for boxplot</dd>
+<dt><strong><code>split</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
+<dd>Whether to split the violins or not.</dd>
+<dt><strong><code>strip</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
+<dd>Show a strip plot on top of the violin plot.</dd>
+<dt><strong><code>jitter</code></strong> :&ensp;<code>Union[int, float, bool]</code>, optional <code>(default=</code>True<code>)</code></dt>
+<dd>If set to 0, no points are drawn. See :func:<code>~seaborn.stripplot</code>.</dd>
+<dt><strong><code>size</code></strong> :&ensp;<code>int</code>, optional <code>(default=1)</code></dt>
+<dd>Size of the jitter points</dd>
+<dt><strong><code>panelsize</code></strong> :&ensp;<code>tuple</code> of <code>int</code>, optional <code>(default=(3, 3))</code></dt>
+<dd>Size of each panel in output figure in inches</dd>
+<dt><strong><code>ncols</code></strong> :&ensp;<code>int</code>, optional <code>(default=1)</code></dt>
+<dd>Number of columns in gridspec. If <code>None</code> use <code>len(features)</code>.</dd>
+<dt><strong><code>ylabel</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Label for y axes. If <code>None</code> use "expression"</dd>
+<dt><strong><code>titles</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Titles for each set of axes. If <code>None</code> use <code>features</code>.</dd>
+<dt><strong><code>legend</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
+<dd>Add legend to plot</dd>
+<dt><strong><code>save</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Path to file to save image to. If <code>None</code>, return axes objects</dd>
+<dt><strong><code>dpi</code></strong> :&ensp;<code>float</code>, optional <code>(default=300)</code></dt>
+<dd>Resolution in dots per inch for saving figure. Ignored if <code>save</code> is <code>None</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>fig</code></strong> :&ensp;<code>matplotlib.Figure</code></dt>
+<dd>Return figure object if <code>save==None</code>. Otherwise, write to <code>save</code>.</dd>
+</dl></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="kitchen" href="index.html">kitchen</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="kitchen.plotting.boxplots_group" href="#kitchen.plotting.boxplots_group">boxplots_group</a></code></li>
+<li><code><a title="kitchen.plotting.build_gridspec" href="#kitchen.plotting.build_gridspec">build_gridspec</a></code></li>
+<li><code><a title="kitchen.plotting.cluster_pie" href="#kitchen.plotting.cluster_pie">cluster_pie</a></code></li>
+<li><code><a title="kitchen.plotting.custom_heatmap" href="#kitchen.plotting.custom_heatmap">custom_heatmap</a></code></li>
+<li><code><a title="kitchen.plotting.decoupler_dotplot" href="#kitchen.plotting.decoupler_dotplot">decoupler_dotplot</a></code></li>
+<li><code><a title="kitchen.plotting.decoupler_dotplot_facet" href="#kitchen.plotting.decoupler_dotplot_facet">decoupler_dotplot_facet</a></code></li>
+<li><code><a title="kitchen.plotting.jointgrid_boxplots_category" href="#kitchen.plotting.jointgrid_boxplots_category">jointgrid_boxplots_category</a></code></li>
+<li><code><a title="kitchen.plotting.jointgrid_boxplots_threshold" href="#kitchen.plotting.jointgrid_boxplots_threshold">jointgrid_boxplots_threshold</a></code></li>
+<li><code><a title="kitchen.plotting.myexpm1" href="#kitchen.plotting.myexpm1">myexpm1</a></code></li>
+<li><code><a title="kitchen.plotting.mylog1p" href="#kitchen.plotting.mylog1p">mylog1p</a></code></li>
+<li><code><a title="kitchen.plotting.myround" href="#kitchen.plotting.myround">myround</a></code></li>
+<li><code><a title="kitchen.plotting.pie_from_col" href="#kitchen.plotting.pie_from_col">pie_from_col</a></code></li>
+<li><code><a title="kitchen.plotting.plot_embedding" href="#kitchen.plotting.plot_embedding">plot_embedding</a></code></li>
+<li><code><a title="kitchen.plotting.save_plot" href="#kitchen.plotting.save_plot">save_plot</a></code></li>
+<li><code><a title="kitchen.plotting.significance_bar" href="#kitchen.plotting.significance_bar">significance_bar</a></code></li>
+<li><code><a title="kitchen.plotting.split_violin" href="#kitchen.plotting.split_violin">split_violin</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.0</a>.</p>
+</footer>
+</body>
+</html>

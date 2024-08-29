@@ -18,10 +18,12 @@ from .ingredients import (
     subset_adata,
     cc_score,
     dim_reduce,
-    plot_embedding,
     plot_genes,
     plot_genes_cnmf,
     rank_genes_cnmf,
+)
+from .plotting import (
+    plot_embedding,
     cluster_pie,
 )
 from ._version import get_versions
@@ -471,20 +473,26 @@ def recipe(args):
         if isinstance(args.diff_expr, str):
             args.diff_expr = [args.diff_expr]
         for de in args.diff_expr:
-            plot_genes(
+            markers, myplot = plot_genes(
                 a,
                 de_method=args.de_method,
-                plot_type=de,
+                layer="log1p_norm"
+                if args.de_method.startswith("t-test")
+                else "raw_counts",
                 groupby="leiden",
+                ambient=False,
+                plot_type=de,
                 n_genes=5,
+                dendrogram=True,
                 cmap=args.cmap,
+                figsize_scale=1.0,
                 save_to="{}/{}_{}.png".format(args.outdir, de, "_".join(name)),
                 verbose=args.verbose,
             )
         # if there's cnmf results, plot those on a heatmap/matrix/dotplot too
         if "cnmf_spectra" in a.varm:
             for de in args.diff_expr:
-                plot_genes_cnmf(
+                markers, myplot = plot_genes_cnmf(
                     a,
                     plot_type=de,
                     groupby="leiden",
@@ -492,6 +500,8 @@ def recipe(args):
                     keys="cnmf_spectra",
                     indices=None,
                     n_genes=5,
+                    dendrogram=True,
+                    figsize_scale=1.0,
                     cmap=args.cmap,
                     save_to="{}/{}_cnmf_{}.png".format(args.outdir, de, "_".join(name)),
                 )
@@ -1209,7 +1219,7 @@ def main():
         type=str,
         nargs="*",
         default=None,
-        help="Type(s) of DE gene expression plots ['heatmap', 'dotplot', 'matrixplot']",
+        help="Type(s) of DE gene expression plots ['heatmap', 'dotplot', 'matrixplot', 'dotmatrix']",
     )
     recipe_parser.add_argument(
         "-m",
@@ -1306,7 +1316,7 @@ def main():
         type=str,
         nargs="*",
         default=None,
-        help="Type(s) of DE gene expression plot ['heatmap', 'dotplot', 'matrixplot']",
+        help="Type(s) of DE gene expression plot ['heatmap', 'dotplot', 'matrixplot', 'dotmatrix']",
     )
     de_parser.add_argument(
         "-g",
