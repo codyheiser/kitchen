@@ -242,26 +242,6 @@ def check_dir_exists(path):
             raise
 
 
-def list_union(lst1, lst2):
-    """
-    Combines two lists by the union of their values
-
-    Parameters
-    ----------
-
-    lst1, lst2 : list
-        lists to combine
-
-    Returns
-    -------
-
-    final_list : list
-        union of values in lst1 and lst2
-    """
-    final_list = set(lst1).union(set(lst2))
-    return final_list
-
-
 def cellranger2(
     adata,
     expected=1500,

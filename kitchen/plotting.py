@@ -52,6 +52,26 @@ def myexpm1(x, base=2, pseudocount=0.1, myround=False):
         return np.power(base, x) - pseudocount
 
 
+def list_union(lst1, lst2):
+    """
+    Combines two lists by the union of their values
+
+    Parameters
+    ----------
+
+    lst1, lst2 : list
+        lists to combine
+
+    Returns
+    -------
+
+    final_list : list
+        union of values in lst1 and lst2
+    """
+    final_list = set(lst1).union(set(lst2))
+    return final_list
+
+
 def save_plot(fig, ax, save):
     if save is not None:
         if ax is not None:
