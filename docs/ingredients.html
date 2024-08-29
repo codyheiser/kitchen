@@ -144,8 +144,18 @@ dataframes containing gene-pathway information (values).</dd>
 </code></dt>
 <dd>
 <div class="desc"><p>"Flip" dictionary of signatures where keys are signature names and values are lists
-of genes, returning a dictionary where keys are individual genes and values are
-signature names</p></div>
+of features, returning a dictionary where keys are individual features and values
+are signature names</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>signatures_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary where keys are signature names and values are lists of features</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>signatures_dict_flipped</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary where keys are features and values are signature names</dd>
+</dl></div>
 </dd>
 <dt id="kitchen.ingredients.human_to_mouse_simple"><code class="name flex">
 <span>def <span class="ident">human_to_mouse_simple</span></span>(<span>symbol)</span>
@@ -177,6 +187,25 @@ signature names and constituent genes in long-form, respectively.</dd>
 <dt><strong><code>genes</code></strong> :&ensp;<code>dict</code></dt>
 <dd>Dictionary of gene signatures with signature names as keys and lists of genes
 as values.</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.ingredients.signature_dict_values"><code class="name flex">
+<span>def <span class="ident">signature_dict_values</span></span>(<span>signatures_dict, unique=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extract features from dictionary of signatures where keys are signature names and
+values are lists of features, returning a single list of features</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>signatures_dict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary where keys are signature names and values are lists of features</dd>
+<dt><strong><code>unique</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
+<dd>get only unique features across all <code>signatures_dict.values()</code></dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict_values</code></strong> :&ensp;<code>list</code></dt>
+<dd>&nbsp;</dd>
 </dl></div>
 </dd>
 <dt id="kitchen.ingredients.signatures_to_long_form"><code class="name flex">
@@ -251,6 +280,7 @@ names.</dd>
 <li><code><a title="kitchen.ingredients.flip_signature_dict" href="#kitchen.ingredients.flip_signature_dict">flip_signature_dict</a></code></li>
 <li><code><a title="kitchen.ingredients.human_to_mouse_simple" href="#kitchen.ingredients.human_to_mouse_simple">human_to_mouse_simple</a></code></li>
 <li><code><a title="kitchen.ingredients.ingest_gene_signatures" href="#kitchen.ingredients.ingest_gene_signatures">ingest_gene_signatures</a></code></li>
+<li><code><a title="kitchen.ingredients.signature_dict_values" href="#kitchen.ingredients.signature_dict_values">signature_dict_values</a></code></li>
 <li><code><a title="kitchen.ingredients.signatures_to_long_form" href="#kitchen.ingredients.signatures_to_long_form">signatures_to_long_form</a></code></li>
 <li><code><a title="kitchen.ingredients.signatures_to_short_form" href="#kitchen.ingredients.signatures_to_short_form">signatures_to_short_form</a></code></li>
 </ul>

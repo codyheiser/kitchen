@@ -442,14 +442,46 @@ def ingest_gene_signatures(
 def flip_signature_dict(signatures_dict):
     """
     "Flip" dictionary of signatures where keys are signature names and values are lists
-    of genes, returning a dictionary where keys are individual genes and values are
-    signature names
+    of features, returning a dictionary where keys are individual features and values
+    are signature names
+
+    Parameters
+    ----------
+    signatures_dict : dict
+        dictionary where keys are signature names and values are lists of features
+
+    Returns
+    -------
+    signatures_dict_flipped : dict
+        dictionary where keys are features and values are signature names
     """
     signatures_dict_flipped = {}
     for key, value in signatures_dict.items():
         for string in value:
             signatures_dict_flipped.setdefault(string, []).append(key)
     return signatures_dict_flipped
+
+
+def signature_dict_values(signatures_dict, unique=True):
+    """
+    Extract features from dictionary of signatures where keys are signature names and
+    values are lists of features, returning a single list of features
+
+    Parameters
+    ----------
+    signatures_dict : dict
+        dictionary where keys are signature names and values are lists of features
+    unique : bool, optional (default=`True`)
+        get only unique features across all `signatures_dict.values()`
+
+    Returns
+    -------
+    dict_values : list
+    """
+    dict_values = [item for sublist in signatures_dict.values() for item in sublist]
+    if unique:
+        dict_values = list(set(dict_values))
+    return dict_values
 
 
 def filter_signatures_with_var_names(signatures_dict, adata):

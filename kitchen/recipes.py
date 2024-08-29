@@ -10,7 +10,13 @@ import decoupler as dc
 from emptydrops import find_nonambient_barcodes
 from emptydrops.matrix import CountMatrix
 
-from .ingredients import s_genes_h, s_genes_m, g2m_genes_h, g2m_genes_m
+from .ingredients import (
+    s_genes_h,
+    s_genes_m,
+    g2m_genes_h,
+    g2m_genes_m,
+    signature_dict_values,
+)
 from .plotting import custom_heatmap, decoupler_dotplot_facet
 
 
@@ -51,7 +57,7 @@ def subset_adata(adata, subset, verbose=True):
     adata = adata[adata.obs["adata_subset_combined"] == 1, :].copy()
     adata.obs.drop(columns="adata_subset_combined", inplace=True)
     if verbose:
-        print(" - now {} cells and {} genes".format(adata.n_obs, adata.n_vars))
+        print(" - now {} cells and {} features".format(adata.n_obs, adata.n_vars))
     return adata
 
 
@@ -502,11 +508,11 @@ def plot_genes(
         markers["ambient"] = adata.var_names[adata.var.ambient].tolist()
 
     # total and unique features on plot
-    features = [item for sublist in markers.values() for item in sublist]
-    unique_features = list(set(features))
+    features = signature_dict_values(signatures_dict=markers, unique=False)
+    unique_features = signature_dict_values(signatures_dict=markers, unique=True)
 
     print(
-        "Detected {} total genes and {} unique genes across {} groups".format(
+        "Detected {} total features and {} unique features across {} groups".format(
             len(features), len(unique_features), len(groups)
         )
     )
@@ -530,7 +536,6 @@ def plot_genes(
         my_plot = custom_heatmap(
             adata,
             groupby=groupby,
-            features=unique_features,
             layer=layer,
             vars_dict=markers,
             cluster_obs=dendrogram,
@@ -621,8 +626,14 @@ def plot_genes_cnmf(
             markers[keys[iscore]].append(labels[x])
 
     # total and unique features on plot
-    features = [item for sublist in markers.values() for item in sublist]
-    unique_features = list(set(features))
+    features = signature_dict_values(signatures_dict=markers, unique=False)
+    unique_features = signature_dict_values(signatures_dict=markers, unique=True)
+
+    print(
+        "Plotting {} total features and {} unique features across {} factors".format(
+            len(features), len(unique_features), len(groups)
+        )
+    )
 
     # unique groups in DEG analysis
     groups = adata.obs[groupby].unique().tolist()
@@ -638,7 +649,6 @@ def plot_genes_cnmf(
     my_plot = custom_heatmap(
         adata,
         groupby=groupby,
-        features=unique_features,
         vars_dict=markers,
         cluster_obs=dendrogram,
         plot_type=plot_type,

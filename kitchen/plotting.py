@@ -25,6 +25,8 @@ from mycolorpy import colorlist as mcp
 from scipy import stats
 from scipy.cluster.hierarchy import linkage, leaves_list
 
+from .ingredients import signature_dict_values
+
 sc.set_figure_params(frameon=False, dpi=100, dpi_save=200, format="png")
 
 
@@ -1723,8 +1725,9 @@ def custom_heatmap(
         AnnData object to plot from
     groupby : str
         Categorical column of `adata.obs` to group dotplot by
-    features : list of str
-        List of features from `adata.obs.columns` or `adata.var_names` to plot
+    features : list of str (default=`None`)
+        List of features from `adata.obs.columns` or `adata.var_names` to plot. If
+        `None`, then `vars_dict` must provided.
     layer : str
         Key from `adata.layers` to use for plotting gene values
     cluster_vars : bool, optional (default=`False`)
@@ -1733,6 +1736,7 @@ def custom_heatmap(
     vars_dict : dict, optional (default=`None`)
         Dictionary of groups of vars to highlight with brackets on dotplot. Keys are
         variable group names and values are list of variables found in `features`.
+        If provided, `features` is ignored.
     groupby_order : list, optional (default=`None`)
         Explicit order for groups of observations from `adata.obs[groupby]`
     groupby_colordict : dict, optional (default=`None`)
@@ -1781,6 +1785,9 @@ def custom_heatmap(
         "heatmap",
         "dotmatrix",
     ], "plot_type must be one of 'dotplot', 'matrixplot', 'dotmatrix', 'stacked_violin', 'heatmap'"
+    # get features from vars_dict if provided
+    if vars_dict is not None:
+        features = signature_dict_values(signatures_dict=vars_dict, unique=True)
     if np.all([x in adata.obs.columns for x in features]):
         same_origin = True
         print("Using {} features from adata.obs".format(len(features)))

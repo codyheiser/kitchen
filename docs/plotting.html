@@ -162,8 +162,9 @@ significance bars to plot(s)</dd>
 <dd>AnnData object to plot from</dd>
 <dt><strong><code>groupby</code></strong> :&ensp;<code>str</code></dt>
 <dd>Categorical column of <code>adata.obs</code> to group dotplot by</dd>
-<dt><strong><code>features</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
-<dd>List of features from <code>adata.obs.columns</code> or <code>adata.var_names</code> to plot</dd>
+<dt><strong><code>features</code></strong> :&ensp;<code>list</code> of <code>str (default=</code>None<code>)</code></dt>
+<dd>List of features from <code>adata.obs.columns</code> or <code>adata.var_names</code> to plot. If
+<code>None</code>, then <code>vars_dict</code> must provided.</dd>
 <dt><strong><code>layer</code></strong> :&ensp;<code>str</code></dt>
 <dd>Key from <code>adata.layers</code> to use for plotting gene values</dd>
 <dt><strong><code>cluster_vars</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
@@ -171,7 +172,8 @@ significance bars to plot(s)</dd>
 <code>features</code> in their new order (first return variable).</dd>
 <dt><strong><code>vars_dict</code></strong> :&ensp;<code>dict</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Dictionary of groups of vars to highlight with brackets on dotplot. Keys are
-variable group names and values are list of variables found in <code>features</code>.</dd>
+variable group names and values are list of variables found in <code>features</code>.
+If provided, <code>features</code> is ignored.</dd>
 <dt><strong><code>groupby_order</code></strong> :&ensp;<code>list</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Explicit order for groups of observations from <code>adata.obs[groupby]</code></dd>
 <dt><strong><code>groupby_colordict</code></strong> :&ensp;<code>dict</code>, optional <code>(default=</code>None<code>)</code></dt>
