@@ -25,7 +25,7 @@ from mycolorpy import colorlist as mcp
 from scipy import stats
 from scipy.cluster.hierarchy import linkage, leaves_list
 
-sc.set_figure_params(frameon=False, dpi=200, dpi_save=300, format="png")
+sc.set_figure_params(frameon=False, dpi=100, dpi_save=200, format="png")
 
 
 def myround(x, n_precision=3):
@@ -58,13 +58,11 @@ def list_union(lst1, lst2):
 
     Parameters
     ----------
-
     lst1, lst2 : list
         lists to combine
 
     Returns
     -------
-
     final_list : list
         union of values in lst1 and lst2
     """
@@ -2180,6 +2178,129 @@ def plot_embedding(
         plt.savefig(save_to)
     else:
         return fig
+
+
+def rank_genes_cnmf(
+    adata,
+    attr="varm",
+    keys="cnmf_spectra",
+    indices=None,
+    labels=None,
+    titles=None,
+    color="black",
+    n_points=20,
+    ncols=5,
+    log=False,
+    show=None,
+    figsize=(5, 5),
+):
+    """
+    Plots rankings. [Adapted from `scanpy.plotting._anndata.ranking`]
+
+    See, for example, how this is used in `pl.pca_ranking`.
+
+    Parameters
+    ----------
+
+    adata : anndata.AnnData
+        the data
+    attr : str {'var', 'obs', 'uns', 'varm', 'obsm'}
+        the attribute of adata that contains the score
+    keys : str or list of str, optional (default="cnmf_spectra")
+        scores to look up an array from the attribute of adata
+    indices : list of int, optional (default=None)
+        the column indices of keys for which to plot (e.g. [0,1,2] for first three
+        keys)
+    labels : list of str, optional (default=None)
+        Labels to use for features displayed as plt.txt objects on the axes
+    titles : list of str, optional (default=None)
+        Labels for titles of each plot panel, in order
+    ncols : int, optional (default=5)
+        number of columns in gridspec
+    show : bool, optional (default=None)
+        show figure or just return axes
+    figsize : tuple of float, optional (default=(5,5))
+        size of matplotlib figure
+
+    Returns
+    -------
+
+    matplotlib gridspec with access to the axes
+    """
+    # default to all usages
+    if indices is None:
+        indices = [x for x in range(getattr(adata, attr)[keys].shape[1])]
+    # get scores for each usage
+    if isinstance(keys, str) and indices is not None:
+        scores = np.array(getattr(adata, attr)[keys])[:, indices]
+        keys = ["{}_{}".format(keys, i + 1) for i in indices]
+    n_panels = len(indices) if isinstance(indices, list) else 1
+    if n_panels == 1:
+        scores, keys = scores[:, None], [keys]
+    if log:
+        scores = np.log(scores)
+    if labels is None:
+        labels = (
+            adata.var_names
+            if attr in {"var", "varm"}
+            else np.arange(scores.shape[0]).astype(str)
+        )
+    if titles is not None:
+        assert len(titles) == n_panels, "Must provide {} titles".format(n_panels)
+    if isinstance(labels, str):
+        labels = [labels + str(i + 1) for i in range(scores.shape[0])]
+    if n_panels <= ncols:
+        n_rows, n_cols = 1, n_panels
+    else:
+        n_rows, n_cols = ceil(n_panels / ncols), ncols
+    fig = plt.figure(figsize=(n_cols * figsize[0], n_rows * figsize[1]))
+    left, bottom = 0.1 / n_cols, 0.1 / n_rows
+    gs = gridspec.GridSpec(
+        nrows=n_rows,
+        ncols=n_cols,
+        wspace=0.1,
+        left=left,
+        bottom=bottom,
+        right=1 - (n_cols - 1) * left - 0.01 / n_cols,
+        top=1 - (n_rows - 1) * bottom - 0.1 / n_rows,
+    )
+    for iscore, score in enumerate(scores.T):
+        plt.subplot(gs[iscore])
+        indices = np.argsort(score)[::-1][: n_points + 1]
+        for ig, g in enumerate(indices[::-1]):
+            plt.text(
+                x=score[g],
+                y=ig,
+                s=labels[g],
+                color=color,
+                verticalalignment="center",
+                horizontalalignment="right",
+                fontsize="medium",
+                fontstyle="italic",
+            )
+        if titles is not None:
+            plt.title(titles[iscore], fontsize="x-large")
+        else:
+            plt.title(keys[iscore].replace("_", " "), fontsize="x-large")
+        plt.ylim(-0.9, ig + 0.9)
+        score_min, score_max = np.min(score[indices]), np.max(score[indices])
+        plt.xlim(
+            (0.95 if score_min > 0 else 1.05) * score_min,
+            (1.05 if score_max > 0 else 0.95) * score_max,
+        )
+        plt.xticks(rotation=45)
+        plt.tick_params(labelsize="medium")
+        plt.tick_params(
+            axis="y",  # changes apply to the y-axis
+            which="both",  # both major and minor ticks are affected
+            left=False,
+            right=False,
+            labelleft=False,
+        )
+        plt.grid(False)
+    gs.tight_layout(fig)
+    if show == False:
+        return gs
 
 
 def decoupler_dotplot(

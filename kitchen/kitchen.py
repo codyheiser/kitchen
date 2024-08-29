@@ -11,8 +11,8 @@ import seaborn as sns
 from scipy import sparse
 from dropkick import recipe_dropkick
 
-from .ingredients import (
-    check_dir_exists,
+from .ingredients import check_dir_exists
+from .recipes import (
     cellranger2,
     cellranger3,
     subset_adata,
@@ -20,11 +20,11 @@ from .ingredients import (
     dim_reduce,
     plot_genes,
     plot_genes_cnmf,
-    rank_genes_cnmf,
 )
 from .plotting import (
     plot_embedding,
     cluster_pie,
+    rank_genes_cnmf,
 )
 from ._version import get_versions
 

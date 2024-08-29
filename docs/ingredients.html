@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.1">
 <title>kitchen.ingredients API documentation</title>
-<meta name="description" content="Functions for manipulating .h5ad objects and automated processing of scRNA-seq data">
+<meta name="description" content="Resources and utility functions">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -25,7 +25,7 @@ hljs.highlightAll();
 <h1 class="title">Module <code>kitchen.ingredients</code></h1>
 </header>
 <section id="section-intro">
-<p>Functions for manipulating .h5ad objects and automated processing of scRNA-seq data</p>
+<p>Resources and utility functions</p>
 </section>
 <section>
 </section>
@@ -34,81 +34,20 @@ hljs.highlightAll();
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="kitchen.ingredients.cc_score"><code class="name flex">
-<span>def <span class="ident">cc_score</span></span>(<span>adata, layer=None, seed=18, verbose=True)</span>
+<dt id="kitchen.ingredients.RPKM_to_TPM"><code class="name flex">
+<span>def <span class="ident">RPKM_to_TPM</span></span>(<span>RPKM_mat)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculates cell cycle scores and implied phase for each observation</p>
+<div class="desc"><p>Convert <code>RPKM_mat</code> (reads per KB per million) to TPM (transcripts per million)</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
-<dd>object containing transformed and normalized (arcsinh or log1p) counts in
-'layer'.</dd>
-<dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default=None)</code></dt>
-<dd>key from adata.layers to use for cc phase calculation. Default None to
-use .X</dd>
-<dt><strong><code>seed</code></strong> :&ensp;<code>int</code>, optional <code>(default=18)</code></dt>
-<dd>random state for PCA, neighbors graph and clustering</dd>
-<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
-<dd>print updates to console</dd>
+<dt><strong><code>RPKM_mat</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Matrix of RPKM values in samples x genes format (genes as columns)</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>adata is edited in place to add 'G2M_score', 'S_score', and 'phase' to .obs</code></dt>
-<dd>&nbsp;</dd>
-</dl></div>
-</dd>
-<dt id="kitchen.ingredients.cellranger2"><code class="name flex">
-<span>def <span class="ident">cellranger2</span></span>(<span>adata, expected=1500, upper_quant=0.99, lower_prop=0.1, label='CellRanger_2', verbose=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Labels cells using "knee point" method from CellRanger 2.1</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
-<dd>object containing unfiltered counts</dd>
-<dt><strong><code>expected</code></strong> :&ensp;<code>int</code>, optional <code>(default=1500)</code></dt>
-<dd>estimated number of real cells expected in dataset</dd>
-<dt><strong><code>upper_quant</code></strong> :&ensp;<code>float</code>, optional <code>(default=0.99)</code></dt>
-<dd>upper quantile of real cells to test</dd>
-<dt><strong><code>lower_prop</code></strong> :&ensp;<code>float</code>, optional <code>(default=0.1)</code></dt>
-<dd>percentage of expected quantile to calculate total counts threshold for</dd>
-<dt><strong><code>label</code></strong> :&ensp;<code>str</code>, optional <code>(default="CellRanger_2")</code></dt>
-<dd>how to name .obs column containing output</dd>
-<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
-<dd>print updates to console</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>adata edited in place to add .obs[label] binary label</code></dt>
-<dd>&nbsp;</dd>
-</dl></div>
-</dd>
-<dt id="kitchen.ingredients.cellranger3"><code class="name flex">
-<span>def <span class="ident">cellranger3</span></span>(<span>adata, init_counts=15000, min_umi_frac_of_median=0.01, min_umis_nonambient=500, max_adj_pvalue=0.01)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Labels cells using "emptydrops" method from CellRanger 3.0</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
-<dd>object containing unfiltered counts</dd>
-<dt><strong><code>init_counts</code></strong> :&ensp;<code>int</code>, optional <code>(default=15000)</code></dt>
-<dd>initial total counts threshold for calling cells</dd>
-<dt><strong><code>min_umi_frac_of_median</code></strong> :&ensp;<code>float</code>, optional <code>(default=0.01)</code></dt>
-<dd>minimum total counts for testing barcodes as fraction of median counts for
-initially labeled cells</dd>
-<dt><strong><code>min_umis_nonambient</code></strong> :&ensp;<code>float</code>, optional <code>(default=500)</code></dt>
-<dd>minimum total counts for testing barcodes</dd>
-<dt><strong><code>max_adj_pvalue</code></strong> :&ensp;<code>float</code>, optional <code>(default=0.01)</code></dt>
-<dd>maximum p-value for cell calling after B-H correction</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>adata edited in place to add .obs["CellRanger_3"] binary label</code></dt>
-<dd>&nbsp;</dd>
-<dt><code>and .obs["CellRanger_3_ll"] log-likelihoods for tested barcodes</code></dt>
-<dd>&nbsp;</dd>
+<dt><strong><code>TPM_mat</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Matrix in same shape as <code>RPKM_mat</code> containing TPM values</dd>
 </dl></div>
 </dd>
 <dt id="kitchen.ingredients.check_dir_exists"><code class="name flex">
@@ -124,176 +63,166 @@ initially labeled cells</dd>
 <h2 id="returns">Returns</h2>
 <p>tries to make directory at <code>path</code>, unless it already exists</p></div>
 </dd>
-<dt id="kitchen.ingredients.dim_reduce"><code class="name flex">
-<span>def <span class="ident">dim_reduce</span></span>(<span>adata, layer=None, use_rep=None, clust_resolution=1.0, paga=True, seed=18, verbose=True)</span>
+<dt id="kitchen.ingredients.counts_to_RPKM"><code class="name flex">
+<span>def <span class="ident">counts_to_RPKM</span></span>(<span>counts_mat, gene_lengths, mapped_reads=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Reduces dimensions of single-cell dataset using standard methods</p>
+<div class="desc"><p>Convert <code>counts_mat</code> to RPKM (reads per kilobase per million)</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
-<dd>object containing preprocessed counts matrix</dd>
-<dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default=None)</code></dt>
-<dd>layer to use; default None for .X</dd>
-<dt><strong><code>use_rep</code></strong> :&ensp;<code>str</code>, optional <code>(default=None)</code></dt>
-<dd>.obsm key to use for neighbors graph instead of PCA;
-default None, generate new PCA from layer</dd>
-<dt><strong><code>clust_resolution</code></strong> :&ensp;<code>float</code>, optional <code>(default=1.0)</code></dt>
-<dd>resolution as fraction on [0.0, 1.0] for leiden
-clustering. default 1.0</dd>
-<dt><strong><code>paga</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
-<dd>run PAGA to seed UMAP embedding</dd>
-<dt><strong><code>seed</code></strong> :&ensp;<code>int</code>, optional <code>(default=18)</code></dt>
-<dd>random state for PCA, neighbors graph and clustering</dd>
-<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
-<dd>print updates to console</dd>
+<dt><strong><code>counts_mat</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Matrix of counts in samples x genes format (genes as columns)</dd>
+<dt><strong><code>gene_lengths</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>1D array of length <code>counts_mat.shape[1]</code> containing lengths for each gene in
+base pairs</dd>
+<dt><strong><code>mapped_reads</code></strong> :&ensp;<code>np.array</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>1D array of length <code>counts_mat.shape[0]</code> containing total mapped reads for each
+sample. If <code>None</code>, calculate sums manually from columns of <code>counts_mat</code>.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>adata is edited in place, adding PCA, neighbors graph, PAGA, and UMAP</code></dt>
-<dd>&nbsp;</dd>
+<dt><strong><code>RPKM_mat</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Matrix in same shape as <code>counts_mat</code> containing RPKM values</dd>
 </dl></div>
 </dd>
-<dt id="kitchen.ingredients.plot_genes"><code class="name flex">
-<span>def <span class="ident">plot_genes</span></span>(<span>adata, de_method='t-test_overestim_var', layer='log1p_norm', groupby='leiden', ambient=False, plot_type=None, n_genes=5, dendrogram=True, cmap='Greys', figsize_scale=1.0, save_to='de.png', verbose=True, **kwargs)</span>
+<dt id="kitchen.ingredients.counts_to_TPM"><code class="name flex">
+<span>def <span class="ident">counts_to_TPM</span></span>(<span>counts_mat, gene_lengths, mapped_reads=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculates and plot <code>rank_genes_groups</code> results</p>
+<div class="desc"><p>Convert <code>counts_mat</code> to TPM (transcripts per million)</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
-<dd>object containing preprocessed and dimension-reduced counts matrix</dd>
-<dt><strong><code>de_method</code></strong> :&ensp;<code>str</code>, optional <code>(default="t-test_overestim_var")</code></dt>
-<dd>one of "t-test", "t-test_overestim_var", "wilcoxon"</dd>
-<dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default="log1p_norm")</code></dt>
-<dd>one of <code>adata.layers</code> to use for DEG analysis. Recommended to use 'raw_counts'
-if <code>de_method=='wilcoxon'</code> and 'log1p_norm' if <code>de_method=='t-test'</code>.</dd>
-<dt><strong><code>groupby</code></strong> :&ensp;<code>str</code>, optional <code>(default="leiden")</code></dt>
-<dd><code>adata.obs</code> key to group cells by</dd>
-<dt><strong><code>ambient</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
-<dd>include ambient genes as a group in the plot/output dictionary</dd>
-<dt><strong><code>plot_type</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
-<dd>One of "dotplot", "matrixplot", "dotmatrix", "stacked_violin", or "heatmap".
-If <code>None</code>, don't plot, just return DEGs as dictionary.</dd>
-<dt><strong><code>n_genes</code></strong> :&ensp;<code>int</code>, optional <code>(default=5)</code></dt>
-<dd>number of top genes per group to show</dd>
-<dt><strong><code>dendrogram</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
-<dd>show dendrogram of cluster similarity</dd>
-<dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional <code>(default="Greys")</code></dt>
-<dd>matplotlib colormap for dots</dd>
-<dt><strong><code>figsize_scale</code></strong> :&ensp;<code>float</code>, optional <code>(default=1.0)</code></dt>
-<dd>scale dimensions of the figure</dd>
-<dt><strong><code>save_to</code></strong> :&ensp;<code>str</code>, optional <code>(default="de.png")</code></dt>
-<dd>string to add to plot name using scanpy plot defaults</dd>
-<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
-<dd>print updates to console</dd>
-<dt><strong><code>**kwargs</code></strong> :&ensp;<code>optional</code></dt>
-<dd>keyword args to add to <code><a title="kitchen.plotting.custom_heatmap" href="plotting.html#kitchen.plotting.custom_heatmap">custom_heatmap()</a></code></dd>
+<dt><strong><code>counts_mat</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Matrix of counts in samples x genes format (genes as columns)</dd>
+<dt><strong><code>gene_lengths</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>1D array of length <code>counts_mat.shape[1]</code> containing lengths for each gene in
+base pairs</dd>
+<dt><strong><code>mapped_reads</code></strong> :&ensp;<code>np.array (default=</code>None<code>)</code></dt>
+<dd>1D array of length <code>counts_mat.shape[0]</code> containing total mapped reads for each
+sample. If <code>None</code>, calculate sums manually from columns of <code>counts_mat</code>.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>markers</code></strong> :&ensp;<code>dict</code></dt>
-<dd>dictionary of top <code>n_genes</code> DEGs per group</dd>
-<dt><strong><code>myplot</code></strong> :&ensp;<code>matplotlib.Figure</code></dt>
-<dd><code>custom_heatmap</code> object if <code>plot_type!=None</code></dd>
+<dt><strong><code>TPM_mat</code></strong> :&ensp;<code>np.array</code></dt>
+<dd>Matrix in same shape as <code>counts_mat</code> containing TPM values</dd>
 </dl></div>
 </dd>
-<dt id="kitchen.ingredients.plot_genes_cnmf"><code class="name flex">
-<span>def <span class="ident">plot_genes_cnmf</span></span>(<span>adata, plot_type='heatmap', groupby='leiden', attr='varm', keys='cnmf_spectra', indices=None, n_genes=5, dendrogram=True, figsize_scale=1.0, cmap='Greys', save_to='de_cnmf.png', **kwargs)</span>
+<dt id="kitchen.ingredients.fetch_decoupler_resources"><code class="name flex">
+<span>def <span class="ident">fetch_decoupler_resources</span></span>(<span>resources=['msigdb', 'panglaodb', 'progeny', 'collectri', 'liana'], genome='human')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculates and plots top cNMF gene loadings</p>
+<div class="desc"><p>Retrieve prior-knowledge networks from OmniPath for use with <code>decoupler</code> pathway
+analysis methods
+* MSigDB: biological pathways from HALLMARK (ORA)
+* PanglaoDB: cell-type and cell-state for scRNA labeling (ORA)
+* PROGENy: canonical signaling pathways (MLM)
+* CollecTRI: transcription factor regulon networks (ULM)
+* LIANA: ligand-receptor interactions (ULM)</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
-<dd>object containing preprocessed and dimension-reduced counts matrix</dd>
-<dt><strong><code>plot_type</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
-<dd>One of "dotplot", "matrixplot", "dotmatrix", "stacked_violin", or "heatmap".</dd>
-<dt><strong><code>groupby</code></strong> :&ensp;<code>str</code>, optional <code>(default="leiden")</code></dt>
-<dd>.obs key to group cells by</dd>
-<dt><strong><code>attr</code></strong> :&ensp;<code>str {"var", "obs", "uns", "varm", "obsm"}</code></dt>
-<dd>attribute of adata that contains the score</dd>
-<dt><strong><code>keys</code></strong> :&ensp;<code>str</code> or <code>list</code> of <code>str</code>, optional <code>(default="cnmf_spectra")</code></dt>
-<dd>scores to look up an array from the attribute of adata</dd>
-<dt><strong><code>indices</code></strong> :&ensp;<code>list</code> of <code>int</code>, optional <code>(default=None)</code></dt>
-<dd>column indices of keys for which to plot (e.g. [0,1,2] for first three keys)</dd>
-<dt><strong><code>n_genes</code></strong> :&ensp;<code>int</code>, optional <code>(default=5)</code></dt>
-<dd>number of top genes per group to show</dd>
-<dt><strong><code>dendrogram</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
-<dd>show dendrogram of cluster similarity</dd>
-<dt><strong><code>figsize_scale</code></strong> :&ensp;<code>float</code>, optional <code>(default=1.0)</code></dt>
-<dd>scale dimensions of the figure</dd>
-<dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional <code>(default="Greys")</code></dt>
-<dd>valid color map for the plot</dd>
-<dt><strong><code>save_to</code></strong> :&ensp;<code>str</code>, optional <code>(default="de.png")</code></dt>
-<dd>string to add to plot name using scanpy plot defaults</dd>
-<dt><strong><code>**kwargs</code></strong> :&ensp;<code>optional</code></dt>
-<dd>keyword args to add to sc.pl.matrixplot, sc.pl.dotplot, or sc.pl.heatmap</dd>
+<dt><strong><code>resources</code></strong> :&ensp;<code>list</code>, optional <code>(default=["msigdb","panglaodb","progeny","collectri","liana"])</code></dt>
+<dd>List of resources to fetch. Default all; remove networks not desired.</dd>
+<dt><strong><code>genome</code></strong> :&ensp;<code>str literal</code>, optional <code>(default="human")</code></dt>
+<dd>One of "human" or "mouse" to determine which gene symbols to return in
+<code>genesymbol</code> or <code>target</code> columns of network dataframes</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>markers</code></strong> :&ensp;<code>dict</code></dt>
-<dd>dictionary of top <code>n_genes</code> features per NMF factor</dd>
-<dt><strong><code>myplot</code></strong> :&ensp;<code>matplotlib.Figure</code></dt>
-<dd><code>custom_heatmap</code> object</dd>
+<dt><strong><code>nets</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary containing names of OmniPath networks (keys) and the corresponding
+dataframes containing gene-pathway information (values).</dd>
 </dl></div>
 </dd>
-<dt id="kitchen.ingredients.rank_genes_cnmf"><code class="name flex">
-<span>def <span class="ident">rank_genes_cnmf</span></span>(<span>adata, attr='varm', keys='cnmf_spectra', indices=None, labels=None, titles=None, color='black', n_points=20, ncols=5, log=False, show=None, figsize=(5, 5))</span>
+<dt id="kitchen.ingredients.filter_signatures_with_var_names"><code class="name flex">
+<span>def <span class="ident">filter_signatures_with_var_names</span></span>(<span>signatures_dict, adata)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Plots rankings. [Adapted from <code>scanpy.plotting._anndata.ranking</code>]</p>
-<p>See, for example, how this is used in <code>pl.pca_ranking</code>.</p>
+<div class="desc"><p>Filter lists of genes in <code>signatures_dict</code> to include genes in <code>adata.var_names</code></p></div>
+</dd>
+<dt id="kitchen.ingredients.flip_signature_dict"><code class="name flex">
+<span>def <span class="ident">flip_signature_dict</span></span>(<span>signatures_dict)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>"Flip" dictionary of signatures where keys are signature names and values are lists
+of genes, returning a dictionary where keys are individual genes and values are
+signature names</p></div>
+</dd>
+<dt id="kitchen.ingredients.human_to_mouse_simple"><code class="name flex">
+<span>def <span class="ident">human_to_mouse_simple</span></span>(<span>symbol)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert human to mouse symbols by simple case-conversion</p></div>
+</dd>
+<dt id="kitchen.ingredients.ingest_gene_signatures"><code class="name flex">
+<span>def <span class="ident">ingest_gene_signatures</span></span>(<span>sig_files, form='short', sig_col='signature', gene_col='gene')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read in gene signatures from one or more flat files</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
-<dd>the data</dd>
-<dt><strong><code>attr</code></strong> :&ensp;<code>str {'var', 'obs', 'uns', 'varm', 'obsm'}</code></dt>
-<dd>the attribute of adata that contains the score</dd>
-<dt><strong><code>keys</code></strong> :&ensp;<code>str</code> or <code>list</code> of <code>str</code>, optional <code>(default="cnmf_spectra")</code></dt>
-<dd>scores to look up an array from the attribute of adata</dd>
-<dt><strong><code>indices</code></strong> :&ensp;<code>list</code> of <code>int</code>, optional <code>(default=None)</code></dt>
-<dd>the column indices of keys for which to plot (e.g. [0,1,2] for first three
-keys)</dd>
-<dt><strong><code>labels</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=None)</code></dt>
-<dd>Labels to use for features displayed as plt.txt objects on the axes</dd>
-<dt><strong><code>titles</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=None)</code></dt>
-<dd>Labels for titles of each plot panel, in order</dd>
-<dt><strong><code>ncols</code></strong> :&ensp;<code>int</code>, optional <code>(default=5)</code></dt>
-<dd>number of columns in gridspec</dd>
-<dt><strong><code>show</code></strong> :&ensp;<code>bool</code>, optional <code>(default=None)</code></dt>
-<dd>show figure or just return axes</dd>
-<dt><strong><code>figsize</code></strong> :&ensp;<code>tuple</code> of <code>float</code>, optional <code>(default=(5,5))</code></dt>
-<dd>size of matplotlib figure</dd>
+<dt><strong><code>sig_files</code></strong> :&ensp;<code>Union[list, str]</code></dt>
+<dd>Path to single signature file or list of paths to signature files</dd>
+<dt><strong><code>form</code></strong> :&ensp;<code>Literal('short','long'), Optional (default='short')</code></dt>
+<dd>Format of the data in <code>sig_files</code>. If 'short', columns of <code>sig_files</code> are
+assumed to contain separate signatures, with first row of column headers as
+signature names. If 'long', expect <code>sig_col</code> and <code>gene_col</code> headers to describe
+signature names and constituent genes in long-form, respectively.</dd>
+<dt><strong><code>sig_col</code></strong> :&ensp;<code>str, Optional (default='signature')</code></dt>
+<dd>Column in <code>sig_files</code> containing signature names. Ignored if <code>form</code>=='short'.</dd>
+<dt><strong><code>gene_col</code></strong> :&ensp;<code>str, Optional (default='gene')</code></dt>
+<dd>Column in <code>sig_files</code> containing gene names. Ignored if <code>form</code>=='short'.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>matplotlib gridspec with access to the axes</code></dt>
-<dd>&nbsp;</dd>
+<dt><strong><code>genes</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary of gene signatures with signature names as keys and lists of genes
+as values.</dd>
 </dl></div>
 </dd>
-<dt id="kitchen.ingredients.subset_adata"><code class="name flex">
-<span>def <span class="ident">subset_adata</span></span>(<span>adata, subset, verbose=True)</span>
+<dt id="kitchen.ingredients.signatures_to_long_form"><code class="name flex">
+<span>def <span class="ident">signatures_to_long_form</span></span>(<span>sig_short, sig_col='signature', gene_col='gene')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Subsets AnnData object on one or more .obs columns</p>
-<p>Columns should contain 0/False for cells to throw out, and 1/True for cells to
-keep. Keeps union of all labels provided in subset.</p>
+<div class="desc"><p>Convert gene signatures dict or dataframe from short to long form</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
-<dd>the data</dd>
-<dt><strong><code>subset</code></strong> :&ensp;<code>str</code> or <code>list</code> of <code>str</code></dt>
-<dd>adata.obs labels to use for subsetting. Labels must be binary (0, "0", False,
-"False" to toss - 1, "1", True, "True" to keep). Multiple labels will keep
-intersection.</dd>
-<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
-<dd>print updates to console</dd>
+<dt><strong><code>sig_short</code></strong> :&ensp;<code>Union[dict,pd.DataFrame]</code></dt>
+<dd>Gene signatures in dict or short form dataframe, where columns are assumed to
+contain separate signatures, with first row of column headers as signature
+names.</dd>
+<dt><strong><code>sig_col</code></strong> :&ensp;<code>str, Optional (default='signature')</code></dt>
+<dd>Column in <code>sig_long</code> to contain signature names.</dd>
+<dt><strong><code>gene_col</code></strong> :&ensp;<code>str, Optional (default='gene')</code></dt>
+<dd>Column in <code>sig_long</code> to contain gene names.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
-<dd>new anndata object as subset of <code>adata</code></dd>
+<dt><strong><code>sig_long</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>Gene signatures in long form, with signature names in <code>sig_col</code> and gene names
+in <code>gene_col</code>.</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.ingredients.signatures_to_short_form"><code class="name flex">
+<span>def <span class="ident">signatures_to_short_form</span></span>(<span>sig_long, sig_col='signature', gene_col='gene')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert gene signatures dict or dataframe from long to short form</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>sig_long</code></strong> :&ensp;<code>Union[dict,pd.DataFrame]</code></dt>
+<dd>Gene signatures in dict or long form dataframe, where <code>sig_col</code> and <code>gene_col</code>
+headers describe signature names and constituent genes, respectively.</dd>
+<dt><strong><code>sig_col</code></strong> :&ensp;<code>str, Optional (default='signature')</code></dt>
+<dd>Column in <code>sig_long</code> containing signature names.</dd>
+<dt><strong><code>gene_col</code></strong> :&ensp;<code>str, Optional (default='gene')</code></dt>
+<dd>Column in <code>sig_long</code> containing gene names.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>sig_short</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>Gene signatures in short form, where columns are assumed to
+contain separate signatures, with first row of column headers as signature
+names.</dd>
 </dl></div>
 </dd>
 </dl>
@@ -312,16 +241,18 @@ intersection.</dd>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="two-column">
-<li><code><a title="kitchen.ingredients.cc_score" href="#kitchen.ingredients.cc_score">cc_score</a></code></li>
-<li><code><a title="kitchen.ingredients.cellranger2" href="#kitchen.ingredients.cellranger2">cellranger2</a></code></li>
-<li><code><a title="kitchen.ingredients.cellranger3" href="#kitchen.ingredients.cellranger3">cellranger3</a></code></li>
+<ul class="">
+<li><code><a title="kitchen.ingredients.RPKM_to_TPM" href="#kitchen.ingredients.RPKM_to_TPM">RPKM_to_TPM</a></code></li>
 <li><code><a title="kitchen.ingredients.check_dir_exists" href="#kitchen.ingredients.check_dir_exists">check_dir_exists</a></code></li>
-<li><code><a title="kitchen.ingredients.dim_reduce" href="#kitchen.ingredients.dim_reduce">dim_reduce</a></code></li>
-<li><code><a title="kitchen.ingredients.plot_genes" href="#kitchen.ingredients.plot_genes">plot_genes</a></code></li>
-<li><code><a title="kitchen.ingredients.plot_genes_cnmf" href="#kitchen.ingredients.plot_genes_cnmf">plot_genes_cnmf</a></code></li>
-<li><code><a title="kitchen.ingredients.rank_genes_cnmf" href="#kitchen.ingredients.rank_genes_cnmf">rank_genes_cnmf</a></code></li>
-<li><code><a title="kitchen.ingredients.subset_adata" href="#kitchen.ingredients.subset_adata">subset_adata</a></code></li>
+<li><code><a title="kitchen.ingredients.counts_to_RPKM" href="#kitchen.ingredients.counts_to_RPKM">counts_to_RPKM</a></code></li>
+<li><code><a title="kitchen.ingredients.counts_to_TPM" href="#kitchen.ingredients.counts_to_TPM">counts_to_TPM</a></code></li>
+<li><code><a title="kitchen.ingredients.fetch_decoupler_resources" href="#kitchen.ingredients.fetch_decoupler_resources">fetch_decoupler_resources</a></code></li>
+<li><code><a title="kitchen.ingredients.filter_signatures_with_var_names" href="#kitchen.ingredients.filter_signatures_with_var_names">filter_signatures_with_var_names</a></code></li>
+<li><code><a title="kitchen.ingredients.flip_signature_dict" href="#kitchen.ingredients.flip_signature_dict">flip_signature_dict</a></code></li>
+<li><code><a title="kitchen.ingredients.human_to_mouse_simple" href="#kitchen.ingredients.human_to_mouse_simple">human_to_mouse_simple</a></code></li>
+<li><code><a title="kitchen.ingredients.ingest_gene_signatures" href="#kitchen.ingredients.ingest_gene_signatures">ingest_gene_signatures</a></code></li>
+<li><code><a title="kitchen.ingredients.signatures_to_long_form" href="#kitchen.ingredients.signatures_to_long_form">signatures_to_long_form</a></code></li>
+<li><code><a title="kitchen.ingredients.signatures_to_short_form" href="#kitchen.ingredients.signatures_to_short_form">signatures_to_short_form</a></code></li>
 </ul>
 </li>
 </ul>

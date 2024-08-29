@@ -487,6 +487,40 @@ values &lt; 1.0 will compress figure, &gt; 1.0 will expand.</dd>
 </dl>
 <p>unless <code>save_to</code> is not None.</p></div>
 </dd>
+<dt id="kitchen.plotting.rank_genes_cnmf"><code class="name flex">
+<span>def <span class="ident">rank_genes_cnmf</span></span>(<span>adata, attr='varm', keys='cnmf_spectra', indices=None, labels=None, titles=None, color='black', n_points=20, ncols=5, log=False, show=None, figsize=(5, 5))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plots rankings. [Adapted from <code>scanpy.plotting._anndata.ranking</code>]</p>
+<p>See, for example, how this is used in <code>pl.pca_ranking</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
+<dd>the data</dd>
+<dt><strong><code>attr</code></strong> :&ensp;<code>str {'var', 'obs', 'uns', 'varm', 'obsm'}</code></dt>
+<dd>the attribute of adata that contains the score</dd>
+<dt><strong><code>keys</code></strong> :&ensp;<code>str</code> or <code>list</code> of <code>str</code>, optional <code>(default="cnmf_spectra")</code></dt>
+<dd>scores to look up an array from the attribute of adata</dd>
+<dt><strong><code>indices</code></strong> :&ensp;<code>list</code> of <code>int</code>, optional <code>(default=None)</code></dt>
+<dd>the column indices of keys for which to plot (e.g. [0,1,2] for first three
+keys)</dd>
+<dt><strong><code>labels</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=None)</code></dt>
+<dd>Labels to use for features displayed as plt.txt objects on the axes</dd>
+<dt><strong><code>titles</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=None)</code></dt>
+<dd>Labels for titles of each plot panel, in order</dd>
+<dt><strong><code>ncols</code></strong> :&ensp;<code>int</code>, optional <code>(default=5)</code></dt>
+<dd>number of columns in gridspec</dd>
+<dt><strong><code>show</code></strong> :&ensp;<code>bool</code>, optional <code>(default=None)</code></dt>
+<dd>show figure or just return axes</dd>
+<dt><strong><code>figsize</code></strong> :&ensp;<code>tuple</code> of <code>float</code>, optional <code>(default=(5,5))</code></dt>
+<dd>size of matplotlib figure</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>matplotlib gridspec with access to the axes</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+</dd>
 <dt id="kitchen.plotting.save_plot"><code class="name flex">
 <span>def <span class="ident">save_plot</span></span>(<span>fig, ax, save)</span>
 </code></dt>
@@ -598,6 +632,7 @@ use <code>.var_names</code> displayed in the plot.</dd>
 <li><code><a title="kitchen.plotting.myround" href="#kitchen.plotting.myround">myround</a></code></li>
 <li><code><a title="kitchen.plotting.pie_from_col" href="#kitchen.plotting.pie_from_col">pie_from_col</a></code></li>
 <li><code><a title="kitchen.plotting.plot_embedding" href="#kitchen.plotting.plot_embedding">plot_embedding</a></code></li>
+<li><code><a title="kitchen.plotting.rank_genes_cnmf" href="#kitchen.plotting.rank_genes_cnmf">rank_genes_cnmf</a></code></li>
 <li><code><a title="kitchen.plotting.save_plot" href="#kitchen.plotting.save_plot">save_plot</a></code></li>
 <li><code><a title="kitchen.plotting.significance_bar" href="#kitchen.plotting.significance_bar">significance_bar</a></code></li>
 <li><code><a title="kitchen.plotting.split_violin" href="#kitchen.plotting.split_violin">split_violin</a></code></li>

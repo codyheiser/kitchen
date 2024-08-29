@@ -1,20 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Functions for manipulating .h5ad objects and automated processing of scRNA-seq data
+Resources and utility functions
 """
 import os, errno
-import numpy as np
-import scanpy as sc
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-from math import ceil
-from matplotlib import rcParams
-from emptydrops import find_nonambient_barcodes
-from emptydrops.matrix import CountMatrix
-
-from .plotting import custom_heatmap
-
-sc.set_figure_params(frameon=False, dpi=200, dpi_save=300, format="png")
+import pandas as pd
+import decoupler as dc
+import liana as ln
 
 # define cell cycle phase genes
 #  human genes ('_h') from satija lab list
@@ -226,13 +217,11 @@ def check_dir_exists(path):
 
     Parameters
     ----------
-
     path : str
         path to directory
 
     Returns
     -------
-
     tries to make directory at `path`, unless it already exists
     """
     try:
@@ -242,639 +231,365 @@ def check_dir_exists(path):
             raise
 
 
-def cellranger2(
-    adata,
-    expected=1500,
-    upper_quant=0.99,
-    lower_prop=0.1,
-    label="CellRanger_2",
-    verbose=True,
-):
+def counts_to_RPKM(counts_mat, gene_lengths, mapped_reads=None):
     """
-    Labels cells using "knee point" method from CellRanger 2.1
+    Convert `counts_mat` to RPKM (reads per kilobase per million)
 
     Parameters
     ----------
-
-    adata : anndata.AnnData
-        object containing unfiltered counts
-    expected : int, optional (default=1500)
-        estimated number of real cells expected in dataset
-    upper_quant : float, optional (default=0.99)
-        upper quantile of real cells to test
-    lower_prop : float, optional (default=0.1)
-        percentage of expected quantile to calculate total counts threshold for
-    label : str, optional (default="CellRanger_2")
-        how to name .obs column containing output
-    verbose : bool, optional (default=True)
-        print updates to console
+    counts_mat : np.array
+        Matrix of counts in samples x genes format (genes as columns)
+    gene_lengths : np.array
+        1D array of length `counts_mat.shape[1]` containing lengths for each gene in
+        base pairs
+    mapped_reads : np.array, optional (default=`None`)
+        1D array of length `counts_mat.shape[0]` containing total mapped reads for each
+        sample. If `None`, calculate sums manually from columns of `counts_mat`.
 
     Returns
     -------
-
-    adata edited in place to add .obs[label] binary label
+    RPKM_mat : np.array
+        Matrix in same shape as `counts_mat` containing RPKM values
     """
-    if "total_counts" not in adata.obs.columns:
-        adata.obs["total_counts"] = adata.X.sum(axis=1)
-    tmp = np.sort(np.array(adata.obs["total_counts"]))[::-1]
-    thresh = np.quantile(tmp[0:expected], upper_quant) * lower_prop
-    adata.uns["{}_knee_thresh".format(label)] = thresh
-    adata.obs[label] = "False"
-    adata.obs.loc[adata.obs.total_counts > thresh, label] = "True"
-    adata.obs[label] = adata.obs[label].astype("category")
-    if verbose:
-        print("Detected knee point: {}".format(round(thresh, 3)))
-        print(adata.obs[label].value_counts())
-
-
-def cellranger3(
-    adata,
-    init_counts=15000,
-    min_umi_frac_of_median=0.01,
-    min_umis_nonambient=500,
-    max_adj_pvalue=0.01,
-):
-    """
-    Labels cells using "emptydrops" method from CellRanger 3.0
-
-    Parameters
-    ----------
-
-    adata : anndata.AnnData
-        object containing unfiltered counts
-    init_counts : int, optional (default=15000)
-        initial total counts threshold for calling cells
-    min_umi_frac_of_median : float, optional (default=0.01)
-        minimum total counts for testing barcodes as fraction of median counts for
-        initially labeled cells
-    min_umis_nonambient : float, optional (default=500)
-        minimum total counts for testing barcodes
-    max_adj_pvalue : float, optional (default=0.01)
-        maximum p-value for cell calling after B-H correction
-
-    Returns
-    -------
-
-    adata edited in place to add .obs["CellRanger_3"] binary label
-    and .obs["CellRanger_3_ll"] log-likelihoods for tested barcodes
-    """
-    m = CountMatrix.from_anndata(adata)  # create emptydrops object from adata
-    if "total_counts" not in adata.obs.columns:
-        adata.obs["total_counts"] = adata.X.sum(axis=1)
-    # label initial cell calls above total counts threshold
-    adata.obs["CellRanger_3"] = False
-    adata.obs.loc[adata.obs.total_counts > init_counts, "CellRanger_3"] = True
-    # call emptydrops to test for nonambient barcodes
-    out = find_nonambient_barcodes(
-        m,
-        np.array(
-            adata.obs.loc[adata.obs.CellRanger_3 == True,].index,
-            dtype=m.bcs.dtype,
-        ),
-        min_umi_frac_of_median=min_umi_frac_of_median,
-        min_umis_nonambient=min_umis_nonambient,
-        max_adj_pvalue=max_adj_pvalue,
-    )
-    # assign binary labels from emptydrops
-    adata.obs.CellRanger_3.iloc[out[0]] = out[-1]
-    adata.obs.CellRanger_3 = adata.obs.CellRanger_3.astype(str).astype(
-        "category"
-    )  # convert to category
-    # assign log-likelihoods from emptydrops to .obs
-    adata.obs["CellRanger_3_ll"] = 0
-    adata.obs.CellRanger_3_ll.iloc[out[0]] = out[1]
-
-
-def subset_adata(adata, subset, verbose=True):
-    """
-    Subsets AnnData object on one or more .obs columns
-
-    Columns should contain 0/False for cells to throw out, and 1/True for cells to
-    keep. Keeps union of all labels provided in subset.
-
-    Parameters
-    ----------
-
-    adata : anndata.AnnData
-        the data
-    subset : str or list of str
-        adata.obs labels to use for subsetting. Labels must be binary (0, "0", False,
-        "False" to toss - 1, "1", True, "True" to keep). Multiple labels will keep
-        intersection.
-    verbose : bool, optional (default=True)
-        print updates to console
-
-    Returns
-    -------
-
-    adata : anndata.AnnData
-        new anndata object as subset of `adata`
-    """
-    if verbose:
-        print("Subsetting AnnData on {}".format(subset), end="")
-    if isinstance(subset, str):
-        subset = [subset]
-    # initialize .obs column for choosing cells
-    adata.obs["adata_subset_combined"] = 0
-    # create label as union of given subset args
-    for i in range(len(subset)):
-        adata.obs.loc[
-            adata.obs[subset[i]].isin(["True", True, 1.0, 1]), "adata_subset_combined"
-        ] = 1
-    adata = adata[adata.obs["adata_subset_combined"] == 1, :].copy()
-    adata.obs.drop(columns="adata_subset_combined", inplace=True)
-    if verbose:
-        print(" - now {} cells and {} genes".format(adata.n_obs, adata.n_vars))
-    return adata
-
-
-def cc_score(adata, layer=None, seed=18, verbose=True):
-    """
-    Calculates cell cycle scores and implied phase for each observation
-
-    Parameters
-    ----------
-
-    adata : anndata.AnnData
-        object containing transformed and normalized (arcsinh or log1p) counts in
-        'layer'.
-    layer : str, optional (default=None)
-        key from adata.layers to use for cc phase calculation. Default None to
-        use .X
-    seed : int, optional (default=18)
-        random state for PCA, neighbors graph and clustering
-    verbose : bool, optional (default=True)
-        print updates to console
-
-    Returns
-    -------
-
-    adata is edited in place to add 'G2M_score', 'S_score', and 'phase' to .obs
-    """
-    if layer is not None:
-        adata.layers["temp"] = adata.X.copy()
-        adata.X = adata.layers[layer].copy()
-        if verbose:
-            print("Calculating cell cycle scores using layer: {}".format(layer))
+    RPK_mat = counts_mat / gene_lengths * 1e3  # reads per kilobase
+    # reads per kilobase per million
+    if mapped_reads is None:
+        RPKM_mat = (RPK_mat.T / counts_mat.sum(axis=1) * 1e6).T
     else:
-        if verbose:
-            print("Calculating cell cycle scores")
-    # determine if sample is mouse or human based on gene names
-    if any(item in adata.var_names for item in s_genes_h + g2m_genes_h):
-        s_genes, g2m_genes = s_genes_h, g2m_genes_h
-    elif any(item in adata.var_names for item in s_genes_m + g2m_genes_m):
-        s_genes, g2m_genes = s_genes_m, g2m_genes_m
-    # score cell cycle using scanpy function
-    sc.tl.score_genes_cell_cycle(
-        adata,
-        s_genes=s_genes,  # defined at top of script
-        g2m_genes=g2m_genes,  # defined at top of script
-        random_state=seed,
-    )
-    if layer is not None:
-        adata.X = adata.layers["temp"].copy()
-        del adata.layers["temp"]
+        RPKM_mat = (RPK_mat.T / mapped_reads * 1e6).T
+    return RPKM_mat
 
 
-def dim_reduce(
-    adata,
-    layer=None,
-    use_rep=None,
-    clust_resolution=1.0,
-    paga=True,
-    seed=18,
-    verbose=True,
-):
+def RPKM_to_TPM(RPKM_mat):
     """
-    Reduces dimensions of single-cell dataset using standard methods
+    Convert `RPKM_mat` (reads per KB per million) to TPM (transcripts per million)
 
     Parameters
     ----------
-
-    adata : anndata.AnnData
-        object containing preprocessed counts matrix
-    layer : str, optional (default=None)
-        layer to use; default None for .X
-    use_rep : str, optional (default=None)
-        .obsm key to use for neighbors graph instead of PCA;
-        default None, generate new PCA from layer
-    clust_resolution : float, optional (default=1.0)
-        resolution as fraction on [0.0, 1.0] for leiden
-        clustering. default 1.0
-    paga : bool, optional (default=True)
-        run PAGA to seed UMAP embedding
-    seed : int, optional (default=18)
-        random state for PCA, neighbors graph and clustering
-    verbose : bool, optional (default=True)
-        print updates to console
+    RPKM_mat : np.array
+        Matrix of RPKM values in samples x genes format (genes as columns)
 
     Returns
     -------
-
-    adata is edited in place, adding PCA, neighbors graph, PAGA, and UMAP
+    TPM_mat : np.array
+        Matrix in same shape as `RPKM_mat` containing TPM values
     """
-    if use_rep is None:
-        if layer is not None:
-            if verbose:
-                print("Using layer {} for dimension reduction".format(layer))
-            adata.X = adata.layers[layer].copy()
-        if verbose:
-            print(
-                "Performing {}-component PCA and building kNN graph with {} neighbors".format(
-                    "50" if adata.n_obs >= 50 else adata.n_obs,
-                    int(np.sqrt(adata.n_obs)),
-                )
-            )
-        sc.pp.pca(
-            adata,
-            n_comps=50 if adata.n_obs >= 50 else adata.n_obs - 1,
-            random_state=seed,
-        )
-        sc.pp.neighbors(
-            adata,
-            n_neighbors=int(np.sqrt(adata.n_obs)),
-            n_pcs=20 if adata.n_obs >= 50 else int(0.4 * (adata.n_obs - 1)),
-            random_state=seed,
-        )
-    else:
-        if verbose:
-            print(
-                "Building kNN graph with {} nearest neighbors using {}".format(
-                    int(np.sqrt(adata.n_obs)), use_rep
-                )
-            )
-        sc.pp.neighbors(
-            adata,
-            n_neighbors=int(np.sqrt(adata.n_obs)),
-            use_rep=use_rep,
-            random_state=seed,
-        )
-    if verbose:
-        print("Clustering cells using Leiden algorithm ", end="")
-    sc.tl.leiden(adata, random_state=seed, resolution=clust_resolution)
-    if verbose:
-        print(
-            "- {} clusters identified".format(
-                (len(adata.obs.leiden.cat.categories) + 1)
-            )
-        )
-    if paga:
-        if verbose:
-            print("Building PAGA graph and UMAP from coordinates")
-        sc.tl.paga(adata)
-        sc.pl.paga(adata, show=False)
-        sc.tl.umap(adata, init_pos="paga", random_state=seed)
-    else:
-        sc.tl.umap(adata, random_state=seed)
+    TPM_mat = (RPKM_mat.T / RPKM_mat.sum(axis=1) * 1e6).T
+    return TPM_mat
 
 
-def plot_genes(
-    adata,
-    de_method="t-test_overestim_var",
-    layer="log1p_norm",
-    groupby="leiden",
-    ambient=False,
-    plot_type=None,
-    n_genes=5,
-    dendrogram=True,
-    cmap="Greys",
-    figsize_scale=1.0,
-    save_to="de.png",
-    verbose=True,
-    **kwargs,
-):
+def counts_to_TPM(counts_mat, gene_lengths, mapped_reads=None):
     """
-    Calculates and plot `rank_genes_groups` results
+    Convert `counts_mat` to TPM (transcripts per million)
 
     Parameters
     ----------
-    adata : anndata.AnnData
-        object containing preprocessed and dimension-reduced counts matrix
-    de_method : str, optional (default="t-test_overestim_var")
-        one of "t-test", "t-test_overestim_var", "wilcoxon"
-    layer : str, optional (default="log1p_norm")
-        one of `adata.layers` to use for DEG analysis. Recommended to use 'raw_counts'
-        if `de_method=='wilcoxon'` and 'log1p_norm' if `de_method=='t-test'`.
-    groupby : str, optional (default="leiden")
-        `adata.obs` key to group cells by
-    ambient : bool, optional (default=False)
-        include ambient genes as a group in the plot/output dictionary
-    plot_type : str, optional (default=`None`)
-        One of "dotplot", "matrixplot", "dotmatrix", "stacked_violin", or "heatmap".
-        If `None`, don't plot, just return DEGs as dictionary.
-    n_genes : int, optional (default=5)
-        number of top genes per group to show
-    dendrogram : bool, optional (default=True)
-        show dendrogram of cluster similarity
-    cmap : str, optional (default="Greys")
-        matplotlib colormap for dots
-    figsize_scale : float, optional (default=1.0)
-        scale dimensions of the figure
-    save_to : str, optional (default="de.png")
-        string to add to plot name using scanpy plot defaults
-    verbose : bool, optional (default=True)
-        print updates to console
-    **kwargs : optional
-        keyword args to add to `kitchen.plotting.custom_heatmap`
+    counts_mat : np.array
+        Matrix of counts in samples x genes format (genes as columns)
+    gene_lengths : np.array
+        1D array of length `counts_mat.shape[1]` containing lengths for each gene in
+        base pairs
+    mapped_reads : np.array (default=`None`)
+        1D array of length `counts_mat.shape[0]` containing total mapped reads for each
+        sample. If `None`, calculate sums manually from columns of `counts_mat`.
 
     Returns
     -------
-    markers : dict
-        dictionary of top `n_genes` DEGs per group
-    myplot : matplotlib.Figure
-        `custom_heatmap` object if `plot_type!=None`
+    TPM_mat : np.array
+        Matrix in same shape as `counts_mat` containing TPM values
     """
-    if verbose:
-        print("Performing differential expression analysis...")
-    assert de_method in [
-        "t-test",
-        "t-test_overestim_var",
-        "wilcoxon",
-    ], "Invalid de_method. Must be one of ['t-test','t-test_overestim_var','wilcoxon']."
-    sc.tl.rank_genes_groups(
-        adata, groupby=groupby, layer=layer, use_raw=False, method=de_method
-    )
-
-    # unique groups in DEG analysis
-    groups = adata.obs[groupby].unique().tolist()
-
-    # get markers manually
-    markers = {}
-    for clu in groups:
-        markers[clu] = [
-            adata.uns["rank_genes_groups"]["names"][x][clu] for x in range(n_genes)
-        ]
-    # append ambient genes
-    if ambient:
-        markers["ambient"] = adata.var_names[adata.var.ambient].tolist()
-
-    # total and unique features on plot
-    features = [item for sublist in markers.values() for item in sublist]
-    unique_features = list(set(features))
-
-    print(
-        "Detected {} total genes and {} unique genes across {} groups".format(
-            len(features), len(unique_features), len(groups)
-        )
-    )
-
-    # plotting workflow if desired
-    if plot_type is not None:
-        # plot dimensions (long vertical)
-        if plot_type in ["dotplot", "matrixplot", "stacked_violin"]:
-            figsize = (
-                len(groups) / 2 * figsize_scale,
-                len(features) / 10 * figsize_scale,
-            )
-        # plot dimensions (long horizontal)
-        elif plot_type == "heatmap":
-            figsize = (
-                len(features) / 10 * figsize_scale,
-                len(groups) / 2 * figsize_scale,
-            )
-
-        # build plot
-        my_plot = custom_heatmap(
-            adata,
-            groupby=groupby,
-            features=unique_features,
-            layer=layer,
-            vars_dict=markers,
-            cluster_obs=dendrogram,
-            plot_type=plot_type,
-            cmap=cmap,
-            figsize=figsize,
-            save=save_to,
-            **kwargs,
-        )
-        return (markers, my_plot)
-
-    else:
-        return markers
+    RPKM_mat = counts_to_RPKM(counts_mat, gene_lengths, mapped_reads)
+    TPM_mat = RPKM_to_TPM(RPKM_mat)
+    return TPM_mat
 
 
-def plot_genes_cnmf(
-    adata,
-    plot_type="heatmap",
-    groupby="leiden",
-    attr="varm",
-    keys="cnmf_spectra",
-    indices=None,
-    n_genes=5,
-    dendrogram=True,
-    figsize_scale=1.0,
-    cmap="Greys",
-    save_to="de_cnmf.png",
-    **kwargs,
-):
+def human_to_mouse_simple(symbol):
+    """Convert human to mouse symbols by simple case-conversion"""
+    return "".join([symbol[0]] + [s.lower() for s in symbol[1:]])
+
+
+def signatures_to_long_form(sig_short, sig_col="signature", gene_col="gene"):
     """
-    Calculates and plots top cNMF gene loadings
+    Convert gene signatures dict or dataframe from short to long form
 
     Parameters
     ----------
-    adata : anndata.AnnData
-        object containing preprocessed and dimension-reduced counts matrix
-    plot_type : str, optional (default=`None`)
-        One of "dotplot", "matrixplot", "dotmatrix", "stacked_violin", or "heatmap".
-    groupby : str, optional (default="leiden")
-        .obs key to group cells by
-    attr : str {"var", "obs", "uns", "varm", "obsm"}
-        attribute of adata that contains the score
-    keys : str or list of str, optional (default="cnmf_spectra")
-        scores to look up an array from the attribute of adata
-    indices : list of int, optional (default=None)
-        column indices of keys for which to plot (e.g. [0,1,2] for first three keys)
-    n_genes : int, optional (default=5)
-        number of top genes per group to show
-    dendrogram : bool, optional (default=True)
-        show dendrogram of cluster similarity
-    figsize_scale : float, optional (default=1.0)
-        scale dimensions of the figure
-    cmap : str, optional (default="Greys")
-        valid color map for the plot
-    save_to : str, optional (default="de.png")
-        string to add to plot name using scanpy plot defaults
-    **kwargs : optional
-        keyword args to add to sc.pl.matrixplot, sc.pl.dotplot, or sc.pl.heatmap
+    sig_short : Union[dict,pd.DataFrame]
+        Gene signatures in dict or short form dataframe, where columns are assumed to
+        contain separate signatures, with first row of column headers as signature
+        names.
+    sig_col : str, Optional (default='signature')
+        Column in `sig_long` to contain signature names.
+    gene_col : str, Optional (default='gene')
+        Column in `sig_long` to contain gene names.
 
     Returns
     -------
-    markers : dict
-        dictionary of top `n_genes` features per NMF factor
-    myplot : matplotlib.Figure
-        `custom_heatmap` object
+    sig_long : pd.DataFrame
+        Gene signatures in long form, with signature names in `sig_col` and gene names
+        in `gene_col`.
     """
-    # calculate arcsinh counts for visualization
-    adata.X = adata.layers["raw_counts"].copy()
-    sc.pp.normalize_total(adata)
-    adata.X = np.arcsinh(adata.X)
-    adata.layers["arcsinh"] = adata.X.copy()
-    adata.X = adata.layers["raw_counts"].copy()  # return raw counts to .X
-
-    # default to all usages
-    if indices is None:
-        indices = [x for x in range(getattr(adata, attr)[keys].shape[1])]
-    # get scores for each usage
-    if isinstance(keys, str) and indices is not None:
-        scores = np.array(getattr(adata, attr)[keys])[:, indices]
-        keys = ["{}_{}".format(keys, i + 1) for i in indices]
-    labels = adata.var_names  # search all var_names for top genes based on spectra
-    # get top n_genes for each spectra
-    markers = {}
-    for iscore, score in enumerate(scores.T):
-        markers[keys[iscore]] = []
-        indices = np.argsort(score)[::-1][:n_genes]
-        for x in indices[::-1]:
-            markers[keys[iscore]].append(labels[x])
-
-    # total and unique features on plot
-    features = [item for sublist in markers.values() for item in sublist]
-    unique_features = list(set(features))
-
-    # unique groups in DEG analysis
-    groups = adata.obs[groupby].unique().tolist()
-
-    # plot dimensions (long vertical)
-    if plot_type in ["dotplot", "matrixplot", "stacked_violin"]:
-        figsize = (len(groups) / 2 * figsize_scale, len(features) / 10 * figsize_scale)
-    # plot dimensions (long horizontal)
-    elif plot_type == "heatmap":
-        figsize = (len(features) / 10 * figsize_scale, len(groups) / 2 * figsize_scale)
-
-    # build plot
-    my_plot = custom_heatmap(
-        adata,
-        groupby=groupby,
-        features=unique_features,
-        vars_dict=markers,
-        cluster_obs=dendrogram,
-        plot_type=plot_type,
-        cmap=cmap,
-        figsize=figsize,
-        save=save_to,
-        **kwargs,
-    )
-    return (markers, my_plot)
+    if isinstance(sig_short, dict):
+        print("Converting signature dict to pd.DataFrame")
+        sig_short = pd.DataFrame(
+            dict([(k, pd.Series(v)) for k, v in sig_short.items()])
+        )
+    # melt dataframe into long form
+    sig_long = pd.melt(sig_short.fillna(0), value_name=gene_col, var_name=sig_col)
+    sig_long = sig_long.loc[sig_long[gene_col].astype(str) != "0"]
+    return sig_long
 
 
-def rank_genes_cnmf(
-    adata,
-    attr="varm",
-    keys="cnmf_spectra",
-    indices=None,
-    labels=None,
-    titles=None,
-    color="black",
-    n_points=20,
-    ncols=5,
-    log=False,
-    show=None,
-    figsize=(5, 5),
-):
+def signatures_to_short_form(sig_long, sig_col="signature", gene_col="gene"):
     """
-    Plots rankings. [Adapted from `scanpy.plotting._anndata.ranking`]
-
-    See, for example, how this is used in `pl.pca_ranking`.
+    Convert gene signatures dict or dataframe from long to short form
 
     Parameters
     ----------
-
-    adata : anndata.AnnData
-        the data
-    attr : str {'var', 'obs', 'uns', 'varm', 'obsm'}
-        the attribute of adata that contains the score
-    keys : str or list of str, optional (default="cnmf_spectra")
-        scores to look up an array from the attribute of adata
-    indices : list of int, optional (default=None)
-        the column indices of keys for which to plot (e.g. [0,1,2] for first three
-        keys)
-    labels : list of str, optional (default=None)
-        Labels to use for features displayed as plt.txt objects on the axes
-    titles : list of str, optional (default=None)
-        Labels for titles of each plot panel, in order
-    ncols : int, optional (default=5)
-        number of columns in gridspec
-    show : bool, optional (default=None)
-        show figure or just return axes
-    figsize : tuple of float, optional (default=(5,5))
-        size of matplotlib figure
+    sig_long : Union[dict,pd.DataFrame]
+        Gene signatures in dict or long form dataframe, where `sig_col` and `gene_col`
+        headers describe signature names and constituent genes, respectively.
+    sig_col : str, Optional (default='signature')
+        Column in `sig_long` containing signature names.
+    gene_col : str, Optional (default='gene')
+        Column in `sig_long` containing gene names.
 
     Returns
     -------
-
-    matplotlib gridspec with access to the axes
+    sig_short : pd.DataFrame
+        Gene signatures in short form, where columns are assumed to
+        contain separate signatures, with first row of column headers as signature
+        names.
     """
-    # default to all usages
-    if indices is None:
-        indices = [x for x in range(getattr(adata, attr)[keys].shape[1])]
-    # get scores for each usage
-    if isinstance(keys, str) and indices is not None:
-        scores = np.array(getattr(adata, attr)[keys])[:, indices]
-        keys = ["{}_{}".format(keys, i + 1) for i in indices]
-    n_panels = len(indices) if isinstance(indices, list) else 1
-    if n_panels == 1:
-        scores, keys = scores[:, None], [keys]
-    if log:
-        scores = np.log(scores)
-    if labels is None:
-        labels = (
-            adata.var_names
-            if attr in {"var", "varm"}
-            else np.arange(scores.shape[0]).astype(str)
+    if isinstance(sig_long, pd.DataFrame):
+        print("Converting pd.DataFrame to signature dict")
+        sig_long = (
+            sig_long.groupby([sig_col])[gene_col].agg(lambda grp: list(grp)).to_dict()
         )
-    if titles is not None:
-        assert len(titles) == n_panels, "Must provide {} titles".format(n_panels)
-    if isinstance(labels, str):
-        labels = [labels + str(i + 1) for i in range(scores.shape[0])]
-    if n_panels <= ncols:
-        n_rows, n_cols = 1, n_panels
-    else:
-        n_rows, n_cols = ceil(n_panels / ncols), ncols
-    fig = plt.figure(figsize=(n_cols * figsize[0], n_rows * figsize[1]))
-    left, bottom = 0.1 / n_cols, 0.1 / n_rows
-    gs = gridspec.GridSpec(
-        nrows=n_rows,
-        ncols=n_cols,
-        wspace=0.1,
-        left=left,
-        bottom=bottom,
-        right=1 - (n_cols - 1) * left - 0.01 / n_cols,
-        top=1 - (n_rows - 1) * bottom - 0.1 / n_rows,
-    )
-    for iscore, score in enumerate(scores.T):
-        plt.subplot(gs[iscore])
-        indices = np.argsort(score)[::-1][: n_points + 1]
-        for ig, g in enumerate(indices[::-1]):
-            plt.text(
-                x=score[g],
-                y=ig,
-                s=labels[g],
-                color=color,
-                verticalalignment="center",
-                horizontalalignment="right",
-                fontsize="medium",
-                fontstyle="italic",
-            )
-        if titles is not None:
-            plt.title(titles[iscore], fontsize="x-large")
+    # cast to short form from dictionary
+    sig_short = pd.DataFrame(dict([(k, pd.Series(v)) for k, v in sig_long.items()]))
+    return sig_short
+
+
+def ingest_gene_signatures(
+    sig_files,
+    form="short",
+    sig_col="signature",
+    gene_col="gene",
+):
+    """
+    Read in gene signatures from one or more flat files
+
+    Parameters
+    ----------
+    sig_files : Union[list, str]
+        Path to single signature file or list of paths to signature files
+    form : Literal('short','long'), Optional (default='short')
+        Format of the data in `sig_files`. If 'short', columns of `sig_files` are
+        assumed to contain separate signatures, with first row of column headers as
+        signature names. If 'long', expect `sig_col` and `gene_col` headers to describe
+        signature names and constituent genes in long-form, respectively.
+    sig_col : str, Optional (default='signature')
+        Column in `sig_files` containing signature names. Ignored if `form`=='short'.
+    gene_col : str, Optional (default='gene')
+        Column in `sig_files` containing gene names. Ignored if `form`=='short'.
+
+    Returns
+    -------
+    genes : dict
+        Dictionary of gene signatures with signature names as keys and lists of genes
+        as values.
+    """
+    assert form in ("short", "long"), "form must be one of ('short','long')"
+    # initialize dict
+    genes = {}
+    # coerce to list
+    if isinstance(sig_files, str):
+        sig_files = [sig_files]
+    print("Ingesting gene signatures from {} flat files:".format(len(sig_files)))
+    # loop through list of signature files
+    for sig_file in sig_files:
+        # determine file extension for delimiter
+        filename, file_extension = os.path.splitext(sig_file)
+        if file_extension in [".txt", ".tsv"]:
+            sep = "\t"
+        elif file_extension == ".csv":
+            sep = ","
         else:
-            plt.title(keys[iscore].replace("_", " "), fontsize="x-large")
-        plt.ylim(-0.9, ig + 0.9)
-        score_min, score_max = np.min(score[indices]), np.max(score[indices])
-        plt.xlim(
-            (0.95 if score_min > 0 else 1.05) * score_min,
-            (1.05 if score_max > 0 else 0.95) * score_max,
+            raise ValueError("sig_files extensions must be one of (.txt, .tsv, .csv)")
+        # read file
+        g = pd.read_csv(sig_file, sep=sep)
+        print("\tReading from {}".format(filename))
+        # ingest short form
+        if form == "short":
+            g = g.fillna(0)  # ignore NaN
+        # ingest long form
+        elif form == "long":
+            g = g.groupby([sig_col])[gene_col].agg(lambda grp: list(grp)).to_dict()
+        new_sigs = 0
+        for key in g.keys():
+            # overwrite duplicates with warning
+            if key in genes:
+                print("\t\tOverwriting {} with signature from {}".format(key, filename))
+            genes[key] = [x for x in g[key] if x != 0]
+            new_sigs += 1
+
+        print("\t\t{} gene signatures added".format(new_sigs))
+
+    return genes
+
+
+def flip_signature_dict(signatures_dict):
+    """
+    "Flip" dictionary of signatures where keys are signature names and values are lists
+    of genes, returning a dictionary where keys are individual genes and values are
+    signature names
+    """
+    signatures_dict_flipped = {}
+    for key, value in signatures_dict.items():
+        for string in value:
+            signatures_dict_flipped.setdefault(string, []).append(key)
+    return signatures_dict_flipped
+
+
+def filter_signatures_with_var_names(signatures_dict, adata):
+    """
+    Filter lists of genes in `signatures_dict` to include genes in `adata.var_names`
+    """
+    for key in signatures_dict.keys():
+        signatures_dict[key] = list(
+            set(signatures_dict[key]).intersection(set(adata.var_names))
         )
-        plt.xticks(rotation=45)
-        plt.tick_params(labelsize="medium")
-        plt.tick_params(
-            axis="y",  # changes apply to the y-axis
-            which="both",  # both major and minor ticks are affected
-            left=False,
-            right=False,
-            labelleft=False,
-        )
-        plt.grid(False)
-    gs.tight_layout(fig)
-    if show == False:
-        return gs
+    return signatures_dict
+
+
+def fetch_decoupler_resources(
+    resources=["msigdb", "panglaodb", "progeny", "collectri", "liana"], genome="human"
+):
+    """
+    Retrieve prior-knowledge networks from OmniPath for use with `decoupler` pathway
+    analysis methods
+    * MSigDB: biological pathways from HALLMARK (ORA)
+    * PanglaoDB: cell-type and cell-state for scRNA labeling (ORA)
+    * PROGENy: canonical signaling pathways (MLM)
+    * CollecTRI: transcription factor regulon networks (ULM)
+    * LIANA: ligand-receptor interactions (ULM)
+
+    Parameters
+    ----------
+    resources : list, optional (default=["msigdb","panglaodb","progeny","collectri","liana"])
+        List of resources to fetch. Default all; remove networks not desired.
+    genome : str literal, optional (default="human")
+        One of "human" or "mouse" to determine which gene symbols to return in
+        `genesymbol` or `target` columns of network dataframes
+
+    Returns
+    -------
+    nets : dict
+        Dictionary containing names of OmniPath networks (keys) and the corresponding
+        dataframes containing gene-pathway information (values).
+    """
+    assert genome.lower() in [
+        "human",
+        "mouse",
+    ], "Please provide 'human' or 'mouse' for genome choice"
+    for resource in resources:
+        assert resource in [
+            "msigdb",
+            "panglaodb",
+            "progeny",
+            "collectri",
+            "liana",
+        ], f"Invalid resource: {resource}"
+    # initiate output dict
+    nets = {}
+
+    if "msigdb" in resources:
+        # Query Omnipath and get MSigDB
+        print("Fetching MSigDB...", end=" ")
+        msigdb = dc.get_resource("MSigDB", organism="human")
+        # Filter by HALLMARK
+        msigdb = msigdb.loc[
+            msigdb["collection"].isin(["hallmark"])
+        ]  # kegg_pathways, go_biological_process
+        ## read in GO terms
+        # go = dc.read_gmt(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../../resources/c5.go.bp.v7.2.symbols.gmt"))
+        # go.columns = ["geneset","genesymbol"]
+        # go["collection"] = "GO"
+        ## add GO to HALLMARK
+        # msigdb = pd.concat([msigdb,go])
+        # Remove duplicated entries
+        msigdb = msigdb.loc[~msigdb.duplicated(["geneset", "genesymbol"])]
+        # remove "HALLMARK_" from every term to shorten strings
+        msigdb.geneset = msigdb.geneset.str.replace("HALLMARK_", "HM_")
+        if genome == "mouse":
+            # mouse symbols
+            msigdb["genesymbol"] = msigdb["genesymbol"].map(human_to_mouse_simple)
+        # add to dict
+        nets["msigdb"] = msigdb
+        print("network in nets['msigdb']")
+
+    if "panglaodb" in resources:
+        # Query Omnipath and get PanglaoDB
+        print("Fetching PanglaoDB...", end=" ")
+        panglaodb = dc.get_resource("PanglaoDB", organism="human")
+        # Filter by canonical_marker and mouse
+        panglaodb = panglaodb.loc[
+            (panglaodb["mouse"] == True) & (panglaodb["canonical_marker"] == True)
+        ]
+        # Remove duplicated entries
+        panglaodb = panglaodb[~panglaodb.duplicated(["cell_type", "genesymbol"])]
+        if genome == "mouse":
+            # mouse symbols
+            panglaodb["genesymbol_mm"] = panglaodb["genesymbol"].map(
+                human_to_mouse_simple
+            )
+        # add to dict
+        nets["panglaodb"] = panglaodb
+        print("network in nets['panglaodb']")
+
+    if "collectri" in resources:
+        # Query Omnipath and get CollecTRI
+        collectri = dc.get_collectri(organism=genome, split_complexes=False)
+        # add to dict
+        nets["collectri"] = collectri
+
+    if "progeny" in resources:
+        # Query Omnipath and get PROGENy
+        print("Fetching PROGENy...", end=" ")
+        progeny = dc.get_progeny(organism="human", top=300)
+        if genome == "mouse":
+            # mouse genes
+            progeny["target"] = progeny["target"].map(human_to_mouse_simple)
+        # add to dict
+        nets["progeny"] = progeny
+        print("network in nets['progeny']")
+
+    if "liana" in resources:
+        # import LIANA ligand-receptor database
+        print("Fetching LIANA...", end=" ")
+        liana_lr = ln.resource.select_resource()
+        liana_lr = ln.resource.explode_complexes(liana_lr)
+        # create two new DataFrames, each containing one of the pairs of columns to be
+        # concatenated
+        df1 = liana_lr[["interaction", "ligand"]]
+        df2 = liana_lr[["interaction", "receptor"]]
+        # Rename the columns in each new DataFrame
+        df1.columns = ["interaction", "genes"]
+        df2.columns = ["interaction", "genes"]
+        # Concatenate the two new DataFrames
+        liana_lr = pd.concat([df1, df2], axis=0)
+        liana_lr["weight"] = 1
+        # Find duplicated rows
+        duplicates = liana_lr.duplicated()
+        # Remove duplicated rows
+        liana_lr = liana_lr[~duplicates]
+        if genome == "mouse":
+            # mouse symbols
+            liana_lr["genes"] = liana_lr["genes"].map(human_to_mouse_simple)
+        # add to dict
+        nets["liana"] = liana_lr
+        print("network in nets['liana']")
+
+    print("Done!")
+    return nets
