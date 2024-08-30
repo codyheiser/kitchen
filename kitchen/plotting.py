@@ -1697,7 +1697,7 @@ def cluster_pie(
 def custom_heatmap(
     adata,
     groupby,
-    features,
+    features=None,
     layer=None,
     cluster_vars=False,
     vars_dict=None,
