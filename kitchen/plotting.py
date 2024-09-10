@@ -2126,7 +2126,13 @@ def plot_embedding(
                 )
                 ax.set_title(label="PAGA", loc="left", fontweight="bold", fontsize=16)
             else:
-                if color in ["leiden", "louvain", "cluster", "group", "cell_type"]:
+                if color.lower() in [
+                    "leiden",
+                    "louvain",
+                    "cluster",
+                    "group",
+                    "cell_type",
+                ]:
                     leg_loc, leg_fontsize, leg_fontoutline = "on data", "large", 2.0
                 else:
                     leg_loc, leg_fontsize, leg_fontoutline = (
