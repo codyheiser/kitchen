@@ -300,7 +300,6 @@ def split_violin(
     splitby=None,
     splitby_order=None,
     points_colorby=None,
-    gene_symbols=None,
     layer=None,
     log_scale=None,
     pseudocount=1.0,
@@ -341,9 +340,6 @@ def split_violin(
         Order of categories in `adata.obs[splitby]`.
     points_colorby : str, optional (default=`None`)
         Categorical `.obs` column to color stripplot points by.
-    gene_symbols : str, optional (default=`None`)
-        Key for field in `.var` that stores gene symbols if you do not want to
-        use `.var_names` displayed in the plot.
     layer : str, optional (default=`None`)
         Key from `layers` attribute of `adata` if present
     log_scale : int, optional (default=`None`)
@@ -1912,10 +1908,15 @@ def custom_heatmap(
         cb.xaxis.set_major_formatter(ScalarFormatter())
         cb.set_xticklabels(cb.get_xticklabels(), rotation=90)
     elif plot_type == "heatmap":
-        if groupby_colordict:
+        args["dendrogram"] = cluster_obs if groupby_order is None else False
+        args["adata"].obs[args["groupby"]] = (
+            args["adata"].obs[args["groupby"]].astype("category")
+        )
+        if groupby_order is not None:
             args["adata"].obs[args["groupby"]] = (
-                args["adata"].obs[args["groupby"]].astype("category")
+                args["adata"].obs[args["groupby"]].cat.reorder_categories(groupby_order)
             )
+        if groupby_colordict:
             args["adata"].uns["{}_colors".format(args["groupby"])] = [
                 groupby_colordict[x]
                 for x in args["adata"].obs[args["groupby"]].cat.categories

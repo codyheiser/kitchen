@@ -536,7 +536,7 @@ keys)</dd>
 <div class="desc"><p>Draw significance bracket on matplotlib figure</p></div>
 </dd>
 <dt id="kitchen.plotting.split_violin"><code class="name flex">
-<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, points_colorby=None, gene_symbols=None, layer=None, log_scale=None, pseudocount=1.0, scale='width', plot_type='violin', split=True, strip=True, jitter=True, size=1, panelsize=(3, 3), ncols=1, ylabel=None, titles=None, legend=True, save=None, dpi=300)</span>
+<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, points_colorby=None, layer=None, log_scale=None, pseudocount=1.0, scale='width', plot_type='violin', split=True, strip=True, jitter=True, size=1, panelsize=(3, 3), ncols=1, ylabel=None, titles=None, legend=True, save=None, dpi=300)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot genes grouped by one variable and split by another</p>
@@ -560,9 +560,6 @@ with corresponding orders in each element.</dd>
 <dd>Order of categories in <code>adata.obs[splitby]</code>.</dd>
 <dt><strong><code>points_colorby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Categorical <code>.obs</code> column to color stripplot points by.</dd>
-<dt><strong><code>gene_symbols</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
-<dd>Key for field in <code>.var</code> that stores gene symbols if you do not want to
-use <code>.var_names</code> displayed in the plot.</dd>
 <dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Key from <code>layers</code> attribute of <code>adata</code> if present</dd>
 <dt><strong><code>log_scale</code></strong> :&ensp;<code>int</code>, optional <code>(default=</code>None<code>)</code></dt>
