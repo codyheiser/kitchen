@@ -1694,18 +1694,19 @@ def custom_heatmap(
     adata,
     groupby,
     features=None,
-    layer=None,
-    cluster_vars=False,
     vars_dict=None,
+    cluster_obs=False,
+    cluster_vars=False,
     groupby_order=None,
     groupby_colordict=None,
-    cluster_obs=False,
+    layer=None,
     plot_type="dotplot",
     cmap="Greys",
     log_scale=None,
     linthresh=1.0,
     italicize_vars=True,
     colorbar_title="Mean expression\nin group",
+    vars_axis="y",
     figsize=(5, 5),
     save=None,
     dpi=300,
@@ -1724,22 +1725,22 @@ def custom_heatmap(
     features : list of str (default=`None`)
         List of features from `adata.obs.columns` or `adata.var_names` to plot. If
         `None`, then `vars_dict` must provided.
-    layer : str
-        Key from `adata.layers` to use for plotting gene values
-    cluster_vars : bool, optional (default=`False`)
-        Hierarchically cluster `features` for a prettier dotplot. If `True`, return
-        `features` in their new order (first return variable).
     vars_dict : dict, optional (default=`None`)
         Dictionary of groups of vars to highlight with brackets on dotplot. Keys are
         variable group names and values are list of variables found in `features`.
         If provided, `features` is ignored.
+    cluster_obs : bool, optional (default=`False`)
+        Hierarchically cluster `groupby` observations and show dendrogram
+    cluster_vars : bool, optional (default=`False`)
+        Hierarchically cluster `features` for a prettier dotplot. If `True`, return
+        `features` in their new order (first return variable).
     groupby_order : list, optional (default=`None`)
         Explicit order for groups of observations from `adata.obs[groupby]`
     groupby_colordict : dict, optional (default=`None`)
         Dictionary mapping `groupby` categories (keys) to colors (values). Black
         outline will be added to provide contrast to light colors.
-    cluster_obs : bool, optional (default=`False`)
-        Hierarchically cluster `groupby` observations and show dendrogram
+    layer : str
+        Key from `adata.layers` to use for plotting gene values
     plot_type : str, optional (default="dotplot")
         One of "dotplot", "matrixplot", "dotmatrix", "stacked_violin", or "heatmap"
     cmap : str, optional (default="Greys")
@@ -1754,6 +1755,8 @@ def custom_heatmap(
         Whether or not to italicize variable names on plot
     colorbar_title : str, optional (default="Mean expression\\nin group")
         Title for colorbar key
+    vars_axis : str, optional (default="y")
+        If "y", vars are shown on y-axis. If "x", vars are shown on x-axis.
     figsize : tuple of float, optional (default=(5,5))
         Size of the figure in inches
     save : str or `None`, optional (default=`None`)
@@ -1762,8 +1765,8 @@ def custom_heatmap(
     dpi : float, optional (default=300)
         Resolution in dots per inch for saving figure. Ignored if `save` is `None`.
     **kwargs
-        Keyword arguments to pass to `sc.pl.dotplot`, `sc.pl.matrixplot`, or
-        `sc.pl.stacked_violin`
+        Keyword arguments to pass to `sc.pl.dotplot`, `sc.pl.matrixplot`,
+        `sc.pl.stacked_violin`, or `sc.pl.heatmap`
 
     Returns
     -------
@@ -1781,6 +1784,11 @@ def custom_heatmap(
         "heatmap",
         "dotmatrix",
     ], "plot_type must be one of 'dotplot', 'matrixplot', 'dotmatrix', 'stacked_violin', 'heatmap'"
+    # check for valid vars_axis
+    assert vars_axis.lower() in [
+        "x",
+        "y",
+    ], "Please provide either 'x' or 'y' for vars_axis"
     # get features from vars_dict if provided
     if vars_dict is not None:
         features = signature_dict_values(signatures_dict=vars_dict, unique=True)
@@ -1816,7 +1824,7 @@ def custom_heatmap(
         "adata": a_comb_sig,
         "groupby": groupby,
         "layer": layer,
-        "swap_axes": True,
+        "swap_axes": True if vars_axis.lower() == "y" else False,
         "figsize": figsize,
         **kwargs,
     }
@@ -1859,9 +1867,15 @@ def custom_heatmap(
         elif plot_type == "dotplot":
             myplot.style(cmap=cmap, dot_edge_color="k", dot_edge_lw=1)
         # italicize variable names (genes)
-        if italicize_vars:
+        if italicize_vars and args["swap_axes"]:
+            # alter y-axis labels
             myplot.get_axes()["mainplot_ax"].set_yticklabels(
                 myplot.get_axes()["mainplot_ax"].get_yticklabels(), fontstyle="italic"
+            )
+        if italicize_vars and not args["swap_axes"]:
+            # alter x-axis labels
+            myplot.get_axes()["mainplot_ax"].set_xticklabels(
+                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
             )
         # rotate size legend ticklabels
         sl = myplot.get_axes()["size_legend_ax"]
@@ -1880,9 +1894,15 @@ def custom_heatmap(
         # style options to plot
         myplot.style(cmap=cmap)
         # italicize variable names (genes)
-        if italicize_vars:
+        if italicize_vars and args["swap_axes"]:
+            # alter y-axis labels
             myplot.get_axes()["mainplot_ax"].set_yticklabels(
                 myplot.get_axes()["mainplot_ax"].get_yticklabels(), fontstyle="italic"
+            )
+        if italicize_vars and not args["swap_axes"]:
+            # alter x-axis labels
+            myplot.get_axes()["mainplot_ax"].set_xticklabels(
+                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
             )
         # rotate colorbar ticklabels
         cb = myplot.get_axes()["color_legend_ax"]
@@ -1898,9 +1918,15 @@ def custom_heatmap(
         # style options to plot
         myplot.style(cmap=cmap, linewidth=1)
         # italicize variable names (genes)
-        if italicize_vars:
+        if italicize_vars and args["swap_axes"]:
+            # alter y-axis labels
             myplot.get_axes()["mainplot_ax"].set_yticklabels(
                 myplot.get_axes()["mainplot_ax"].get_yticklabels(), fontstyle="italic"
+            )
+        if italicize_vars and not args["swap_axes"]:
+            # alter x-axis labels
+            myplot.get_axes()["mainplot_ax"].set_xticklabels(
+                myplot.get_axes()["mainplot_ax"].get_xticklabels(), fontstyle="italic"
             )
         # rotate colorbar ticklabels
         cb = myplot.get_axes()["color_legend_ax"]
@@ -1909,6 +1935,8 @@ def custom_heatmap(
         cb.set_xticklabels(cb.get_xticklabels(), rotation=90)
     elif plot_type == "heatmap":
         args["dendrogram"] = cluster_obs if groupby_order is None else False
+        args["show"] = False  # don't show sc.pl.heatmap so we can manipulate plot obj
+        args["cmap"] = cmap  # outside of .style for sc.pl.heatmap
         args["adata"].obs[args["groupby"]] = (
             args["adata"].obs[args["groupby"]].astype("category")
         )
@@ -1921,9 +1949,6 @@ def custom_heatmap(
                 groupby_colordict[x]
                 for x in args["adata"].obs[args["groupby"]].cat.categories
             ]
-        args["swap_axes"] = False
-        args["show"] = False
-        args["cmap"] = cmap
         myplot = sc.pl.heatmap(**args)
         # remove groupby axis label
         if args["swap_axes"]:
@@ -1931,7 +1956,13 @@ def custom_heatmap(
         else:
             myplot["groupby_ax"].set_ylabel("")
         # italicize variable names (genes)
-        if italicize_vars:
+        if italicize_vars and args["swap_axes"]:
+            # alter y-axis labels
+            myplot["heatmap_ax"].set_yticklabels(
+                myplot["heatmap_ax"].get_yticklabels(), fontstyle="italic"
+            )
+        if italicize_vars and not args["swap_axes"]:
+            # alter x-axis labels
             myplot["heatmap_ax"].set_xticklabels(
                 myplot["heatmap_ax"].get_xticklabels(), fontstyle="italic"
             )

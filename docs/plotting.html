@@ -151,7 +151,7 @@ significance bars to plot(s)</dd>
 </dl></div>
 </dd>
 <dt id="kitchen.plotting.custom_heatmap"><code class="name flex">
-<span>def <span class="ident">custom_heatmap</span></span>(<span>adata, groupby, features=None, layer=None, cluster_vars=False, vars_dict=None, groupby_order=None, groupby_colordict=None, cluster_obs=False, plot_type='dotplot', cmap='Greys', log_scale=None, linthresh=1.0, italicize_vars=True, colorbar_title='Mean expression\nin group', figsize=(5, 5), save=None, dpi=300, **kwargs)</span>
+<span>def <span class="ident">custom_heatmap</span></span>(<span>adata, groupby, features=None, vars_dict=None, cluster_obs=False, cluster_vars=False, groupby_order=None, groupby_colordict=None, layer=None, plot_type='dotplot', cmap='Greys', log_scale=None, linthresh=1.0, italicize_vars=True, colorbar_title='Mean expression\nin group', vars_axis='y', figsize=(5, 5), save=None, dpi=300, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Custom wrapper around <code>sc.pl.dotplot</code>, <code>sc.pl.matrixplot</code>, and
@@ -165,22 +165,22 @@ significance bars to plot(s)</dd>
 <dt><strong><code>features</code></strong> :&ensp;<code>list</code> of <code>str (default=</code>None<code>)</code></dt>
 <dd>List of features from <code>adata.obs.columns</code> or <code>adata.var_names</code> to plot. If
 <code>None</code>, then <code>vars_dict</code> must provided.</dd>
-<dt><strong><code>layer</code></strong> :&ensp;<code>str</code></dt>
-<dd>Key from <code>adata.layers</code> to use for plotting gene values</dd>
-<dt><strong><code>cluster_vars</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
-<dd>Hierarchically cluster <code>features</code> for a prettier dotplot. If <code>True</code>, return
-<code>features</code> in their new order (first return variable).</dd>
 <dt><strong><code>vars_dict</code></strong> :&ensp;<code>dict</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Dictionary of groups of vars to highlight with brackets on dotplot. Keys are
 variable group names and values are list of variables found in <code>features</code>.
 If provided, <code>features</code> is ignored.</dd>
+<dt><strong><code>cluster_obs</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
+<dd>Hierarchically cluster <code>groupby</code> observations and show dendrogram</dd>
+<dt><strong><code>cluster_vars</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
+<dd>Hierarchically cluster <code>features</code> for a prettier dotplot. If <code>True</code>, return
+<code>features</code> in their new order (first return variable).</dd>
 <dt><strong><code>groupby_order</code></strong> :&ensp;<code>list</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Explicit order for groups of observations from <code>adata.obs[groupby]</code></dd>
 <dt><strong><code>groupby_colordict</code></strong> :&ensp;<code>dict</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Dictionary mapping <code>groupby</code> categories (keys) to colors (values). Black
 outline will be added to provide contrast to light colors.</dd>
-<dt><strong><code>cluster_obs</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
-<dd>Hierarchically cluster <code>groupby</code> observations and show dendrogram</dd>
+<dt><strong><code>layer</code></strong> :&ensp;<code>str</code></dt>
+<dd>Key from <code>adata.layers</code> to use for plotting gene values</dd>
 <dt><strong><code>plot_type</code></strong> :&ensp;<code>str</code>, optional <code>(default="dotplot")</code></dt>
 <dd>One of "dotplot", "matrixplot", "dotmatrix", "stacked_violin", or "heatmap"</dd>
 <dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional <code>(default="Greys")</code></dt>
@@ -195,6 +195,8 @@ to infinity around zero).</dd>
 <dd>Whether or not to italicize variable names on plot</dd>
 <dt><strong><code>colorbar_title</code></strong> :&ensp;<code>str</code>, optional <code>(default="Mean expression\nin group")</code></dt>
 <dd>Title for colorbar key</dd>
+<dt><strong><code>vars_axis</code></strong> :&ensp;<code>str</code>, optional <code>(default="y")</code></dt>
+<dd>If "y", vars are shown on y-axis. If "x", vars are shown on x-axis.</dd>
 <dt><strong><code>figsize</code></strong> :&ensp;<code>tuple</code> of <code>float</code>, optional <code>(default=(5,5))</code></dt>
 <dd>Size of the figure in inches</dd>
 <dt><strong><code>save</code></strong> :&ensp;<code>str</code> or <code>None</code>, optional <code>(default=</code>None<code>)</code></dt>
@@ -203,8 +205,8 @@ variable if <code>cluster_vars == True</code>).</dd>
 <dt><strong><code>dpi</code></strong> :&ensp;<code>float</code>, optional <code>(default=300)</code></dt>
 <dd>Resolution in dots per inch for saving figure. Ignored if <code>save</code> is <code>None</code>.</dd>
 <dt><strong><code>**kwargs</code></strong></dt>
-<dd>Keyword arguments to pass to <code>sc.pl.dotplot</code>, <code>sc.pl.matrixplot</code>, or
-<code>sc.pl.stacked_violin</code></dd>
+<dd>Keyword arguments to pass to <code>sc.pl.dotplot</code>, <code>sc.pl.matrixplot</code>,
+<code>sc.pl.stacked_violin</code>, or <code>sc.pl.heatmap</code></dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
