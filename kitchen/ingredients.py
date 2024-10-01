@@ -439,6 +439,68 @@ def ingest_gene_signatures(
     return genes
 
 
+def signature_dict_from_rank_genes_groups(
+    adata,
+    uns_key="rank_genes_groups",
+    groups=None,
+    n_genes=5,
+    ambient=False,
+):
+    """
+    Extract DEGs from AnnData into signature dictionary
+
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        AnnData object containing DEG results in `.uns`
+    uns_key : str, optional (default='rank_genes_groups')
+        Key from `adata.uns` containing DEG results. Should reflect categories in
+        `adata.obs[groupby]`.
+    groups : list of str, optional (default=`None`)
+        List of groups within `adata.uns[uns_key]` to extract DEGs for. If `None`,
+        retrieve all groups.
+    n_genes : int, optional (default=5)
+        Number of top genes per group to show
+    ambient : bool, optional (default=False)
+        Include ambient genes as a group in the plot/output dictionary. If `True`,
+        `adata.var` must have a boolean column called 'ambient' labeling ambient genes.
+
+    Returns
+    -------
+    markers : dict
+        Dictionary of DEGs group names as keys and lists of genes as values
+    """
+    if groups is None:
+        groups = adata.uns[uns_key]["names"].dtype.names
+    else:
+        assert set(groups).issubset(adata.uns[uns_key]["names"].dtype.names), "All given 'groups' must be present in adata.uns[uns_key]"
+
+    # get markers manually
+    markers = {}
+    for clu in groups:
+        markers[clu] = [
+            adata.uns[uns_key]["names"][x][clu] for x in range(n_genes)
+        ]
+    # append ambient genes
+    if ambient:
+        if "ambient" in adata.var:
+            markers["ambient"] = adata.var_names[adata.var["ambient"]].tolist()
+        else:
+            print("No 'ambient' column detected, skipping ambient genes")
+
+    # total and unique features on plot
+    features = signature_dict_values(signatures_dict=markers, unique=False)
+    unique_features = signature_dict_values(signatures_dict=markers, unique=True)
+
+    print(
+        "Detected {} total features and {} unique features across {} groups".format(
+            len(features), len(unique_features), len(groups)
+        )
+    )
+
+    return markers
+
+
 def flip_signature_dict(signatures_dict):
     """
     "Flip" dictionary of signatures where keys are signature names and values are lists
