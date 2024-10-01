@@ -18,6 +18,8 @@ format:
 # generate documentation
 doc:
 	$(DOC_TOOL) --html $(SRC_DIR) -o $(DOCS_DIR) --force
+	mv $(DOCS_DIR)/kitchen/* $(DOCS_DIR)
+	rm -r $(DOCS_DIR)/kitchen/
 
 # run all tasks
 all: lint format docs

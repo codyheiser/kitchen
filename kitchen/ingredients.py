@@ -630,7 +630,7 @@ def fetch_decoupler_resources(
         panglaodb = dc.get_resource("PanglaoDB", organism="human")
         # Filter by canonical_marker and mouse
         panglaodb = panglaodb.loc[
-            (panglaodb["mouse"] is True) & (panglaodb["canonical_marker"] is True)
+            (panglaodb["mouse"] == True) & (panglaodb["canonical_marker"] == True)
         ]
         # Remove duplicated entries
         panglaodb = panglaodb[~panglaodb.duplicated(["cell_type", "genesymbol"])]
