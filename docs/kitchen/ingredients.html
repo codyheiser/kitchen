@@ -189,6 +189,33 @@ signature names and constituent genes in long-form, respectively.</dd>
 as values.</dd>
 </dl></div>
 </dd>
+<dt id="kitchen.ingredients.signature_dict_from_rank_genes_groups"><code class="name flex">
+<span>def <span class="ident">signature_dict_from_rank_genes_groups</span></span>(<span>adata, uns_key='rank_genes_groups', groups=None, n_genes=5, ambient=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extract DEGs from AnnData into signature dictionary</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
+<dd>AnnData object containing DEG results in <code>.uns</code></dd>
+<dt><strong><code>uns_key</code></strong> :&ensp;<code>str</code>, optional <code>(default='rank_genes_groups')</code></dt>
+<dd>Key from <code>adata.uns</code> containing DEG results. Should reflect categories in
+<code>adata.obs[groupby]</code>.</dd>
+<dt><strong><code>groups</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>List of groups within <code>adata.uns[uns_key]</code> to extract DEGs for. If <code>None</code>,
+retrieve all groups.</dd>
+<dt><strong><code>n_genes</code></strong> :&ensp;<code>int</code>, optional <code>(default=5)</code></dt>
+<dd>Number of top genes per group to show</dd>
+<dt><strong><code>ambient</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
+<dd>Include ambient genes as a group in the plot/output dictionary. If <code>True</code>,
+<code>adata.var</code> must have a boolean column called 'ambient' labeling ambient genes.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>markers</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary of DEGs group names as keys and lists of genes as values</dd>
+</dl></div>
+</dd>
 <dt id="kitchen.ingredients.signature_dict_values"><code class="name flex">
 <span>def <span class="ident">signature_dict_values</span></span>(<span>signatures_dict, unique=True)</span>
 </code></dt>
@@ -280,6 +307,7 @@ names.</dd>
 <li><code><a title="kitchen.ingredients.flip_signature_dict" href="#kitchen.ingredients.flip_signature_dict">flip_signature_dict</a></code></li>
 <li><code><a title="kitchen.ingredients.human_to_mouse_simple" href="#kitchen.ingredients.human_to_mouse_simple">human_to_mouse_simple</a></code></li>
 <li><code><a title="kitchen.ingredients.ingest_gene_signatures" href="#kitchen.ingredients.ingest_gene_signatures">ingest_gene_signatures</a></code></li>
+<li><code><a title="kitchen.ingredients.signature_dict_from_rank_genes_groups" href="#kitchen.ingredients.signature_dict_from_rank_genes_groups">signature_dict_from_rank_genes_groups</a></code></li>
 <li><code><a title="kitchen.ingredients.signature_dict_values" href="#kitchen.ingredients.signature_dict_values">signature_dict_values</a></code></li>
 <li><code><a title="kitchen.ingredients.signatures_to_long_form" href="#kitchen.ingredients.signatures_to_long_form">signatures_to_long_form</a></code></li>
 <li><code><a title="kitchen.ingredients.signatures_to_short_form" href="#kitchen.ingredients.signatures_to_short_form">signatures_to_short_form</a></code></li>

@@ -31,5 +31,24 @@ kitchen recipe <path/to/.h5ad> -p -cc -c arcsinh_n_genes_by_counts pct_counts_mi
 
 Full documentation is available at [codyheiser.github.io/kitchen/](https://codyheiser.github.io/kitchen/).
 
+## Contributing to kitchen tools
+
+After making chnages, lint, format and document code before committing:
+
+```bash
+make lint  # lint Python code
+
+make format  # black-formatting
+
+make doc  # pdoc3 documentation
+```
+
+Then, following `git commit`, create new version tag and push to remote:
+
+```bash
+git tag -a vX.X.X -m "tag message"
+git push --follow-tags
+```
+
 [tag-version]: https://img.shields.io/github/v/tag/codyheiser/kitchen
 [repo-url]: https://github.com/codyheiser/kitchen

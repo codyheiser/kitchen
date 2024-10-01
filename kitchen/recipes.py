@@ -321,7 +321,7 @@ def cellranger3(
     out = find_nonambient_barcodes(
         m,
         np.array(
-            adata.obs.loc[adata.obs.CellRanger_3 == True,].index,
+            adata.obs.loc[adata.obs.CellRanger_3 is True,].index,
             dtype=m.bcs.dtype,
         ),
         min_umi_frac_of_median=min_umi_frac_of_median,
@@ -494,7 +494,14 @@ def plot_genes(
         "t-test_overestim_var",
         "wilcoxon",
     ], "Invalid de_method. Must be one of ['t-test','t-test_overestim_var','wilcoxon']."
-    sc.tl.rank_genes_groups(adata, groupby=groupby, layer=layer, use_raw=False, method=de_method, key_added=key_added)
+    sc.tl.rank_genes_groups(
+        adata,
+        groupby=groupby,
+        layer=layer,
+        use_raw=False,
+        method=de_method,
+        key_added=key_added,
+    )
 
     # unique groups in DEG analysis
     groups = adata.obs[groupby].unique().tolist()
@@ -623,14 +630,14 @@ def plot_genes_cnmf(
     features = signature_dict_values(signatures_dict=markers, unique=False)
     unique_features = signature_dict_values(signatures_dict=markers, unique=True)
 
+    # unique groups in DEG analysis
+    groups = adata.obs[groupby].unique().tolist()
+
     print(
         "Plotting {} total features and {} unique features across {} factors".format(
             len(features), len(unique_features), len(groups)
         )
     )
-
-    # unique groups in DEG analysis
-    groups = adata.obs[groupby].unique().tolist()
 
     # plot dimensions (long vertical)
     if plot_type in ["dotplot", "matrixplot", "stacked_violin"]:
@@ -738,7 +745,7 @@ def scDEG_decoupler_ORA(
             ora["group"] = group
             ora["reference"] = "rest"
             enr_pvals = pd.concat([enr_pvals, ora])
-        except:
+        except ValueError:
             print(f"Error in {group}!")
 
     enr_pvals = enr_pvals.reset_index(drop=True)

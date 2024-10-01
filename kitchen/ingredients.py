@@ -2,7 +2,8 @@
 """
 Resources and utility functions
 """
-import os, errno
+import os
+import errno
 import pandas as pd
 import decoupler as dc
 import liana as ln
@@ -473,14 +474,14 @@ def signature_dict_from_rank_genes_groups(
     if groups is None:
         groups = adata.uns[uns_key]["names"].dtype.names
     else:
-        assert set(groups).issubset(adata.uns[uns_key]["names"].dtype.names), "All given 'groups' must be present in adata.uns[uns_key]"
+        assert set(groups).issubset(
+            adata.uns[uns_key]["names"].dtype.names
+        ), "All given 'groups' must be present in adata.uns[uns_key]"
 
     # get markers manually
     markers = {}
     for clu in groups:
-        markers[clu] = [
-            adata.uns[uns_key]["names"][x][clu] for x in range(n_genes)
-        ]
+        markers[clu] = [adata.uns[uns_key]["names"][x][clu] for x in range(n_genes)]
     # append ambient genes
     if ambient:
         if "ambient" in adata.var:
@@ -629,7 +630,7 @@ def fetch_decoupler_resources(
         panglaodb = dc.get_resource("PanglaoDB", organism="human")
         # Filter by canonical_marker and mouse
         panglaodb = panglaodb.loc[
-            (panglaodb["mouse"] == True) & (panglaodb["canonical_marker"] == True)
+            (panglaodb["mouse"] is True) & (panglaodb["canonical_marker"] is True)
         ]
         # Remove duplicated entries
         panglaodb = panglaodb[~panglaodb.duplicated(["cell_type", "genesymbol"])]

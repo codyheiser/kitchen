@@ -2,7 +2,8 @@
 """
 Manipulate .h5ad files and cook scRNA-seq data from command line
 """
-import argparse, os
+import argparse
+import os
 import numpy as np
 import pandas as pd
 import scanpy as sc
@@ -272,8 +273,8 @@ def label_info(args):
     print("Reading {}\n".format(args.file))
     adata = sc.read(args.file)
     print(adata, "\n")
-    for l in args.labels:
-        print("{}\n{}\n".format(l, adata.obs[l].value_counts()))
+    for label in args.labels:
+        print("{}\n{}\n".format(label, adata.obs[label].value_counts()))
 
 
 def obs_to_categorical(args):

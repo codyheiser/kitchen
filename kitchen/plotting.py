@@ -1686,7 +1686,7 @@ def cluster_pie(
             fontsize=16,
         )
     gs.tight_layout(fig)
-    if show == False:
+    if show is False:
         return gs
 
 
@@ -1698,7 +1698,7 @@ def custom_heatmap(
     cluster_obs=False,
     cluster_vars=False,
     groupby_order=None,
-    groupby_colordict=None,
+    groupby_colordict="native",
     layer=None,
     plot_type="dotplot",
     cmap="Greys",
@@ -1736,9 +1736,10 @@ def custom_heatmap(
         `features` in their new order (first return variable).
     groupby_order : list, optional (default=`None`)
         Explicit order for groups of observations from `adata.obs[groupby]`
-    groupby_colordict : dict, optional (default=`None`)
-        Dictionary mapping `groupby` categories (keys) to colors (values). Black
-        outline will be added to provide contrast to light colors.
+    groupby_colordict : dict, str, or `None`, optional (default='native')
+        Dictionary mapping `groupby` categories (keys) to colors (values) for the group
+        axis text. If `groupby_colordict == 'native'`, use the colors available in
+        `adata.uns[f'{groupby}_colors']`. If `None`, don't color group text on plot.
     layer : str
         Key from `adata.layers` to use for plotting gene values
     plot_type : str, optional (default="dotplot")
@@ -1813,12 +1814,6 @@ def custom_heatmap(
             :, list(set(features).intersection(set(adata.var_names)))
         ].copy()
 
-    # get colors for heatmap groups
-    if (plot_type == "heatmap") & ("{}_colors".format(groupby) in adata.uns):
-        a_comb_sig.uns["{}_colors".format(groupby)] = adata.uns[
-            "{}_colors".format(groupby)
-        ]
-
     # initialize dictionary of arguments
     args = {
         "adata": a_comb_sig,
@@ -1828,6 +1823,27 @@ def custom_heatmap(
         "figsize": figsize,
         **kwargs,
     }
+
+    # get colors for group names
+    if groupby_colordict is not None:
+        if isinstance(groupby_colordict, dict):
+            args["adata"].uns["{}_colors".format(args["groupby"])] = [
+                groupby_colordict[x]
+                for x in args["adata"].obs[args["groupby"]].cat.categories
+            ]
+        elif groupby_colordict.lower() == "native":
+            if "{}_colors".format(args["groupby"]) in adata.uns:
+                group_colors = adata.uns["{}_colors".format(args["groupby"])]
+                # add to .uns for heatmap plotting
+                args["adata"].uns["{}_colors".format(args["groupby"])] = group_colors
+                # extract as dictionary for axis label coloring
+                groupby_colordict = dict(
+                    zip(args["adata"].obs[args["groupby"]].cat.categories, group_colors)
+                )
+        else:
+            print("Invalid 'groupby_colordict' argument... skipping.")
+            groupby_colordict = None
+
     if cluster_vars and vars_dict is None:
         assert (
             same_origin
@@ -1944,11 +1960,6 @@ def custom_heatmap(
             args["adata"].obs[args["groupby"]] = (
                 args["adata"].obs[args["groupby"]].cat.reorder_categories(groupby_order)
             )
-        if groupby_colordict:
-            args["adata"].uns["{}_colors".format(args["groupby"])] = [
-                groupby_colordict[x]
-                for x in args["adata"].obs[args["groupby"]].cat.categories
-            ]
         myplot = sc.pl.heatmap(**args)
         # remove groupby axis label
         if args["swap_axes"]:
@@ -2344,7 +2355,7 @@ def rank_genes_cnmf(
         )
         plt.grid(False)
     gs.tight_layout(fig)
-    if show == False:
+    if show is False:
         return gs
 
 
@@ -2531,8 +2542,6 @@ def decoupler_dotplot_facet(
     """
     if ncols is None:
         ncols = len(df[group_col].unique())
-    # set up figure size based on number of plots
-    n_plots = len(df[group_col].unique())
 
     # generate gs object
     gs, fig = build_gridspec(

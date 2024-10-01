@@ -209,7 +209,7 @@ clustering. default 1.0</dd>
 </dl></div>
 </dd>
 <dt id="kitchen.recipes.plot_genes"><code class="name flex">
-<span>def <span class="ident">plot_genes</span></span>(<span>adata, de_method='t-test_overestim_var', layer='log1p_norm', groupby='leiden', ambient=False, plot_type=None, n_genes=5, dendrogram=True, cmap='Greys', figsize_scale=1.0, save_to='de.png', verbose=True, **kwargs)</span>
+<span>def <span class="ident">plot_genes</span></span>(<span>adata, de_method='t-test_overestim_var', layer='log1p_norm', groupby='leiden', key_added='rank_genes_groups', ambient=False, plot_type=None, n_genes=5, dendrogram=True, cmap='Greys', figsize_scale=1.0, save_to='de.png', verbose=True, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculates and plot <code>rank_genes_groups</code> results</p>
@@ -224,6 +224,8 @@ clustering. default 1.0</dd>
 if <code>de_method=='wilcoxon'</code> and 'log1p_norm' if <code>de_method=='t-test'</code>.</dd>
 <dt><strong><code>groupby</code></strong> :&ensp;<code>str</code>, optional <code>(default="leiden")</code></dt>
 <dd><code>adata.obs</code> key to group cells by</dd>
+<dt><strong><code>key_added</code></strong> :&ensp;<code>str</code>, optional <code>(default="rank_genes_groups")</code></dt>
+<dd><code>adata.uns</code> key to add DEG results to</dd>
 <dt><strong><code>ambient</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
 <dd>include ambient genes as a group in the plot/output dictionary</dd>
 <dt><strong><code>plot_type</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>

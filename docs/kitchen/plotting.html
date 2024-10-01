@@ -151,7 +151,7 @@ significance bars to plot(s)</dd>
 </dl></div>
 </dd>
 <dt id="kitchen.plotting.custom_heatmap"><code class="name flex">
-<span>def <span class="ident">custom_heatmap</span></span>(<span>adata, groupby, features=None, vars_dict=None, cluster_obs=False, cluster_vars=False, groupby_order=None, groupby_colordict=None, layer=None, plot_type='dotplot', cmap='Greys', log_scale=None, linthresh=1.0, italicize_vars=True, colorbar_title='Mean expression\nin group', vars_axis='y', figsize=(5, 5), save=None, dpi=300, **kwargs)</span>
+<span>def <span class="ident">custom_heatmap</span></span>(<span>adata, groupby, features=None, vars_dict=None, cluster_obs=False, cluster_vars=False, groupby_order=None, groupby_colordict='native', layer=None, plot_type='dotplot', cmap='Greys', log_scale=None, linthresh=1.0, italicize_vars=True, colorbar_title='Mean expression\nin group', vars_axis='y', figsize=(5, 5), save=None, dpi=300, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Custom wrapper around <code>sc.pl.dotplot</code>, <code>sc.pl.matrixplot</code>, and
@@ -176,9 +176,10 @@ If provided, <code>features</code> is ignored.</dd>
 <code>features</code> in their new order (first return variable).</dd>
 <dt><strong><code>groupby_order</code></strong> :&ensp;<code>list</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Explicit order for groups of observations from <code>adata.obs[groupby]</code></dd>
-<dt><strong><code>groupby_colordict</code></strong> :&ensp;<code>dict</code>, optional <code>(default=</code>None<code>)</code></dt>
-<dd>Dictionary mapping <code>groupby</code> categories (keys) to colors (values). Black
-outline will be added to provide contrast to light colors.</dd>
+<dt><strong><code>groupby_colordict</code></strong> :&ensp;<code>dict, str,</code> or <code>None</code>, optional <code>(default='native')</code></dt>
+<dd>Dictionary mapping <code>groupby</code> categories (keys) to colors (values) for the group
+axis text. If <code>groupby_colordict == 'native'</code>, use the colors available in
+<code>adata.uns[f'{groupby}_colors']</code>. If <code>None</code>, don't color group text on plot.</dd>
 <dt><strong><code>layer</code></strong> :&ensp;<code>str</code></dt>
 <dd>Key from <code>adata.layers</code> to use for plotting gene values</dd>
 <dt><strong><code>plot_type</code></strong> :&ensp;<code>str</code>, optional <code>(default="dotplot")</code></dt>
