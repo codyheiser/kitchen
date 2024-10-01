@@ -16,6 +16,7 @@ from .ingredients import (
     g2m_genes_h,
     g2m_genes_m,
     signature_dict_values,
+    signature_dict_from_rank_genes_groups,
 )
 from .plotting import custom_heatmap, decoupler_dotplot_facet
 
@@ -432,6 +433,7 @@ def plot_genes(
     de_method="t-test_overestim_var",
     layer="log1p_norm",
     groupby="leiden",
+    key_added="rank_genes_groups",
     ambient=False,
     plot_type=None,
     n_genes=5,
@@ -456,6 +458,8 @@ def plot_genes(
         if `de_method=='wilcoxon'` and 'log1p_norm' if `de_method=='t-test'`.
     groupby : str, optional (default="leiden")
         `adata.obs` key to group cells by
+    key_added : str, optional (default="rank_genes_groups")
+        `adata.uns` key to add DEG results to
     ambient : bool, optional (default=False)
         include ambient genes as a group in the plot/output dictionary
     plot_type : str, optional (default=`None`)
@@ -490,37 +494,27 @@ def plot_genes(
         "t-test_overestim_var",
         "wilcoxon",
     ], "Invalid de_method. Must be one of ['t-test','t-test_overestim_var','wilcoxon']."
-    sc.tl.rank_genes_groups(
-        adata, groupby=groupby, layer=layer, use_raw=False, method=de_method
-    )
+    sc.tl.rank_genes_groups(adata, groupby=groupby, layer=layer, use_raw=False, method=de_method, key_added=key_added)
 
     # unique groups in DEG analysis
     groups = adata.obs[groupby].unique().tolist()
 
-    # get markers manually
-    markers = {}
-    for clu in groups:
-        markers[clu] = [
-            adata.uns["rank_genes_groups"]["names"][x][clu] for x in range(n_genes)
-        ]
-    # append ambient genes
-    if ambient:
-        markers["ambient"] = adata.var_names[adata.var.ambient].tolist()
+    # DEGs as dictionary
+    markers = signature_dict_from_rank_genes_groups(
+        adata,
+        uns_key=key_added,
+        groups=groups,
+        n_genes=n_genes,
+        ambient=ambient,
+    )
 
     # total and unique features on plot
     features = signature_dict_values(signatures_dict=markers, unique=False)
-    unique_features = signature_dict_values(signatures_dict=markers, unique=True)
-
-    print(
-        "Detected {} total features and {} unique features across {} groups".format(
-            len(features), len(unique_features), len(groups)
-        )
-    )
 
     # plotting workflow if desired
     if plot_type is not None:
         # plot dimensions (long vertical)
-        if plot_type in ["dotplot", "matrixplot", "stacked_violin"]:
+        if plot_type in ["dotplot", "matrixplot", "dotmatrix", "stacked_violin"]:
             figsize = (
                 (len(groups) / 3) * figsize_scale,
                 (len(features) / 5) * figsize_scale,
