@@ -36,10 +36,8 @@ Full documentation is available at [codyheiser.github.io/kitchen/](https://codyh
 After making chnages, lint, format and document code before committing:
 
 ```bash
-make lint  # lint Python code
-
 make format  # black-formatting
-
+make lint  # lint Python code
 make doc  # pdoc3 documentation
 ```
 

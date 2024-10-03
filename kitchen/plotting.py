@@ -1840,6 +1840,13 @@ def custom_heatmap(
                 groupby_colordict = dict(
                     zip(args["adata"].obs[args["groupby"]].cat.categories, group_colors)
                 )
+            else:
+                print(
+                    "{}_colors not found in adata.uns... skipping.".format(
+                        args["groupby"]
+                    )
+                )
+                groupby_colordict = None
         else:
             print("Invalid 'groupby_colordict' argument... skipping.")
             groupby_colordict = None
