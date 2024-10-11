@@ -33,7 +33,7 @@ Full documentation is available at [codyheiser.github.io/kitchen/](https://codyh
 
 ## Contributing to kitchen tools
 
-After making chnages, lint, format and document code before committing:
+After making changes, lint, format and document code before committing:
 
 ```bash
 make format  # black-formatting
