@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
-<meta name="generator" content="pdoc3 0.11.0">
+<meta name="generator" content="pdoc3 0.11.1">
 <title>kitchen.recipes API documentation</title>
 <meta name="description" content="Functions for processing and manipulating .h5ad objects and automated processing of
 scRNA-seq data">
@@ -76,6 +76,64 @@ filter and show top 20 terms by FDR p-value.</dd>
 <dd>ORA output as dataframe</dd>
 </dl>
 <p>Saves <code>decoupler</code> ORA dotplots to <code>out_dir/</code>.</p></div>
+</dd>
+<dt id="kitchen.recipes.PCA_decoupler_GSEA"><code class="name flex">
+<span>def <span class="ident">PCA_decoupler_GSEA</span></span>(<span>adata, net, n_pcs=None, max_FDRpval=0.05, out_dir='./', save_prefix='', save_output=False, plot=False, get_gsea_df_kwargs={}, decoupler_dotplot_facet_kwargs={})</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Quickly process PCA loadings through <code>decoupler</code> GSEA and create plot for
+initial look at pathways</p>
+<p><code>decoupler</code> tools used:
+* "GSEA" for biological pathways</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
+<dd>Object containing PCA results in <code>adata.varm["PCs"]</code></dd>
+<dt><strong><code>net</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>Network dataframe required to run GSEA. e.g. <code>msigdb</code> where <code>msigdb</code> is a
+<code>pd.DataFrame</code> from <code>dc.get_resource</code>.</dd>
+<dt><strong><code>max_FDRpval</code></strong> :&ensp;<code>float</code> or <code>None</code>, optional <code>(default=0.05)</code></dt>
+<dd>FDR p-value cutoff for plotting significant ORA pathways. If <code>None</code>, don't
+filter and show top 20 terms by FDR p-value.</dd>
+<dt><strong><code>out_dir</code></strong> :&ensp;<code>str</code>, optional <code>(default="./")</code></dt>
+<dd>Path to directory to save plots to</dd>
+<dt><strong><code>save_prefix</code></strong> :&ensp;<code>str</code>, optional <code>(default="")</code></dt>
+<dd>String to prepend to output plots to make names unique</dd>
+<dt><strong><code>save_output</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
+<dd>If <code>True</code>, save output dataframe to <code>out_dir/save_prefix_PCA_GSEA.csv</code></dd>
+<dt><strong><code>get_gsea_df_kwargs</code></strong> :&ensp;<code>dict</code>, optional <code>(default={})</code></dt>
+<dd>Keyword arguments to pass to <code>dc.get_gsea_df</code>. e.g. <code>source</code>, <code>target</code>,
+<code>n_background</code>.</dd>
+<dt><strong><code>decoupler_dotplot_facet_kwargs</code></strong> :&ensp;<code>dict</code>, optional <code>(default={})</code></dt>
+<dd>Keyword arguments to pass to <code>decoupler_dotplot_facet</code>. e.g. <code>top_n</code>, <code>cmap</code>,
+<code>dpi</code></dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>enr_pvals</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>GSEA output as dataframe</dd>
+</dl>
+<p>Saves <code>decoupler</code> GSEA dotplots to <code>out_dir/</code>.</p>
+<h2 id="examples">Examples</h2>
+<p>nets = fetch_decoupler_resources(
+resources=["msigdb", "progeny", "collectri", "liana"],
+genome="human",
+)
+enr_pvals = PCA_decoupler_GSEA(
+adata=a,
+n_pcs=3,
+net=nets["msigdb"],
+max_FDRpval=0.05,
+out_dir="plots/",
+save_prefix="",
+save_output=False,
+get_gsea_df_kwargs={
+"source":"geneset",
+"target":"genesymbol",
+"times":500,
+"min_n":5,
+},
+)</p></div>
 </dd>
 <dt id="kitchen.recipes.calculate_cell_proportions"><code class="name flex">
 <span>def <span class="ident">calculate_cell_proportions</span></span>(<span>obs_df, celltype_column, groupby, celltype_subset=None)</span>
@@ -294,6 +352,72 @@ If <code>None</code>, don't plot, just return DEGs as dictionary.</dd>
 <dd><code>custom_heatmap</code> object</dd>
 </dl></div>
 </dd>
+<dt id="kitchen.recipes.scDEG_decoupler_GSEA"><code class="name flex">
+<span>def <span class="ident">scDEG_decoupler_GSEA</span></span>(<span>adata, uns_key, net, max_FDRpval=0.05, out_dir='./', save_prefix='', save_output=False, get_gsea_df_kwargs={}, decoupler_dotplot_facet_kwargs={})</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Quickly process DEGs from scRNA dataset through <code>decoupler</code> GSEA and create plot for
+initial look at pathways</p>
+<p><code>decoupler</code> tools used:
+* "GSEA" for biological pathways</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
+<dd>Object containing rank_genes_groups results in <code>adata.uns</code></dd>
+<dt><strong><code>uns_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>Key to <code>adata.uns</code> containing rank_genes_groups results</dd>
+<dt><strong><code>net</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>Network dataframe required to run ORA. e.g. <code>msigdb</code> where <code>msigdb</code> is a
+<code>pd.DataFrame</code> from <code>dc.get_resource</code>.</dd>
+<dt><strong><code>max_FDRpval</code></strong> :&ensp;<code>float</code>, optional <code>(default=0.05)</code></dt>
+<dd>FDR p-value cutoff for using genes and plotting significant GSEA pathways.</dd>
+<dt><strong><code>out_dir</code></strong> :&ensp;<code>str</code>, optional <code>(default="./")</code></dt>
+<dd>Path to directory to save plots to</dd>
+<dt><strong><code>save_prefix</code></strong> :&ensp;<code>str</code>, optional <code>(default="")</code></dt>
+<dd>String to prepend to output plots to make names unique</dd>
+<dt><strong><code>save_output</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
+<dd>If <code>True</code>, save output dataframe to <code>out_dir/save_prefix_NMF_GSEA.csv</code></dd>
+<dt><strong><code>get_gsea_df_kwargs</code></strong> :&ensp;<code>dict</code>, optional <code>(default={})</code></dt>
+<dd>Keyword arguments to pass to <code>dc.get_ora_df</code>. e.g. <code>source</code>, <code>target</code>,
+<code>n_background</code>.</dd>
+<dt><strong><code>decoupler_dotplot_facet_kwargs</code></strong> :&ensp;<code>dict</code>, optional <code>(default={})</code></dt>
+<dd>Keyword arguments to pass to <code>decoupler_dotplot_facet</code>. e.g. <code>top_n</code>, <code>cmap</code>,
+<code>dpi</code></dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>enr_pvals</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>ORA output as dataframe</dd>
+</dl>
+<p>Saves <code>decoupler</code> ORA dotplots to <code>out_dir/</code>.</p>
+<h2 id="examples">Examples</h2>
+<p>nets = fetch_decoupler_resources(
+resources=["msigdb", "progeny", "collectri", "liana"],
+genome="human",
+)
+frame = scDEG_decoupler_GSEA(
+a,
+uns_key="rank_genes_groups_{}".format(key),
+net=nets["msigdb"],
+max_FDRpval=0.05,
+out_dir="plots/",
+save_prefix=f"HALLMARK_scATAC_{key}_",
+save_output=False,
+get_gsea_df_kwargs={
+"source":"geneset",
+"target":"genesymbol",
+"times":200,
+"min_n":5,
+"seed":8,
+},
+decoupler_dotplot_facet_kwargs={
+"top_n":10,
+"dpi":200,
+"cmap":"Reds_r",
+"figsize_scale":1.2,
+},
+)</p></div>
+</dd>
 <dt id="kitchen.recipes.scDEG_decoupler_ORA"><code class="name flex">
 <span>def <span class="ident">scDEG_decoupler_ORA</span></span>(<span>adata, uns_key, net, max_FDRpval=0.05, min_logFC=0.5849625007211562, out_dir='./', save_prefix='', save_output=False, get_ora_df_kwargs={}, decoupler_dotplot_facet_kwargs={})</span>
 </code></dt>
@@ -404,6 +528,7 @@ intersection.</dd>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="kitchen.recipes.NMF_decoupler_ORA" href="#kitchen.recipes.NMF_decoupler_ORA">NMF_decoupler_ORA</a></code></li>
+<li><code><a title="kitchen.recipes.PCA_decoupler_GSEA" href="#kitchen.recipes.PCA_decoupler_GSEA">PCA_decoupler_GSEA</a></code></li>
 <li><code><a title="kitchen.recipes.calculate_cell_proportions" href="#kitchen.recipes.calculate_cell_proportions">calculate_cell_proportions</a></code></li>
 <li><code><a title="kitchen.recipes.cc_score" href="#kitchen.recipes.cc_score">cc_score</a></code></li>
 <li><code><a title="kitchen.recipes.cellranger2" href="#kitchen.recipes.cellranger2">cellranger2</a></code></li>
@@ -411,6 +536,7 @@ intersection.</dd>
 <li><code><a title="kitchen.recipes.dim_reduce" href="#kitchen.recipes.dim_reduce">dim_reduce</a></code></li>
 <li><code><a title="kitchen.recipes.plot_genes" href="#kitchen.recipes.plot_genes">plot_genes</a></code></li>
 <li><code><a title="kitchen.recipes.plot_genes_cnmf" href="#kitchen.recipes.plot_genes_cnmf">plot_genes_cnmf</a></code></li>
+<li><code><a title="kitchen.recipes.scDEG_decoupler_GSEA" href="#kitchen.recipes.scDEG_decoupler_GSEA">scDEG_decoupler_GSEA</a></code></li>
 <li><code><a title="kitchen.recipes.scDEG_decoupler_ORA" href="#kitchen.recipes.scDEG_decoupler_ORA">scDEG_decoupler_ORA</a></code></li>
 <li><code><a title="kitchen.recipes.score_gene_signatures" href="#kitchen.recipes.score_gene_signatures">score_gene_signatures</a></code></li>
 <li><code><a title="kitchen.recipes.subset_adata" href="#kitchen.recipes.subset_adata">subset_adata</a></code></li>
@@ -420,7 +546,7 @@ intersection.</dd>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.0</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.1</a>.</p>
 </footer>
 </body>
 </html>

@@ -768,8 +768,8 @@ def scDEG_decoupler_ORA(
         )
 
         if save_output:
-            enr_pvals.to_csv(f"{out_dir}/{save_prefix}_DEG_ORA.csv")
-            print(f"Saved output dataframe to {out_dir}/{save_prefix}_DEG_ORA.csv")
+            enr_pvals.to_csv(f"{out_dir}/{save_prefix}DEG_ORA.csv")
+            print(f"Saved output dataframe to {out_dir}/{save_prefix}DEG_ORA.csv")
 
     print("Done!")
     return enr_pvals
@@ -874,8 +874,269 @@ def NMF_decoupler_ORA(
         )
 
         if save_output:
-            enr_pvals.to_csv(f"{out_dir}/{save_prefix}_NMF_ORA.csv")
-            print(f"Saved output dataframe to {out_dir}/{save_prefix}_NMF_ORA.csv")
+            enr_pvals.to_csv(f"{out_dir}/{save_prefix}NMF_ORA.csv")
+            print(f"Saved output dataframe to {out_dir}/{save_prefix}NMF_ORA.csv")
+
+    print("Done!")
+    return enr_pvals
+
+
+def scDEG_decoupler_GSEA(
+    adata,
+    uns_key,
+    net,
+    max_FDRpval=0.05,
+    out_dir="./",
+    save_prefix="",
+    save_output=False,
+    get_gsea_df_kwargs={},
+    decoupler_dotplot_facet_kwargs={},
+):
+    """
+    Quickly process DEGs from scRNA dataset through `decoupler` GSEA and create plot for
+    initial look at pathways
+
+    `decoupler` tools used:
+        * "GSEA" for biological pathways
+
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Object containing rank_genes_groups results in `adata.uns`
+    uns_key : str
+        Key to `adata.uns` containing rank_genes_groups results
+    net : pd.DataFrame
+        Network dataframe required to run ORA. e.g. `msigdb` where `msigdb` is a
+        `pd.DataFrame` from `dc.get_resource`.
+    max_FDRpval : float, optional (default=0.05)
+        FDR p-value cutoff for using genes and plotting significant GSEA pathways.
+    out_dir : str, optional (default="./")
+        Path to directory to save plots to
+    save_prefix : str, optional (default="")
+        String to prepend to output plots to make names unique
+    save_output : bool, optional (default=`False`)
+        If `True`, save output dataframe to `out_dir/save_prefix_NMF_GSEA.csv`
+    get_gsea_df_kwargs : dict, optional (default={})
+        Keyword arguments to pass to `dc.get_ora_df`. e.g. `source`, `target`,
+        `n_background`.
+    decoupler_dotplot_facet_kwargs : dict, optional (default={})
+        Keyword arguments to pass to `decoupler_dotplot_facet`. e.g. `top_n`, `cmap`,
+        `dpi`
+
+    Returns
+    -------
+    enr_pvals : pd.DataFrame
+        ORA output as dataframe
+
+    Saves `decoupler` ORA dotplots to `out_dir/`.
+
+    Examples
+    --------
+    nets = fetch_decoupler_resources(
+        resources=["msigdb", "progeny", "collectri", "liana"],
+        genome="human",
+    )
+    frame = scDEG_decoupler_GSEA(
+        a,
+        uns_key="rank_genes_groups_{}".format(key),
+        net=nets["msigdb"],
+        max_FDRpval=0.05,
+        out_dir="plots/",
+        save_prefix=f"HALLMARK_scATAC_{key}_",
+        save_output=False,
+        get_gsea_df_kwargs={
+            "source":"geneset",
+            "target":"genesymbol",
+            "times":200,
+            "min_n":5,
+            "seed":8,
+        },
+        decoupler_dotplot_facet_kwargs={
+            "top_n":10,
+            "dpi":200,
+            "cmap":"Reds_r",
+            "figsize_scale":1.2,
+        },
+    )
+    """
+    # get DEGs from all comparisons
+    degs = sc.get.rank_genes_groups_df(adata, group=None, key=uns_key).set_index(
+        "names"
+    )
+    if "group" not in degs.columns:
+        print(f"No 'group' column found. Adding as {uns_key}.")
+        degs["group"] = uns_key
+
+    # perform over representation analysis
+    # iterate through comparisons and perform ORA
+    enr_pvals = pd.DataFrame()  # initialize df for outputs
+    for group in degs.group.unique():
+        try:
+            print(group)
+            # get one group at a time
+            tmp_gsea = degs.loc[degs.group == group].copy()
+            # perform ORA
+            gsea = dc.get_gsea_df(
+                df=tmp_gsea,
+                net=net,
+                stat="scores",  # DEG score
+                verbose=True,
+                **get_gsea_df_kwargs,
+            )
+            # subset to significant terms
+            gsea = gsea.loc[gsea["FDR p-value"] <= max_FDRpval]
+            gsea["group"] = group
+            gsea["reference"] = "rest"
+            enr_pvals = pd.concat([enr_pvals, gsea])
+        except ValueError:
+            print(f"Error in {group}!")
+
+    enr_pvals = enr_pvals.reset_index(drop=True)
+    if len(enr_pvals) > 0:
+        # re-format enr_pvals for outputs
+        enr_pvals["LE_size"] = enr_pvals["Leading edge"].str.split(";").apply(len)
+        enr_pvals["-log10(FDR pval)"] = -np.log10(enr_pvals["FDR p-value"])
+        enr_pvals.rename(columns={"Tag %": "LE Proportion"}, inplace=True)
+
+        # plot ORA results
+        decoupler_dotplot_facet(
+            df=enr_pvals,
+            group_col="group",
+            x="NES",
+            y="Term",
+            c="FDR p-value",
+            s="LE Proportion",
+            save=f"{out_dir}/{save_prefix}DEG_GSEA.png",
+            **decoupler_dotplot_facet_kwargs,
+        )
+
+        if save_output:
+            enr_pvals.to_csv(f"{out_dir}/{save_prefix}DEG_GSEA.csv")
+            print(f"Saved output dataframe to {out_dir}/{save_prefix}DEG_GSEA.csv")
+
+    print("Done!")
+    return enr_pvals
+
+
+def PCA_decoupler_GSEA(
+    adata,
+    net,
+    n_pcs=None,
+    max_FDRpval=0.05,
+    out_dir="./",
+    save_prefix="",
+    save_output=False,
+    plot=False,
+    get_gsea_df_kwargs={},
+    decoupler_dotplot_facet_kwargs={},
+):
+    """
+    Quickly process PCA loadings through `decoupler` GSEA and create plot for
+    initial look at pathways
+
+    `decoupler` tools used:
+        * "GSEA" for biological pathways
+
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Object containing PCA results in `adata.varm["PCs"]`
+    net : pd.DataFrame
+        Network dataframe required to run GSEA. e.g. `msigdb` where `msigdb` is a
+        `pd.DataFrame` from `dc.get_resource`.
+    max_FDRpval : float or `None`, optional (default=0.05)
+        FDR p-value cutoff for plotting significant ORA pathways. If `None`, don't
+        filter and show top 20 terms by FDR p-value.
+    out_dir : str, optional (default="./")
+        Path to directory to save plots to
+    save_prefix : str, optional (default="")
+        String to prepend to output plots to make names unique
+    save_output : bool, optional (default=`False`)
+        If `True`, save output dataframe to `out_dir/save_prefix_PCA_GSEA.csv`
+    get_gsea_df_kwargs : dict, optional (default={})
+        Keyword arguments to pass to `dc.get_gsea_df`. e.g. `source`, `target`,
+        `n_background`.
+    decoupler_dotplot_facet_kwargs : dict, optional (default={})
+        Keyword arguments to pass to `decoupler_dotplot_facet`. e.g. `top_n`, `cmap`,
+        `dpi`
+
+    Returns
+    -------
+    enr_pvals : pd.DataFrame
+        GSEA output as dataframe
+
+    Saves `decoupler` GSEA dotplots to `out_dir/`.
+
+    Examples
+    --------
+    nets = fetch_decoupler_resources(
+        resources=["msigdb", "progeny", "collectri", "liana"],
+        genome="human",
+    )
+    enr_pvals = PCA_decoupler_GSEA(
+        adata=a,
+        n_pcs=3,
+        net=nets["msigdb"],
+        max_FDRpval=0.05,
+        out_dir="plots/",
+        save_prefix="",
+        save_output=False,
+        get_gsea_df_kwargs={
+            "source":"geneset",
+            "target":"genesymbol",
+            "times":500,
+            "min_n":5,
+        },
+    )
+    """
+    # get loadings in long form (top 30 markers)
+    loadings = pd.DataFrame(adata.varm["PCs"], index=adata.var_names)
+    # select n_pcs if desired
+    if n_pcs is not None:
+        loadings = loadings[[x for x in range(n_pcs)]].copy()
+
+    # perform over representation analysis
+    # iterate through comparisons and perform ORA
+    enr_pvals = pd.DataFrame()  # initialize df for outputs
+    for group in loadings.columns:
+        print(group)
+        # perform GSEA
+        gsea = dc.get_gsea_df(
+            df=loadings,
+            stat=group,
+            net=net,
+            verbose=True,
+            **get_gsea_df_kwargs,
+        )
+        # subset to significant terms
+        gsea = gsea.loc[gsea["FDR p-value"] <= max_FDRpval]
+        gsea["group"] = group
+        gsea["reference"] = "rest"
+        enr_pvals = pd.concat([enr_pvals, gsea])
+
+    enr_pvals = enr_pvals.reset_index(drop=True)
+    if len(enr_pvals) > 0:
+        # re-format enr_pvals for outputs
+        enr_pvals["LE_size"] = enr_pvals["Leading edge"].str.split(";").apply(len)
+        enr_pvals["-log10(FDR pval)"] = -np.log10(enr_pvals["FDR p-value"])
+        enr_pvals["LE Proportion"] = enr_pvals["LE_size"] / enr_pvals["Set size"]
+
+        if plot:
+            # plot ORA results
+            decoupler_dotplot_facet(
+                df=enr_pvals,
+                group_col="group",
+                x="NES",
+                y="Term",
+                c="-log10(FDR pval)",
+                s="LE Proportion",
+                save=f"{out_dir}/{save_prefix}PCA_GSEA.png",
+                **decoupler_dotplot_facet_kwargs,
+            )
+
+        if save_output:
+            enr_pvals.to_csv(f"{out_dir}/{save_prefix}PCA_GSEA.csv")
+            print(f"Saved output dataframe to {out_dir}/{save_prefix}PCA_GSEA.csv")
 
     print("Done!")
     return enr_pvals

@@ -299,6 +299,7 @@ def split_violin(
     groupby_order=None,
     splitby=None,
     splitby_order=None,
+    pairby=None,
     points_colorby=None,
     layer=None,
     log_scale=None,
@@ -338,6 +339,9 @@ def split_violin(
         Categorical `.obs` column to split violins by.
     splitby_order : list of str, optional (default=`None`)
         Order of categories in `adata.obs[splitby]`.
+    pairby : str, optional (default=`None`)
+        Categorical `.obs` column identifying point pairings to draw lines between
+        across `groupby` categories. Ignored if `jitter==False`.
     points_colorby : str, optional (default=`None`)
         Categorical `.obs` column to color stripplot points by.
     layer : str, optional (default=`None`)
@@ -389,6 +393,8 @@ def split_violin(
             extra_cols.append(points_colorby)
         if groupby is not None:
             extra_cols.append(groupby)
+        if pairby is not None:
+            extra_cols.append(pairby)
         # remove repetitive cols
         extra_cols = [x for x in list(set(extra_cols)) if x not in features]
         df = obs_df(
@@ -419,6 +425,13 @@ def split_violin(
         df["points_hue"] = df["points_hue"].astype("category")
         points_colorby = "points_hue"  # set to 'points_hue' for plotting
 
+    # add point hue
+    if pairby is None:
+        df["pair"] = 0
+    else:
+        df["pair"] = df[pairby].astype(str).values
+        df["pair"] = df["pair"].astype("category")
+
     # add group
     if groupby is None:
         df["group"] = 0
@@ -433,7 +446,7 @@ def split_violin(
         groups = df["group"].cat.categories
 
     df_tidy = pd.melt(
-        df, id_vars=["hue", "points_hue", "group"], value_vars=new_gene_names
+        df, id_vars=["hue", "points_hue", "group", "pair"], value_vars=new_gene_names
     )
 
     # seaborn plot style
@@ -443,11 +456,11 @@ def split_violin(
             panels=new_gene_names, ncols=ncols, panelsize=panelsize
         )
 
-        for i, variable in enumerate(new_gene_names):
+        for iv, variable in enumerate(new_gene_names):
             tmp = df_tidy.loc[df_tidy["variable"] == variable, :].copy()
 
             # add subplot to gs object
-            _ax = plt.subplot(gs[i])
+            _ax = plt.subplot(gs[iv])
 
             if plot_type == "violin":
                 sns.violinplot(
@@ -515,6 +528,22 @@ def split_violin(
                             size=size,
                             ax=_ax,
                         )
+                # add lines connecting paired points
+                if pairby is not None:
+                    pairs = tmp["pair"].unique()
+                    for pair in pairs:
+                        pair_data = tmp.loc[tmp["pair"] == pair, :]
+                        if len(pair_data) > 1:
+                            for i in range(len(pair_data) - 1):
+                                _ax.plot(
+                                    "group",
+                                    "value",
+                                    data=pair_data,
+                                    color="gray",
+                                    linestyle="-",
+                                    linewidth=0.8,
+                                    alpha=0.8,
+                                )
                 if legend:
                     # access legend objects automatically created from data
                     handles, labels = plt.gca().get_legend_handles_labels()
@@ -532,7 +561,7 @@ def split_violin(
                 _ax.yaxis.set_major_formatter(ScalarFormatter())
 
             _ax.set_xlabel("")
-            _ax.set_title(variable if titles is None else titles[i])
+            _ax.set_title(variable if titles is None else titles[iv])
 
             if splitby is not None:
                 _ax.legend_.remove()
@@ -611,6 +640,7 @@ def boxplots_group(
     groupby,
     groupby_order=None,
     groupby_colordict=None,
+    pairby=None,
     layer=None,
     log_scale=None,
     pseudocount=1.0,
@@ -646,6 +676,9 @@ def boxplots_group(
         with corresponding orders in each element.
     groupby_colordict : dictionary, optional (default=`None`)
         Dictionary of group, color pairs from `groupby` to color boxes and points by
+    pairby : str, optional (default=`None`)
+        Categorical `.obs` column identifying point pairings to draw lines between
+        across `groupby` categories. Ignored if `jitter==False`.
     layer : str, optional (default=`None`)
         Key from `layers` attribute of `adata` if present
     log_scale : int, optional (default=`None`)
@@ -697,7 +730,9 @@ def boxplots_group(
     # prep df for plotting
     if isinstance(a, AnnData):
         # get genes of interest
-        extra_cols = groupby
+        extra_cols = groupby.copy()
+        if pairby is not None:
+            extra_cols.append(pairby)
         # remove repetitive cols
         extra_cols = [x for x in list(set(extra_cols)) if x not in features]
         df = obs_df(
@@ -778,6 +813,27 @@ def boxplots_group(
                     alpha=0.7,
                     ax=_ax,
                 )
+                # Add lines connecting paired points
+                if pairby is not None:
+                    pairs = df[pairby].unique()
+                    for pair in pairs:
+                        pair_data = df[df[pairby] == pair]
+                        if len(pair_data) > 1:
+                            # Ensure the order of x-axis categories
+                            pair_data = (
+                                pair_data.set_index(x)
+                                .reindex(groupby_order[ix])
+                                .reset_index()
+                            )
+                            for i in range(len(pair_data) - 1):
+                                _ax.plot(
+                                    [i, i + 1],
+                                    [pair_data.iloc[i][c], pair_data.iloc[i + 1][c]],
+                                    color="gray",
+                                    linestyle="-",
+                                    linewidth=0.8,
+                                    alpha=0.8,
+                                )
                 if legend:
                     plt.legend([], [], frameon=False)
                 else:
