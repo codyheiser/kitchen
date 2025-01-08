@@ -494,9 +494,9 @@ def split_violin(
                         y="value",
                         data=tmp,
                         hue=splitby if splitby is not None else "group",
-                        hue_order=splitby_order
-                        if splitby is not None
-                        else groupby_order,
+                        hue_order=(
+                            splitby_order if splitby is not None else groupby_order
+                        ),
                         dodge=False if splitby is None else True,
                         jitter=jitter,
                         color="k" if splitby is None else None,
@@ -519,9 +519,9 @@ def split_violin(
                             x="group",
                             y="value",
                             hue=splitby if splitby is not None else "group",
-                            hue_order=splitby_order
-                            if splitby is not None
-                            else groupby_order,
+                            hue_order=(
+                                splitby_order if splitby is not None else groupby_order
+                            ),
                             dodge=False if splitby is None else True,
                             jitter=jitter,
                             palette=[color] * 2,
@@ -789,9 +789,9 @@ def boxplots_group(
                     x=x,
                     y=c,
                     hue=x,
-                    palette=groupby_colordict
-                    if groupby_colordict is not None
-                    else None,
+                    palette=(
+                        groupby_colordict if groupby_colordict is not None else None
+                    ),
                     dodge=False,
                     saturation=0.4,
                     fliersize=0,
@@ -802,9 +802,9 @@ def boxplots_group(
                     x=x,
                     y=c,
                     hue=x,
-                    palette=groupby_colordict
-                    if groupby_colordict is not None
-                    else None,
+                    palette=(
+                        groupby_colordict if groupby_colordict is not None else None
+                    ),
                     jitter=True,
                     dodge=False,
                     size=size,
@@ -820,11 +820,18 @@ def boxplots_group(
                         pair_data = df[df[pairby] == pair]
                         if len(pair_data) > 1:
                             # Ensure the order of x-axis categories
-                            pair_data = (
-                                pair_data.set_index(x)
-                                .reindex(groupby_order[ix])
-                                .reset_index()
-                            )
+                            if groupby_order is not None:
+                                pair_data = (
+                                    pair_data.set_index(x)
+                                    .reindex(groupby_order[ix])
+                                    .reset_index()
+                                )
+                            else:
+                                pair_data = (
+                                    pair_data.set_index(x)
+                                    .reindex(df[x].cat.categories)
+                                    .reset_index()
+                                )
                             for i in range(len(pair_data) - 1):
                                 _ax.plot(
                                     [i, i + 1],

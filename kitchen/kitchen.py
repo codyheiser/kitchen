@@ -477,9 +477,11 @@ def recipe(args):
             markers, myplot = plot_genes(
                 a,
                 de_method=args.de_method,
-                layer="log1p_norm"
-                if args.de_method.startswith("t-test")
-                else "raw_counts",
+                layer=(
+                    "log1p_norm"
+                    if args.de_method.startswith("t-test")
+                    else "raw_counts"
+                ),
                 groupby="leiden",
                 ambient=False,
                 plot_type=de,
