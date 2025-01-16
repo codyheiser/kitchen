@@ -245,6 +245,133 @@ def significance_bar(
             )
 
 
+def calc_significance(
+    df,
+    ax,
+    feature,
+    groupby,
+    groupby_order=None,
+    test_pairs=None,
+    bonferroni=False,
+    log_scale=None,
+    **kwargs,
+):
+    """
+    Calculate significance with t-test between two groups
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing data to plot
+    ax : matplotlib.axes
+        Axes object to plot significance bars on
+    feature : str
+        DataFrame column to plot (y variable)
+    groupby : list of str
+        Columns from `a` or `a.obs` to group by (x variable)
+    groupby_order : list of str, optional (default=`None`)
+        List of values in `df[groupby]` specifying the order of groups on x-axis.
+    test_pairs : list of tuple, optional (default=`None`)
+        List of pairs of `df[groupby]` values to include in testing. If `None`, test all
+        levels in `df[groupby]` pairwise.
+    bonferroni : bool, optional (default=False)
+        Adjust significance p-values with simple Bonferroni correction
+    log_scale : int, optional (default=`None`)
+        Set axis scale(s) to log. Numeric values are interpreted as the desired base
+        (e.g. 10). When `None`, plot defers to the existing Axes scale.
+    **kwargs : optional
+        Keyword args to pass to `significance_bar`
+
+    Returns
+    -------
+    sig_out : dict
+        Dictionary of t-test statistics if `sig==True`. Otherwise, write to `.csv` in
+        `outdir/`.
+    """
+    # initialize dictionary of p values
+    sig_out = {
+        "variable": [],
+        "group1": [],
+        "group2": [],
+        "pvalue": [],
+        "pvalue_adj": [],
+    }
+    # initialize significant count for bar height
+    sig_count = 0
+
+    # determine how to loop through 'groupby'
+    if groupby_order is not None:
+        indexer = groupby_order
+    elif pd.api.types.is_categorical_dtype(df[groupby]):
+        indexer = df[groupby].cat.categories
+    else:
+        indexer = df[groupby].unique()
+
+    for i_sig in range(len(indexer)):
+        for i_sig_2 in [x for x in range(i_sig, len(indexer)) if x != i_sig]:
+            # check if (indexer[i_sig], indexer[i_sig_2]) in test_pairs
+            if test_pairs is not None:
+                if ((indexer[i_sig], indexer[i_sig_2]) in test_pairs) | (
+                    (indexer[i_sig_2], indexer[i_sig]) in test_pairs
+                ):
+                    skip = False
+                else:
+                    skip = True
+            else:
+                skip = True
+
+            if not skip:
+                # if label has more than two classes, automatically perform
+                # t-tests and add significance bars to plots
+                _, p_value = stats.ttest_ind(
+                    df.loc[df[groupby] == indexer[i_sig], feature].dropna(),
+                    df.loc[df[groupby] == indexer[i_sig_2], feature].dropna(),
+                )
+                # Bonferroni correction
+                pvalue_adj = p_value * len(indexer)
+                # dump results into dictionary
+                sig_out["signature"].append(feature)
+                sig_out["group1"].append(indexer[i_sig])
+                sig_out["group2"].append(indexer[i_sig_2])
+                sig_out["pvalue"].append(p_value)
+                sig_out["pvalue_adj"].append(pvalue_adj)
+                # use adj p-value if 'bonferroni' is True
+                tester = pvalue_adj if bonferroni else p_value
+                if tester <= 0.05:
+                    sig_count += 1  # increment significant count
+                    if tester < 0.0001:
+                        displaystring = r"***"
+                    elif tester < 0.001:
+                        displaystring = r"**"
+                    else:
+                        displaystring = r"*"
+                    # offset by 15 percent for each significant pair
+                    # or 25 percent if log scale
+                    if log_scale is None:
+                        height = (
+                            df[feature].max() + 0.15 * df[feature].max() * sig_count
+                        )
+                    else:
+                        height = (
+                            df[feature].max()
+                            + 0.1
+                            * df[feature].max()
+                            * sig_count
+                            * sig_count
+                            * log_scale
+                        )
+                    # set up significance bar
+                    bar_centers = np.array([i_sig, i_sig_2])
+                    significance_bar(
+                        bar_centers[0],
+                        bar_centers[1],
+                        height,
+                        displaystring,
+                        ax=ax,
+                    )
+    return sig_out
+
+
 def build_gridspec(panels, ncols, panelsize=(3, 3)):
     """
     Create `gridspec.GridSpec` object from a list of panels
@@ -640,12 +767,14 @@ def boxplots_group(
     groupby,
     groupby_order=None,
     groupby_colordict=None,
+    points_colorby=None,
     pairby=None,
     layer=None,
     log_scale=None,
     pseudocount=1.0,
     sig=True,
     bonferroni=False,
+    test_pairs=None,
     ylabel=None,
     titles=None,
     legend=True,
@@ -679,6 +808,8 @@ def boxplots_group(
     pairby : str, optional (default=`None`)
         Categorical `.obs` column identifying point pairings to draw lines between
         across `groupby` categories. Ignored if `jitter==False`.
+    points_colorby : str, optional (default=`None`)
+        Categorical `.obs` column to color stripplot points by.
     layer : str, optional (default=`None`)
         Key from `layers` attribute of `adata` if present
     log_scale : int, optional (default=`None`)
@@ -691,6 +822,9 @@ def boxplots_group(
         significance bars to plot(s)
     bonferroni : bool, optional (default=False)
         Adjust significance p-values with simple Bonferroni correction
+    test_pairs : list of tuple, optional (default=`None`)
+        List of pairs of `groupby` values to include in testing. If `None`, test all
+        levels in `groupby` pairwise.
     ylabel : str, optional (default=`None`)
         Label for y axes. If `None` use `colors`.
     titles : list of str, optional (default=`None`)
@@ -733,6 +867,8 @@ def boxplots_group(
         extra_cols = groupby.copy()
         if pairby is not None:
             extra_cols.append(pairby)
+        if points_colorby is not None:
+            extra_cols.append(points_colorby)
         # remove repetitive cols
         extra_cols = [x for x in list(set(extra_cols)) if x not in features]
         df = obs_df(
@@ -774,14 +910,16 @@ def boxplots_group(
                 panels=new_features, ncols=ncols, panelsize=panelsize
             )
             if sig:
-                # initialize dictionary of p values
-                sig_out = {
-                    "signature": [],
-                    "group1": [],
-                    "group2": [],
-                    "pvalue": [],
-                    "pvalue_adj": [],
-                }
+                # initialize df of p values
+                sig_out = pd.DataFrame(
+                    {
+                        "variable": [],
+                        "group1": [],
+                        "group2": [],
+                        "pvalue": [],
+                        "pvalue_adj": [],
+                    }
+                )
             for ic, c in enumerate(new_features):
                 _ax = plt.subplot(gs[ic])
                 sns.boxplot(
@@ -797,22 +935,50 @@ def boxplots_group(
                     fliersize=0,
                     ax=_ax,
                 )
-                sns.stripplot(
-                    data=df,
-                    x=x,
-                    y=c,
-                    hue=x,
-                    palette=(
-                        groupby_colordict if groupby_colordict is not None else None
-                    ),
-                    jitter=True,
-                    dodge=False,
-                    size=size,
-                    edgecolor="k",
-                    linewidth=0.5,
-                    alpha=0.7,
-                    ax=_ax,
-                )
+                if points_colorby is None:
+                    sns.stripplot(
+                        data=df,
+                        x=x,
+                        y=c,
+                        hue=x,
+                        palette=(
+                            groupby_colordict if groupby_colordict is not None else None
+                        ),
+                        jitter=True,
+                        dodge=False,
+                        size=size,
+                        edgecolor="k",
+                        linewidth=0.5,
+                        alpha=0.7,
+                        ax=_ax,
+                    )
+                else:
+                    # coerce points_colorby column to categorical
+                    if not pd.api.types.is_categorical_dtype(df[points_colorby]):
+                        df[points_colorby] = df[points_colorby].astype("category")
+                    # get the Accent colormap
+                    Accent = mcp.gen_color(
+                        cmap="rainbow", n=len(df[points_colorby].cat.categories)
+                    )
+                    for cat, color in zip(
+                        df[points_colorby].cat.categories,
+                        Accent[: len(df[points_colorby].cat.categories)],
+                    ):
+                        df_per_color = df.loc[df[points_colorby] == cat]
+                        sns.stripplot(
+                            data=df_per_color,
+                            x=x,
+                            y=c,
+                            hue=x,
+                            jitter=True,
+                            dodge=False,
+                            palette=[color] * 2,
+                            size=size,
+                            edgecolor="k",
+                            linewidth=0.5,
+                            alpha=0.7,
+                            ax=_ax,
+                        )
                 # Add lines connecting paired points
                 if pairby is not None:
                     pairs = df[pairby].unique()
@@ -841,71 +1007,19 @@ def boxplots_group(
                                     linewidth=0.8,
                                     alpha=0.8,
                                 )
-                if legend:
-                    plt.legend([], [], frameon=False)
-                else:
-                    _ax.get_legend().remove()
+
                 if sig:
-                    sig_count = 0  # initiate significant count for bar height
-                    indexer = (
-                        df[x].cat.categories
-                        if groupby_order is not None
-                        else df[x].unique()
+                    sig_tmp = calc_significance(
+                        df=df,
+                        ax=_ax,
+                        feature=c,
+                        groupby=x,
+                        groupby_order=groupby_order,
+                        test_pairs=test_pairs,
+                        bonferroni=bonferroni,
+                        log_scale=log_scale,
                     )
-                    for i_sig in range(len(indexer)):
-                        for i_sig_2 in [
-                            x for x in range(i_sig, len(indexer)) if x != i_sig
-                        ]:
-                            # if label has more than two classes, automatically perform
-                            # t-tests and add significance bars to plots
-                            _, p_value = stats.ttest_ind(
-                                df.loc[df[x] == indexer[i_sig], c].dropna(),
-                                df.loc[df[x] == indexer[i_sig_2], c].dropna(),
-                            )
-                            # Bonferroni correction
-                            pvalue_adj = p_value * len(indexer)
-                            # dump results into dictionary
-                            sig_out["signature"].append(c)
-                            sig_out["group1"].append(indexer[i_sig])
-                            sig_out["group2"].append(indexer[i_sig_2])
-                            sig_out["pvalue"].append(p_value)
-                            sig_out["pvalue_adj"].append(pvalue_adj)
-                            if bonferroni:
-                                tester = pvalue_adj
-                            else:
-                                tester = p_value
-                            if tester <= 0.05:
-                                sig_count += 1  # increment significant count
-                                if tester < 0.0001:
-                                    displaystring = r"***"
-                                elif tester < 0.001:
-                                    displaystring = r"**"
-                                else:
-                                    displaystring = r"*"
-                                # offset by 15 percent for each significant pair
-                                # or 25 percent if log scale
-                                if log_scale is None:
-                                    height = (
-                                        df[c].max() + 0.15 * df[c].max() * sig_count
-                                    )
-                                else:
-                                    height = (
-                                        df[c].max()
-                                        + 0.1
-                                        * df[c].max()
-                                        * sig_count
-                                        * sig_count
-                                        * log_scale
-                                    )
-                                # set up significance bar
-                                bar_centers = np.array([i_sig, i_sig_2])
-                                significance_bar(
-                                    bar_centers[0],
-                                    bar_centers[1],
-                                    height,
-                                    displaystring,
-                                    ax=_ax,
-                                )
+                    sig_out = pd.concat([sig_out, pd.DataFrame(sig_tmp)])
 
                 if log_scale is not None:
                     # use custom functions for transformation
@@ -924,6 +1038,36 @@ def boxplots_group(
                 _ax.set_xticklabels(_ax.get_xticklabels(), rotation=90)
                 _ax.set_xlabel("")
                 _ax.set_ylabel(c if ylabel is None else ylabel)
+
+            if legend:
+                # create legend for outside plots
+                if points_colorby is not None:
+                    legend_elements = [
+                        Line2D(
+                            [0],
+                            [0],
+                            label=cat,
+                            marker="o",
+                            markersize=10,
+                            markerfacecolor=color,
+                            markeredgewidth=1,
+                            markeredgecolor="k",
+                            linestyle="-",
+                        )
+                        for cat, color in zip(
+                            df[points_colorby].cat.categories,
+                            Accent[: len(df[points_colorby].cat.categories)],
+                        )
+                    ]
+                else:
+                    legend_elements = None
+                if legend_elements:
+                    plt.legend(
+                        handles=legend_elements,
+                        loc="upper left",
+                        bbox_to_anchor=(1, 0.95),
+                        frameon=False,
+                    )
 
             gs.tight_layout(fig)
 
@@ -1096,6 +1240,7 @@ def jointgrid_boxplots_category(
                 "group1": [],
                 "group2": [],
                 "pvalue": [],
+                "pvalue_adj": [],
             }
             # correlation (Pearson)
             corr_coef, corr_p_value = stats.pearsonr(df[x], df[y])
@@ -1103,86 +1248,40 @@ def jointgrid_boxplots_category(
             sig_out["group1"].append(x)
             sig_out["group2"].append(y)
             sig_out["pvalue"].append(corr_p_value)
+            sig_out["pvalue_adj"].append(np.nan)
             g.ax_joint.annotate(
                 "$R^2$: {}".format(np.round(corr_coef, 3)),
                 xy=(0.05, 0.95),
                 xycoords="axes fraction",
             )
-            # y axis first
-            sig_count = 0  # initiate significant count for bar height
-            for i_sig_y in range(len(df[color].unique())):
-                for i_sig_y_2 in [
-                    x for x in range(i_sig_y, len(df[color].unique())) if x != i_sig_y
-                ]:
-                    # if label has more than two classes, automatically perform
-                    # t-tests and add significance bars to plots
-                    _, p_value = stats.ttest_ind(
-                        df.loc[df[color] == df[color].unique()[i_sig_y], y].dropna(),
-                        df.loc[df[color] == df[color].unique()[i_sig_y_2], y].dropna(),
-                    )
-                    # dump results into dictionary
-                    sig_out["variable"].append(y)
-                    sig_out["group1"].append(df[color].unique()[i_sig_y])
-                    sig_out["group2"].append(df[color].unique()[i_sig_y_2])
-                    sig_out["pvalue"].append(p_value)
-                    # plot bars if significance
-                    if p_value <= 0.05:
-                        sig_count += 1  # increment significant count
-                        if p_value < 0.0001:
-                            displaystring = r"***"
-                        elif p_value < 0.001:
-                            displaystring = r"**"
-                        else:
-                            displaystring = r"*"
-                        # offset by 10 percent for each significant pair
-                        height = df[y].max() + 0.15 * df[y].max() * sig_count
-                        # set up significance bar
-                        bar_centers = np.array([i_sig_y, i_sig_y_2])
-                        significance_bar(
-                            bar_centers[0],
-                            bar_centers[1],
-                            height,
-                            displaystring,
-                            ax=g.ax_marg_y,
-                        )
-            # x axis next
-            sig_count = 0  # initiate significant count for bar height
-            for i_sig_x in range(len(df[color].unique())):
-                for i_sig_x_2 in [
-                    x for x in range(i_sig_x, len(df[color].unique())) if x != i_sig_x
-                ]:
-                    # if label has more than two classes, automatically perform
-                    # t-tests and add significance bars to plots
-                    _, p_value = stats.ttest_ind(
-                        df.loc[df[color] == df[color].unique()[i_sig_x], x].dropna(),
-                        df.loc[df[color] == df[color].unique()[i_sig_x_2], x].dropna(),
-                    )
-                    # dump results into dictionary
-                    sig_out["variable"].append(x)
-                    sig_out["group1"].append(df[color].unique()[i_sig_x])
-                    sig_out["group2"].append(df[color].unique()[i_sig_x_2])
-                    sig_out["pvalue"].append(p_value)
-                    # plot bars if significance
-                    if p_value <= 0.05:
-                        sig_count += 1  # increment significant count
-                        if p_value < 0.0001:
-                            displaystring = r"***"
-                        elif p_value < 0.001:
-                            displaystring = r"**"
-                        else:
-                            displaystring = r"*"
-                        # offset by 10 percent for each significant pair
-                        height = df[x].max() + 0.15 * df[x].max() * sig_count
-                        # set up significance bar
-                        bar_centers = np.array([i_sig_x, i_sig_x_2])
-                        significance_bar(
-                            bar_centers[0],
-                            bar_centers[1],
-                            height,
-                            displaystring,
-                            ax=g.ax_marg_x,
-                            horizontal=True,
-                        )
+
+            sig_out = pd.DataFrame(sig_out)
+
+            # boxplot marginal y axis
+            sig_tmp = calc_significance(
+                df=df,
+                ax=g.ax_marg_y,
+                feature=y,
+                groupby=color,
+                groupby_order=None,
+                test_pairs=None,
+                bonferroni=False,
+                log_scale=None,
+            )
+            sig_out = pd.concat([sig_out, pd.DataFrame(sig_tmp)])
+            # boxplot marginal x axis
+            sig_tmp = calc_significance(
+                df=df,
+                ax=g.ax_marg_x,
+                feature=x,
+                groupby=color,
+                groupby_order=None,
+                test_pairs=None,
+                bonferroni=False,
+                log_scale=None,
+                horizontal=True,  # draw sig bars horizontally
+            )
+            sig_out = pd.concat([sig_out, pd.DataFrame(sig_tmp)])
 
         # set x labels for marginal boxplot
         g.ax_marg_y.set_xticklabels(

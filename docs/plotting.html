@@ -37,7 +37,7 @@ hljs.highlightAll();
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="kitchen.plotting.boxplots_group"><code class="name flex">
-<span>def <span class="ident">boxplots_group</span></span>(<span>a, features, groupby, groupby_order=None, groupby_colordict=None, pairby=None, layer=None, log_scale=None, pseudocount=1.0, sig=True, bonferroni=False, ylabel=None, titles=None, legend=True, size=3, panelsize=(3, 3), ncols=6, outdir='./', save_prefix='', dpi=300)</span>
+<span>def <span class="ident">boxplots_group</span></span>(<span>a, features, groupby, groupby_order=None, groupby_colordict=None, points_colorby=None, pairby=None, layer=None, log_scale=None, pseudocount=1.0, sig=True, bonferroni=False, test_pairs=None, ylabel=None, titles=None, legend=True, size=3, panelsize=(3, 3), ncols=6, outdir='./', save_prefix='', dpi=300)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot trends from
@@ -62,6 +62,8 @@ with corresponding orders in each element.</dd>
 <dt><strong><code>pairby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Categorical <code>.obs</code> column identifying point pairings to draw lines between
 across <code>groupby</code> categories. Ignored if <code>jitter==False</code>.</dd>
+<dt><strong><code>points_colorby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Categorical <code>.obs</code> column to color stripplot points by.</dd>
 <dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Key from <code>layers</code> attribute of <code>adata</code> if present</dd>
 <dt><strong><code>log_scale</code></strong> :&ensp;<code>int</code>, optional <code>(default=</code>None<code>)</code></dt>
@@ -74,6 +76,9 @@ across <code>groupby</code> categories. Ignored if <code>jitter==False</code>.</
 significance bars to plot(s)</dd>
 <dt><strong><code>bonferroni</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
 <dd>Adjust significance p-values with simple Bonferroni correction</dd>
+<dt><strong><code>test_pairs</code></strong> :&ensp;<code>list</code> of <code>tuple</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>List of pairs of <code>groupby</code> values to include in testing. If <code>None</code>, test all
+levels in <code>groupby</code> pairwise.</dd>
 <dt><strong><code>ylabel</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Label for y axes. If <code>None</code> use <code>colors</code>.</dd>
 <dt><strong><code>titles</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
@@ -125,6 +130,41 @@ significance bars to plot(s)</dd>
 <dd>GridSpec object</dd>
 <dt><strong><code>fig</code></strong> :&ensp;<code>matplotlib.Figure</code></dt>
 <dd>Figure object</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.calc_significance"><code class="name flex">
+<span>def <span class="ident">calc_significance</span></span>(<span>df, ax, feature, groupby, groupby_order=None, test_pairs=None, bonferroni=False, log_scale=None, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate significance with t-test between two groups</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>DataFrame containing data to plot</dd>
+<dt><strong><code>ax</code></strong> :&ensp;<code>matplotlib.axes</code></dt>
+<dd>Axes object to plot significance bars on</dd>
+<dt><strong><code>feature</code></strong> :&ensp;<code>str</code></dt>
+<dd>DataFrame column to plot (y variable)</dd>
+<dt><strong><code>groupby</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
+<dd>Columns from <code>a</code> or <code>a.obs</code> to group by (x variable)</dd>
+<dt><strong><code>groupby_order</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>List of values in <code>df[groupby]</code> specifying the order of groups on x-axis.</dd>
+<dt><strong><code>test_pairs</code></strong> :&ensp;<code>list</code> of <code>tuple</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>List of pairs of <code>df[groupby]</code> values to include in testing. If <code>None</code>, test all
+levels in <code>df[groupby]</code> pairwise.</dd>
+<dt><strong><code>bonferroni</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
+<dd>Adjust significance p-values with simple Bonferroni correction</dd>
+<dt><strong><code>log_scale</code></strong> :&ensp;<code>int</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Set axis scale(s) to log. Numeric values are interpreted as the desired base
+(e.g. 10). When <code>None</code>, plot defers to the existing Axes scale.</dd>
+<dt><strong><code>**kwargs</code></strong> :&ensp;<code>optional</code></dt>
+<dd>Keyword args to pass to <code><a title="kitchen.plotting.significance_bar" href="#kitchen.plotting.significance_bar">significance_bar()</a></code></dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>sig_out</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary of t-test statistics if <code>sig==True</code>. Otherwise, write to <code>.csv</code> in
+<code>outdir/</code>.</dd>
 </dl></div>
 </dd>
 <dt id="kitchen.plotting.cluster_pie"><code class="name flex">
@@ -628,6 +668,7 @@ across <code>groupby</code> categories. Ignored if <code>jitter==False</code>.</
 <ul class="">
 <li><code><a title="kitchen.plotting.boxplots_group" href="#kitchen.plotting.boxplots_group">boxplots_group</a></code></li>
 <li><code><a title="kitchen.plotting.build_gridspec" href="#kitchen.plotting.build_gridspec">build_gridspec</a></code></li>
+<li><code><a title="kitchen.plotting.calc_significance" href="#kitchen.plotting.calc_significance">calc_significance</a></code></li>
 <li><code><a title="kitchen.plotting.cluster_pie" href="#kitchen.plotting.cluster_pie">cluster_pie</a></code></li>
 <li><code><a title="kitchen.plotting.custom_heatmap" href="#kitchen.plotting.custom_heatmap">custom_heatmap</a></code></li>
 <li><code><a title="kitchen.plotting.decoupler_dotplot" href="#kitchen.plotting.decoupler_dotplot">decoupler_dotplot</a></code></li>
