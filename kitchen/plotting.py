@@ -318,7 +318,7 @@ def calc_significance(
                 else:
                     skip = True
             else:
-                skip = True
+                skip = False
 
             if not skip:
                 # if label has more than two classes, automatically perform
@@ -330,7 +330,7 @@ def calc_significance(
                 # Bonferroni correction
                 pvalue_adj = p_value * len(indexer)
                 # dump results into dictionary
-                sig_out["signature"].append(feature)
+                sig_out["variable"].append(feature)
                 sig_out["group1"].append(indexer[i_sig])
                 sig_out["group2"].append(indexer[i_sig_2])
                 sig_out["pvalue"].append(p_value)
@@ -987,26 +987,39 @@ def boxplots_group(
                         if len(pair_data) > 1:
                             # Ensure the order of x-axis categories
                             if groupby_order is not None:
-                                pair_data = (
-                                    pair_data.set_index(x)
-                                    .reindex(groupby_order[ix])
-                                    .reset_index()
-                                )
+                                ordered_pair_data = []
+                                for category in groupby_order[ix]:
+                                    ordered_pair_data.append(
+                                        pair_data[pair_data[x] == category]
+                                    )
+                                pair_data = pd.concat(ordered_pair_data)
                             else:
-                                pair_data = (
-                                    pair_data.set_index(x)
-                                    .reindex(df[x].cat.categories)
-                                    .reset_index()
-                                )
-                            for i in range(len(pair_data) - 1):
-                                _ax.plot(
-                                    [i, i + 1],
-                                    [pair_data.iloc[i][c], pair_data.iloc[i + 1][c]],
-                                    color="gray",
-                                    linestyle="-",
-                                    linewidth=0.8,
-                                    alpha=0.8,
-                                )
+                                ordered_pair_data = []
+                                for category in df[x].cat.categories:
+                                    ordered_pair_data.append(
+                                        pair_data[pair_data[x] == category]
+                                    )
+                                pair_data = pd.concat(ordered_pair_data)
+
+                            for i in range(len(pair_data)):
+                                for j in range(i + 1, len(pair_data)):
+                                    # only plot across categories
+                                    if pair_data.iloc[i][x] != pair_data.iloc[j][x]:
+                                        _ax.plot(
+                                            [
+                                                pair_data.iloc[i][x],
+                                                pair_data.iloc[j][x],
+                                            ],
+                                            [
+                                                pair_data.iloc[i][c],
+                                                pair_data.iloc[j][c],
+                                            ],
+                                            color="gray",
+                                            linestyle="-",
+                                            linewidth=0.8,
+                                            alpha=0.8,
+                                            label="_nolegend_",  # Exclude from legend
+                                        )
 
                 if sig:
                     sig_tmp = calc_significance(
@@ -1014,7 +1027,7 @@ def boxplots_group(
                         ax=_ax,
                         feature=c,
                         groupby=x,
-                        groupby_order=groupby_order,
+                        groupby_order=groupby_order[ix],
                         test_pairs=test_pairs,
                         bonferroni=bonferroni,
                         log_scale=log_scale,
@@ -1052,7 +1065,7 @@ def boxplots_group(
                             markerfacecolor=color,
                             markeredgewidth=1,
                             markeredgecolor="k",
-                            linestyle="-",
+                            linestyle="None",
                         )
                         for cat, color in zip(
                             df[points_colorby].cat.categories,
@@ -1265,7 +1278,7 @@ def jointgrid_boxplots_category(
                 groupby=color,
                 groupby_order=None,
                 test_pairs=None,
-                bonferroni=False,
+                bonferroni=bonferroni,
                 log_scale=None,
             )
             sig_out = pd.concat([sig_out, pd.DataFrame(sig_tmp)])
@@ -1277,7 +1290,7 @@ def jointgrid_boxplots_category(
                 groupby=color,
                 groupby_order=None,
                 test_pairs=None,
-                bonferroni=False,
+                bonferroni=bonferroni,
                 log_scale=None,
                 horizontal=True,  # draw sig bars horizontally
             )
