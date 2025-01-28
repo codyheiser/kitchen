@@ -37,7 +37,7 @@ hljs.highlightAll();
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="kitchen.plotting.boxplots_group"><code class="name flex">
-<span>def <span class="ident">boxplots_group</span></span>(<span>a, features, groupby, groupby_order=None, groupby_colordict=None, points_colorby=None, pairby=None, layer=None, log_scale=None, pseudocount=1.0, sig=True, bonferroni=False, test_pairs=None, ylabel=None, titles=None, legend=True, size=3, panelsize=(3, 3), ncols=6, outdir='./', save_prefix='', dpi=300)</span>
+<span>def <span class="ident">boxplots_group</span></span>(<span>a, features, groupby, groupby_order=None, groupby_colordict=None, points_colorby=None, pairby=None, layer=None, log_scale=None, pseudocount=1.0, sig=False, bonferroni=False, test_pairs=None, ylabel=None, titles=None, legend=True, size=3, panelsize=(3, 3), ncols=6, outdir='./', save_prefix='', dpi=300)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot trends from
@@ -61,7 +61,7 @@ with corresponding orders in each element.</dd>
 <dd>Dictionary of group, color pairs from <code>groupby</code> to color boxes and points by</dd>
 <dt><strong><code>pairby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Categorical <code>.obs</code> column identifying point pairings to draw lines between
-across <code>groupby</code> categories. Ignored if <code>jitter==False</code>.</dd>
+across <code>groupby</code> categories.</dd>
 <dt><strong><code>points_colorby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Categorical <code>.obs</code> column to color stripplot points by.</dd>
 <dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
@@ -71,7 +71,7 @@ across <code>groupby</code> categories. Ignored if <code>jitter==False</code>.</
 (e.g. 10). When <code>None</code>, plot defers to the existing Axes scale.</dd>
 <dt><strong><code>pseudocount</code></strong> :&ensp;<code>float</code>, optional <code>(default=1.0)</code></dt>
 <dd>Pseudocount to add to values before log-transforming with base=<code>log_scale</code></dd>
-<dt><strong><code>sig</code></strong> :&ensp;<code>bool</code>, optional <code>(default=True)</code></dt>
+<dt><strong><code>sig</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
 <dd>Perform significance testing (2-way t-test) between all groups and add
 significance bars to plot(s)</dd>
 <dt><strong><code>bonferroni</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
@@ -145,15 +145,49 @@ levels in <code>groupby</code> pairwise.</dd>
 <dd>Axes object to plot significance bars on</dd>
 <dt><strong><code>feature</code></strong> :&ensp;<code>str</code></dt>
 <dd>DataFrame column to plot (y variable)</dd>
-<dt><strong><code>groupby</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
-<dd>Columns from <code>a</code> or <code>a.obs</code> to group by (x variable)</dd>
+<dt><strong><code>groupby</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column from <code>dfa</code> to group by (x variable)</dd>
 <dt><strong><code>groupby_order</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>List of values in <code>df[groupby]</code> specifying the order of groups on x-axis.</dd>
 <dt><strong><code>test_pairs</code></strong> :&ensp;<code>list</code> of <code>tuple</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>List of pairs of <code>df[groupby]</code> values to include in testing. If <code>None</code>, test all
 levels in <code>df[groupby]</code> pairwise.</dd>
-<dt><strong><code>bonferroni</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
+<dt><strong><code>bonferroni</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
 <dd>Adjust significance p-values with simple Bonferroni correction</dd>
+<dt><strong><code>log_scale</code></strong> :&ensp;<code>int</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Set axis scale(s) to log. Numeric values are interpreted as the desired base
+(e.g. 10). When <code>None</code>, plot defers to the existing Axes scale.</dd>
+<dt><strong><code>**kwargs</code></strong> :&ensp;<code>optional</code></dt>
+<dd>Keyword args to pass to <code><a title="kitchen.plotting.significance_bar" href="#kitchen.plotting.significance_bar">significance_bar()</a></code></dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>sig_out</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary of t-test statistics if <code>sig==True</code>. Otherwise, write to <code>.csv</code> in
+<code>outdir/</code>.</dd>
+</dl></div>
+</dd>
+<dt id="kitchen.plotting.calc_significance_split"><code class="name flex">
+<span>def <span class="ident">calc_significance_split</span></span>(<span>df, ax, feature, groupby, splitby, groupby_order=None, splitby_order=None, log_scale=None, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate significance with t-test between two groups</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>df</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>DataFrame containing data to plot</dd>
+<dt><strong><code>ax</code></strong> :&ensp;<code>matplotlib.axes</code></dt>
+<dd>Axes object to plot significance bars on</dd>
+<dt><strong><code>feature</code></strong> :&ensp;<code>str</code></dt>
+<dd>DataFrame column to plot (y variable)</dd>
+<dt><strong><code>groupby</code></strong> :&ensp;<code>str</code></dt>
+<dd>Column from <code>dfa</code> to group by (x variable)</dd>
+<dt><strong><code>splitby</code></strong> :&ensp;<code>str</code></dt>
+<dd>Categorical column from <code>df</code> to split boxes/violins by</dd>
+<dt><strong><code>groupby_order</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>List of values in <code>df[groupby]</code> specifying the order of groups on x-axis.</dd>
+<dt><strong><code>splitby_order</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Order of categories in <code>df[splitby]</code></dd>
 <dt><strong><code>log_scale</code></strong> :&ensp;<code>int</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Set axis scale(s) to log. Numeric values are interpreted as the desired base
 (e.g. 10). When <code>None</code>, plot defers to the existing Axes scale.</dd>
@@ -582,7 +616,7 @@ keys)</dd>
 <div class="desc"><p>Draw significance bracket on matplotlib figure</p></div>
 </dd>
 <dt id="kitchen.plotting.split_violin"><code class="name flex">
-<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, pairby=None, points_colorby=None, layer=None, log_scale=None, pseudocount=1.0, scale='width', plot_type='violin', split=True, strip=True, jitter=True, size=1, panelsize=(3, 3), ncols=1, ylabel=None, titles=None, legend=True, save=None, dpi=300)</span>
+<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, points_colorby=None, layer=None, log_scale=None, pseudocount=1.0, plot_type='violin', scale='width', sig=False, strip=True, jitter=True, size=3, panelsize=(3, 3), ncols=1, ylabel=None, titles=None, legend=True, save=None, dpi=300)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot genes grouped by one variable and split by another</p>
@@ -604,9 +638,6 @@ with corresponding orders in each element.</dd>
 <dd>Categorical <code>.obs</code> column to split violins by.</dd>
 <dt><strong><code>splitby_order</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Order of categories in <code>adata.obs[splitby]</code>.</dd>
-<dt><strong><code>pairby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
-<dd>Categorical <code>.obs</code> column identifying point pairings to draw lines between
-across <code>groupby</code> categories. Ignored if <code>jitter==False</code>.</dd>
 <dt><strong><code>points_colorby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Categorical <code>.obs</code> column to color stripplot points by.</dd>
 <dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
@@ -616,17 +647,18 @@ across <code>groupby</code> categories. Ignored if <code>jitter==False</code>.</
 (e.g. 10). When <code>None</code>, plot defers to the existing Axes scale.</dd>
 <dt><strong><code>pseudocount</code></strong> :&ensp;<code>float</code>, optional <code>(default=1.0)</code></dt>
 <dd>Pseudocount to add to values before log-transforming with base=<code>log_scale</code></dd>
-<dt><strong><code>scale</code></strong> :&ensp;<code>str</code>, optional <code>(default="width")</code></dt>
-<dd>See :func:<code>~seaborn.violinplot</code>.</dd>
 <dt><strong><code>plot_type</code></strong> :&ensp;<code>str</code>, optional <code>(default="violin")</code></dt>
 <dd>"violin" for violinplot, "box" for boxplot</dd>
-<dt><strong><code>split</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
-<dd>Whether to split the violins or not.</dd>
+<dt><strong><code>scale</code></strong> :&ensp;<code>str</code>, optional <code>(default="width")</code></dt>
+<dd>See :func:<code>~seaborn.violinplot</code>.</dd>
+<dt><strong><code>sig</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
+<dd>Perform significance testing (2-way t-test) between all groups and add
+significance bars to plot(s)</dd>
 <dt><strong><code>strip</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
 <dd>Show a strip plot on top of the violin plot.</dd>
 <dt><strong><code>jitter</code></strong> :&ensp;<code>Union[int, float, bool]</code>, optional <code>(default=</code>True<code>)</code></dt>
 <dd>If set to 0, no points are drawn. See :func:<code>~seaborn.stripplot</code>.</dd>
-<dt><strong><code>size</code></strong> :&ensp;<code>int</code>, optional <code>(default=1)</code></dt>
+<dt><strong><code>size</code></strong> :&ensp;<code>int</code>, optional <code>(default=3)</code></dt>
 <dd>Size of the jitter points</dd>
 <dt><strong><code>panelsize</code></strong> :&ensp;<code>tuple</code> of <code>int</code>, optional <code>(default=(3, 3))</code></dt>
 <dd>Size of each panel in output figure in inches</dd>
@@ -647,6 +679,9 @@ across <code>groupby</code> categories. Ignored if <code>jitter==False</code>.</
 <dl>
 <dt><strong><code>fig</code></strong> :&ensp;<code>matplotlib.Figure</code></dt>
 <dd>Return figure object if <code>save==None</code>. Otherwise, write to <code>save</code>.</dd>
+<dt><strong><code>sig_out</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary of t-test statistics if <code>sig==True</code>. Otherwise, write to <code>.csv</code> in
+<code>outdir/</code>.</dd>
 </dl></div>
 </dd>
 </dl>
@@ -669,6 +704,7 @@ across <code>groupby</code> categories. Ignored if <code>jitter==False</code>.</
 <li><code><a title="kitchen.plotting.boxplots_group" href="#kitchen.plotting.boxplots_group">boxplots_group</a></code></li>
 <li><code><a title="kitchen.plotting.build_gridspec" href="#kitchen.plotting.build_gridspec">build_gridspec</a></code></li>
 <li><code><a title="kitchen.plotting.calc_significance" href="#kitchen.plotting.calc_significance">calc_significance</a></code></li>
+<li><code><a title="kitchen.plotting.calc_significance_split" href="#kitchen.plotting.calc_significance_split">calc_significance_split</a></code></li>
 <li><code><a title="kitchen.plotting.cluster_pie" href="#kitchen.plotting.cluster_pie">cluster_pie</a></code></li>
 <li><code><a title="kitchen.plotting.custom_heatmap" href="#kitchen.plotting.custom_heatmap">custom_heatmap</a></code></li>
 <li><code><a title="kitchen.plotting.decoupler_dotplot" href="#kitchen.plotting.decoupler_dotplot">decoupler_dotplot</a></code></li>

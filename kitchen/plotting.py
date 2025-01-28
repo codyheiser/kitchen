@@ -267,14 +267,14 @@ def calc_significance(
         Axes object to plot significance bars on
     feature : str
         DataFrame column to plot (y variable)
-    groupby : list of str
-        Columns from `a` or `a.obs` to group by (x variable)
+    groupby : str
+        Column from `dfa` to group by (x variable)
     groupby_order : list of str, optional (default=`None`)
         List of values in `df[groupby]` specifying the order of groups on x-axis.
     test_pairs : list of tuple, optional (default=`None`)
         List of pairs of `df[groupby]` values to include in testing. If `None`, test all
         levels in `df[groupby]` pairwise.
-    bonferroni : bool, optional (default=False)
+    bonferroni : bool, optional (default=`False`)
         Adjust significance p-values with simple Bonferroni correction
     log_scale : int, optional (default=`None`)
         Set axis scale(s) to log. Numeric values are interpreted as the desired base
@@ -368,7 +368,129 @@ def calc_significance(
                         height,
                         displaystring,
                         ax=ax,
+                        **kwargs,
                     )
+    return sig_out
+
+
+def calc_significance_split(
+    df,
+    ax,
+    feature,
+    groupby,
+    splitby,
+    groupby_order=None,
+    splitby_order=None,
+    log_scale=None,
+    **kwargs,
+):
+    """
+    Calculate significance with t-test between two groups
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing data to plot
+    ax : matplotlib.axes
+        Axes object to plot significance bars on
+    feature : str
+        DataFrame column to plot (y variable)
+    groupby : str
+        Column from `dfa` to group by (x variable)
+    splitby : str
+        Categorical column from `df` to split boxes/violins by
+    groupby_order : list of str, optional (default=`None`)
+        List of values in `df[groupby]` specifying the order of groups on x-axis.
+    splitby_order : list of str, optional (default=`None`)
+        Order of categories in `df[splitby]`
+    log_scale : int, optional (default=`None`)
+        Set axis scale(s) to log. Numeric values are interpreted as the desired base
+        (e.g. 10). When `None`, plot defers to the existing Axes scale.
+    **kwargs : optional
+        Keyword args to pass to `significance_bar`
+
+    Returns
+    -------
+    sig_out : dict
+        Dictionary of t-test statistics if `sig==True`. Otherwise, write to `.csv` in
+        `outdir/`.
+    """
+    # initialize dictionary of p values
+    sig_out = {
+        "variable": [],
+        "group1": [],
+        "group2": [],
+        "pvalue": [],
+        "pvalue_adj": [],
+    }
+
+    # determine how to loop through 'groupby'
+    if groupby_order is not None:
+        indexer = groupby_order
+    elif pd.api.types.is_categorical_dtype(df[groupby]):
+        indexer = df[groupby].cat.categories
+    else:
+        indexer = df[groupby].unique()
+    # determine how to loop through 'splitby'
+    if splitby_order is not None:
+        jndexer = splitby_order
+    elif pd.api.types.is_categorical_dtype(df[splitby]):
+        jndexer = df[splitby].cat.categories
+    else:
+        jndexer = df[splitby].unique()
+
+    assert len(jndexer) == 2, "Can only calculate significance across a binary splitby"
+
+    # loop through `groupby`
+    for i_sig in range(len(indexer)):
+        # initialize significant count for bar height
+        sig_count = 0
+        # perform t-tests and add significance bars to plots
+        _, p_value = stats.ttest_ind(
+            df.loc[
+                (df[groupby] == indexer[i_sig]) & (df[splitby] == jndexer[0]), feature
+            ].dropna(),
+            df.loc[
+                (df[groupby] == indexer[i_sig]) & (df[splitby] == jndexer[1]), feature
+            ].dropna(),
+        )
+        # dump results into dictionary
+        sig_out["variable"].append(feature)
+        sig_out["group1"].append(indexer[i_sig] + " " + jndexer[0])
+        sig_out["group2"].append(indexer[i_sig] + " " + jndexer[1])
+        sig_out["pvalue"].append(p_value)
+        sig_out["pvalue_adj"].append(p_value)
+        if p_value <= 0.05:
+            sig_count += 1  # increment significant count
+            if p_value < 0.0001:
+                displaystring = r"***"
+            elif p_value < 0.001:
+                displaystring = r"**"
+            else:
+                displaystring = r"*"
+            # offset by 15 percent for each significant pair
+            # or 25 percent if log scale
+            if log_scale is None:
+                height = (
+                    df.loc[(df[groupby] == indexer[i_sig]), feature].max()
+                    + 0.15
+                    * df.loc[(df[groupby] == indexer[i_sig]), feature].max()
+                    * sig_count
+                )
+            else:
+                height = (
+                    df.loc[(df[groupby] == indexer[i_sig]), feature].max()
+                    + 0.1
+                    * df.loc[(df[groupby] == indexer[i_sig]), feature].max()
+                    * sig_count
+                    * sig_count
+                    * log_scale
+                )
+            # set up significance bar
+            bar_centers = np.array([i_sig - 0.25, i_sig + 0.25])
+            significance_bar(
+                bar_centers[0], bar_centers[1], height, displaystring, ax=ax, **kwargs
+            )
     return sig_out
 
 
@@ -426,17 +548,16 @@ def split_violin(
     groupby_order=None,
     splitby=None,
     splitby_order=None,
-    pairby=None,
     points_colorby=None,
     layer=None,
     log_scale=None,
     pseudocount=1.0,
-    scale="width",
     plot_type="violin",
-    split=True,
+    scale="width",
+    sig=False,
     strip=True,
     jitter=True,
-    size=1,
+    size=3,
     panelsize=(3, 3),
     ncols=1,
     ylabel=None,
@@ -466,9 +587,6 @@ def split_violin(
         Categorical `.obs` column to split violins by.
     splitby_order : list of str, optional (default=`None`)
         Order of categories in `adata.obs[splitby]`.
-    pairby : str, optional (default=`None`)
-        Categorical `.obs` column identifying point pairings to draw lines between
-        across `groupby` categories. Ignored if `jitter==False`.
     points_colorby : str, optional (default=`None`)
         Categorical `.obs` column to color stripplot points by.
     layer : str, optional (default=`None`)
@@ -478,17 +596,18 @@ def split_violin(
         (e.g. 10). When `None`, plot defers to the existing Axes scale.
     pseudocount : float, optional (default=1.0)
         Pseudocount to add to values before log-transforming with base=`log_scale`
-    scale : str, optional (default="width")
-        See :func:`~seaborn.violinplot`.
     plot_type : str, optional (default="violin")
         "violin" for violinplot, "box" for boxplot
-    split : bool, optional (default=`True`)
-        Whether to split the violins or not.
+    scale : str, optional (default="width")
+        See :func:`~seaborn.violinplot`.
+    sig : bool, optional (default=`False`)
+        Perform significance testing (2-way t-test) between all groups and add
+        significance bars to plot(s)
     strip : bool, optional (default=`True`)
         Show a strip plot on top of the violin plot.
     jitter : Union[int, float, bool], optional (default=`True`)
         If set to 0, no points are drawn. See :func:`~seaborn.stripplot`.
-    size : int, optional (default=1)
+    size : int, optional (default=3)
         Size of the jitter points
     panelsize : tuple of int, optional (default=(3, 3))
         Size of each panel in output figure in inches
@@ -509,6 +628,9 @@ def split_violin(
     -------
     fig : matplotlib.Figure
         Return figure object if `save==None`. Otherwise, write to `save`.
+    sig_out : dict
+        Dictionary of t-test statistics if `sig==True`. Otherwise, write to `.csv` in
+        `outdir/`.
     """
     # prep df for plotting
     if isinstance(a, AnnData):
@@ -520,8 +642,6 @@ def split_violin(
             extra_cols.append(points_colorby)
         if groupby is not None:
             extra_cols.append(groupby)
-        if pairby is not None:
-            extra_cols.append(pairby)
         # remove repetitive cols
         extra_cols = [x for x in list(set(extra_cols)) if x not in features]
         df = obs_df(
@@ -552,13 +672,6 @@ def split_violin(
         df["points_hue"] = df["points_hue"].astype("category")
         points_colorby = "points_hue"  # set to 'points_hue' for plotting
 
-    # add point hue
-    if pairby is None:
-        df["pair"] = 0
-    else:
-        df["pair"] = df[pairby].astype(str).values
-        df["pair"] = df["pair"].astype("category")
-
     # add group
     if groupby is None:
         df["group"] = 0
@@ -573,7 +686,7 @@ def split_violin(
         groups = df["group"].cat.categories
 
     df_tidy = pd.melt(
-        df, id_vars=["hue", "points_hue", "group", "pair"], value_vars=new_gene_names
+        df, id_vars=["hue", "points_hue", "group"], value_vars=new_gene_names
     )
 
     # seaborn plot style
@@ -582,6 +695,21 @@ def split_violin(
         gs, fig = build_gridspec(
             panels=new_gene_names, ncols=ncols, panelsize=panelsize
         )
+        if sig:
+            if len(df[splitby].unique()) == 2:
+                # initialize df of p values
+                sig_out = pd.DataFrame(
+                    {
+                        "variable": [],
+                        "group1": [],
+                        "group2": [],
+                        "pvalue": [],
+                        "pvalue_adj": [],
+                    }
+                )
+            else:
+                print("WARNING: Can only calculate significance for binary splitby")
+                sig = False
 
         for iv, variable in enumerate(new_gene_names):
             tmp = df_tidy.loc[df_tidy["variable"] == variable, :].copy()
@@ -597,7 +725,7 @@ def split_violin(
                     inner=None,
                     hue=splitby if splitby is not None else "group",
                     hue_order=splitby_order if splitby is not None else groupby_order,
-                    split=split,
+                    split=True if splitby is not None else False,
                     scale=scale,
                     orient="vertical",
                 )
@@ -608,7 +736,7 @@ def split_violin(
                     data=tmp,
                     hue=splitby if splitby is not None else "group",
                     hue_order=splitby_order if splitby is not None else groupby_order,
-                    dodge=split,
+                    dodge=True if splitby is not None else False,
                     orient="vertical",
                     fliersize=0,
                 )
@@ -629,6 +757,9 @@ def split_violin(
                         color="k" if splitby is None else None,
                         palette=None if splitby is None else "dark:black",
                         size=size,
+                        edgecolor="k",
+                        linewidth=0.5,
+                        alpha=0.7,
                         ax=_ax,
                     )
                 else:
@@ -653,29 +784,24 @@ def split_violin(
                             jitter=jitter,
                             palette=[color] * 2,
                             size=size,
+                            edgecolor="k",
+                            linewidth=0.5,
+                            alpha=0.7,
                             ax=_ax,
                         )
-                # add lines connecting paired points
-                if pairby is not None:
-                    pairs = tmp["pair"].unique()
-                    for pair in pairs:
-                        pair_data = tmp.loc[tmp["pair"] == pair, :]
-                        if len(pair_data) > 1:
-                            for i in range(len(pair_data) - 1):
-                                _ax.plot(
-                                    "group",
-                                    "value",
-                                    data=pair_data,
-                                    color="gray",
-                                    linestyle="-",
-                                    linewidth=0.8,
-                                    alpha=0.8,
-                                )
-                if legend:
-                    # access legend objects automatically created from data
-                    handles, labels = plt.gca().get_legend_handles_labels()
-                else:
-                    _ax.get_legend().remove()
+
+            if sig:
+                sig_tmp = calc_significance_split(
+                    df=df,
+                    ax=_ax,
+                    feature=variable,
+                    groupby="group",
+                    splitby=splitby,
+                    groupby_order=groupby_order,
+                    splitby_order=splitby_order,
+                    log_scale=log_scale,
+                )
+                sig_out = pd.concat([sig_out, pd.DataFrame(sig_tmp)])
 
             if log_scale is not None:
                 # use custom functions for transformation
@@ -689,9 +815,7 @@ def split_violin(
 
             _ax.set_xlabel("")
             _ax.set_title(variable if titles is None else titles[iv])
-
-            if splitby is not None:
-                _ax.legend_.remove()
+            _ax.legend_.remove()
             _ax.set_ylabel("expression" if ylabel is None else ylabel)
             if groupby is not None:
                 _ax.set_xticklabels(groups, rotation="vertical")
@@ -710,6 +834,7 @@ def split_violin(
                         Patch(
                             facecolor=tab10.colors[i],
                             edgecolor="k",
+                            linewidth=0.5,
                             label=df_tidy.hue.unique()[i],
                         )
                         for i in range(len(df_tidy.hue.unique()))
@@ -720,6 +845,7 @@ def split_violin(
                         Patch(
                             facecolor=tab10.colors[i],
                             edgecolor="k",
+                            linewidth=0.5,
                             label=splitby_order[i],
                         )
                         for i in range(len(splitby_order))
@@ -733,12 +859,14 @@ def split_violin(
                         marker="o",
                         markersize=10,
                         markerfacecolor=color,
-                        markeredgewidth=0,
-                        linestyle="",
+                        markeredgewidth=0.5,
+                        markeredgecolor="k",
+                        alpha=0.7,
+                        linestyle="None",
                     )
                     for cat, color in zip(
-                        tmp.points_hue.cat.categories,
-                        Accent[: len(tmp.points_hue.cat.categories)],
+                        df[points_colorby].cat.categories,
+                        Accent[: len(df[points_colorby].cat.categories)],
                     )
                 ]
                 legend_elements = (
@@ -754,11 +882,17 @@ def split_violin(
 
         gs.tight_layout(fig)
 
+    # return figure and/or stats
     if save is None:
-        return fig
+        if sig:
+            return fig, sig_out
+        else:
+            return fig
     else:
         print("Saving to {}".format(save))
         fig.savefig(save, dpi=dpi, bbox_inches="tight")
+        if sig:
+            return sig_out
 
 
 def boxplots_group(
@@ -772,7 +906,7 @@ def boxplots_group(
     layer=None,
     log_scale=None,
     pseudocount=1.0,
-    sig=True,
+    sig=False,
     bonferroni=False,
     test_pairs=None,
     ylabel=None,
@@ -807,7 +941,7 @@ def boxplots_group(
         Dictionary of group, color pairs from `groupby` to color boxes and points by
     pairby : str, optional (default=`None`)
         Categorical `.obs` column identifying point pairings to draw lines between
-        across `groupby` categories. Ignored if `jitter==False`.
+        across `groupby` categories.
     points_colorby : str, optional (default=`None`)
         Categorical `.obs` column to color stripplot points by.
     layer : str, optional (default=`None`)
@@ -817,7 +951,7 @@ def boxplots_group(
         (e.g. 10). When `None`, plot defers to the existing Axes scale.
     pseudocount : float, optional (default=1.0)
         Pseudocount to add to values before log-transforming with base=`log_scale`
-    sig : bool, optional (default=True)
+    sig : bool, optional (default=`False`)
         Perform significance testing (2-way t-test) between all groups and add
         significance bars to plot(s)
     bonferroni : bool, optional (default=False)
@@ -979,13 +1113,13 @@ def boxplots_group(
                             alpha=0.7,
                             ax=_ax,
                         )
-                # Add lines connecting paired points
+                # add lines connecting paired points
                 if pairby is not None:
                     pairs = df[pairby].unique()
                     for pair in pairs:
                         pair_data = df[df[pairby] == pair]
                         if len(pair_data) > 1:
-                            # Ensure the order of x-axis categories
+                            # ensure the order of x-axis categories
                             if groupby_order is not None:
                                 ordered_pair_data = []
                                 for category in groupby_order[ix]:
@@ -1018,7 +1152,7 @@ def boxplots_group(
                                             linestyle="-",
                                             linewidth=0.8,
                                             alpha=0.8,
-                                            label="_nolegend_",  # Exclude from legend
+                                            label="_nolegend_",  # exclude from legend
                                         )
 
                 if sig:
@@ -1093,6 +1227,13 @@ def boxplots_group(
         # save figure and/or stats
         else:
             if sig:
+                print(
+                    "Saving plot to {}".format(
+                        os.path.join(
+                            outdir, "{}{}_boxplots_sig.png".format(save_prefix, x)
+                        )
+                    )
+                )
                 fig.savefig(
                     os.path.abspath(
                         os.path.join(
@@ -1103,6 +1244,14 @@ def boxplots_group(
                     bbox_inches="tight",
                 )
                 # save statistics to .csv file
+                print(
+                    "Saving stats to {}".format(
+                        os.path.join(
+                            outdir,
+                            "{}{}_boxplots_pvals.csv".format(save_prefix, x),
+                        )
+                    )
+                )
                 pd.DataFrame(sig_out).to_csv(
                     os.path.abspath(
                         os.path.join(
@@ -1113,6 +1262,11 @@ def boxplots_group(
                     index=False,
                 )
             else:
+                print(
+                    "Saving plot to {}".format(
+                        os.path.join(outdir, "{}{}_boxplots.png".format(save_prefix, x))
+                    )
+                )
                 fig.savefig(
                     os.path.abspath(
                         os.path.join(outdir, "{}{}_boxplots.png".format(save_prefix, x))
@@ -1235,6 +1389,10 @@ def jointgrid_boxplots_category(
                 hue=g.hue,
                 legend=None,
                 palette=cmap_dict,
+                size=3,
+                edgecolor="k",
+                linewidth=0.5,
+                alpha=0.7,
             )
             sns.stripplot(
                 df,
@@ -1244,6 +1402,10 @@ def jointgrid_boxplots_category(
                 hue=g.hue,
                 legend=None,
                 palette=cmap_dict,
+                size=3,
+                edgecolor="k",
+                linewidth=0.5,
+                alpha=0.7,
             )
         # compile statistics across `color` for `x` and `y`
         if sig:
@@ -1481,6 +1643,10 @@ def jointgrid_boxplots_threshold(
                 palette=cmap_dict,
                 order=["{}-lo".format(x), "{}-hi".format(x)],
                 dodge=True if dodge_by_color else False,
+                size=3,
+                edgecolor="k",
+                linewidth=0.5,
+                alpha=0.7,
             )
             sns.stripplot(
                 df,
@@ -1490,6 +1656,10 @@ def jointgrid_boxplots_threshold(
                 hue=g.hue,
                 legend=None,
                 palette=cmap_dict,
+                size=3,
+                edgecolor="k",
+                linewidth=0.5,
+                alpha=0.7,
             )
         # compile statistics across `color` and `x_thresh_status` for `x` and `y`
         if sig:
