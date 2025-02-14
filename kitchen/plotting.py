@@ -456,8 +456,8 @@ def calc_significance_split(
         )
         # dump results into dictionary
         sig_out["variable"].append(feature)
-        sig_out["group1"].append(indexer[i_sig] + " " + jndexer[0])
-        sig_out["group2"].append(indexer[i_sig] + " " + jndexer[1])
+        sig_out["group1"].append(str(indexer[i_sig]) + " " + str(jndexer[0]))
+        sig_out["group2"].append(str(indexer[i_sig]) + " " + str(jndexer[1]))
         sig_out["pvalue"].append(p_value)
         sig_out["pvalue_adj"].append(p_value)
         if p_value <= 0.05:
@@ -558,6 +558,7 @@ def split_violin(
     strip=True,
     jitter=True,
     size=3,
+    hlines=None,
     panelsize=(3, 3),
     ncols=1,
     ylabel=None,
@@ -601,14 +602,18 @@ def split_violin(
     scale : str, optional (default="width")
         See :func:`~seaborn.violinplot`.
     sig : bool, optional (default=`False`)
-        Perform significance testing (2-way t-test) between all groups and add
-        significance bars to plot(s)
+        Perform significance testing (2-way t-test) between all groups across split_by
+        and add significance bars to plot(s)
     strip : bool, optional (default=`True`)
         Show a strip plot on top of the violin plot.
     jitter : Union[int, float, bool], optional (default=`True`)
         If set to 0, no points are drawn. See :func:`~seaborn.stripplot`.
     size : int, optional (default=3)
         Size of the jitter points
+    hlines : dict, optional (default=`None`)
+        Dictionary containing values to draw horizontal lines at for each feature.
+        e.g. `{"feature1":10,"feature2":12,"feature3":8}` where "feature1", etc. are
+        found in `features`.
     panelsize : tuple of int, optional (default=(3, 3))
         Size of each panel in output figure in inches
     ncols : int, optional (default=1)
@@ -742,6 +747,11 @@ def split_violin(
                 )
             else:
                 raise ValueError("plot_type should be 'violin' or 'box'")
+            # plot horizontal lines
+            if hlines is not None:
+                # ignore if current variable is not given
+                if variable in hlines.keys():
+                    _ax.axhline(hlines[variable], color="k", ls="--", lw=1.8)
             if strip:
                 if points_colorby is None:
                     sns.stripplot(
@@ -815,7 +825,8 @@ def split_violin(
 
             _ax.set_xlabel("")
             _ax.set_title(variable if titles is None else titles[iv])
-            _ax.legend_.remove()
+            if _ax.get_legend() is not None:
+                _ax.get_legend().remove()
             _ax.set_ylabel("expression" if ylabel is None else ylabel)
             if groupby is not None:
                 _ax.set_xticklabels(groups, rotation="vertical")
@@ -913,6 +924,7 @@ def boxplots_group(
     titles=None,
     legend=True,
     size=3,
+    hlines=None,
     panelsize=(3, 3),
     ncols=6,
     outdir="./",
@@ -967,6 +979,10 @@ def boxplots_group(
         Add legend to plot
     size : int, optional (default=3)
         Size of the jitter points
+    hlines : dict, optional (default=`None`)
+        Dictionary containing values to draw horizontal lines at for each feature.
+        e.g. `{"feature1":10,"feature2":12,"feature3":8}` where "feature1", etc. are
+        found in `features`.
     panelsize : tuple of float, optional (default=(3, 3))
         Size of each panel in output figure in inches
     ncols : int, optional (default=5)
@@ -1069,6 +1085,11 @@ def boxplots_group(
                     fliersize=0,
                     ax=_ax,
                 )
+                # plot horizontal lines
+                if hlines is not None:
+                    # ignore if current variable is not given
+                    if c in hlines.keys():
+                        _ax.axhline(hlines[c], color="k", ls="--", lw=1.8)
                 if points_colorby is None:
                     sns.stripplot(
                         data=df,
