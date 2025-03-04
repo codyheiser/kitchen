@@ -680,15 +680,28 @@ def split_violin(
     # add group
     if groupby is None:
         df["group"] = 0
-        groups = [0]
+        groupby_order = [0]
     else:
         df["group"] = df[groupby].astype(str).values
         df["group"] = df["group"].astype("category")
         # groupby_order
         if groupby_order is not None:
-            df["group"] = df["group"].cat.set_categories(groupby_order, ordered=True)
-        # points_colorby = "points_hue"  # set to 'points_hue' for plotting
-        groups = df["group"].cat.categories
+            # check if given groupby_order contains all categories
+            if all([j in df["group"].cat.categories for j in groupby_order]):
+                # reorder categories with manual groupby_order
+                df["group"] = df["group"].cat.set_categories(
+                    groupby_order, ordered=True
+                )
+            else:
+                # ignore groupby_order due to mismatch
+                print(
+                    "\tElements in `groupby_order` do not match `groupby` categories... ignoring manual ordering"
+                )
+                # set order using cat.categories for downstream
+                groupby_order = list(df["group"].cat.categories)
+        else:
+            # if no groupby_order given, set order using cat.categories for downstream
+            groupby_order = list(df["group"].cat.categories)
 
     df_tidy = pd.melt(
         df, id_vars=["hue", "points_hue", "group"], value_vars=new_gene_names
@@ -829,7 +842,7 @@ def split_violin(
                 _ax.get_legend().remove()
             _ax.set_ylabel("expression" if ylabel is None else ylabel)
             if groupby is not None:
-                _ax.set_xticklabels(groups, rotation="vertical")
+                _ax.set_xticklabels(groupby_order, rotation="vertical")
             else:
                 _ax.set_xticklabels([])
 
@@ -1049,9 +1062,19 @@ def boxplots_group(
 
         # groupby_order
         if groupby_order is not None:
-            # set and order categories
+            # set categories
             df[x] = df[x].astype("category")
-            df[x] = df[x].cat.set_categories(groupby_order[ix], ordered=True)
+            # check if given groupby_order contains all categories
+            if all([j in df[x].cat.categories for j in groupby_order[ix]]):
+                # reorder categories with manual groupby_order
+                df[x] = df[x].cat.set_categories(groupby_order[ix], ordered=True)
+            else:
+                # ignore groupby_order due to mismatch
+                print(
+                    "\tElements in `groupby_order` do not match `groupby` categories... ignoring manual ordering"
+                )
+                # set order using cat.categories for downstream
+                groupby_order[ix] = list(df[x].cat.categories)
 
         # seaborn plot style
         with sns.axes_style("whitegrid"):
@@ -1182,7 +1205,9 @@ def boxplots_group(
                         ax=_ax,
                         feature=c,
                         groupby=x,
-                        groupby_order=groupby_order[ix],
+                        groupby_order=groupby_order[ix]
+                        if groupby_order is not None
+                        else None,
                         test_pairs=test_pairs,
                         bonferroni=bonferroni,
                         log_scale=log_scale,
