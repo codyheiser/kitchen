@@ -501,6 +501,8 @@ def calc_significance_split(
     feature,
     groupby,
     splitby,
+    method="t-test",
+    transform=None,
     groupby_order=None,
     splitby_order=None,
     log_scale=None,
@@ -521,6 +523,11 @@ def calc_significance_split(
         Column from `dfa` to group by (x variable)
     splitby : str
         Categorical column from `df` to split boxes/violins by
+    method : literal ["t-test","wilcoxon"], optional (default="t-test")
+        Method for performing significance testing across groups
+    transform : literal ["log1p","log10p","log2p","arcsinh",None], optional (default=`None`)
+        Transformation to apply to values before testing. "log1p"=np.log(val+1),
+        "log10p"=np.log10(val+1), "log2p"=np.log2(val+1), "arcsinh"=np.arcsinh(val).
     groupby_order : list of str, optional (default=`None`)
         List of values in `df[groupby]` specifying the order of groups on x-axis.
     splitby_order : list of str, optional (default=`None`)
@@ -568,14 +575,175 @@ def calc_significance_split(
         # initialize significant count for bar height
         sig_count = 0
         # perform t-tests and add significance bars to plots
-        _, p_value = stats.ttest_ind(
-            df.loc[
-                (df[groupby] == indexer[i_sig]) & (df[splitby] == jndexer[0]), feature
-            ].dropna(),
-            df.loc[
-                (df[groupby] == indexer[i_sig]) & (df[splitby] == jndexer[1]), feature
-            ].dropna(),
-        )
+        if method == "t-test":
+            if transform is None:
+                _, p_value = stats.ttest_ind(
+                    df.loc[
+                        (df[groupby] == indexer[i_sig]) & (df[splitby] == jndexer[0]),
+                        feature,
+                    ].dropna(),
+                    df.loc[
+                        (df[groupby] == indexer[i_sig]) & (df[splitby] == jndexer[1]),
+                        feature,
+                    ].dropna(),
+                )
+            elif transform == "log1p":
+                _, p_value = stats.ttest_ind(
+                    np.log1p(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[0]),
+                            feature,
+                        ].dropna()
+                    ),
+                    np.log1p(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[1]),
+                            feature,
+                        ].dropna()
+                    ),
+                )
+            elif transform == "log10p":
+                _, p_value = stats.ttest_ind(
+                    np.log10(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[0]),
+                            feature,
+                        ].dropna()
+                        + 1
+                    ),
+                    np.log10(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[1]),
+                            feature,
+                        ].dropna()
+                        + 1
+                    ),
+                )
+            elif transform == "log2p":
+                _, p_value = stats.ttest_ind(
+                    np.log2(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[0]),
+                            feature,
+                        ].dropna()
+                        + 1
+                    ),
+                    np.log2(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[1]),
+                            feature,
+                        ].dropna()
+                        + 1
+                    ),
+                )
+            elif transform == "arcsinh":
+                _, p_value = stats.ttest_ind(
+                    np.arcsinh(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[0]),
+                            feature,
+                        ].dropna()
+                    ),
+                    np.arcsinh(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[1]),
+                            feature,
+                        ].dropna()
+                    ),
+                )
+        elif method == "wilcoxon":
+            if transform is None:
+                _, p_value = stats.mannwhitneyu(
+                    df.loc[
+                        (df[groupby] == indexer[i_sig]) & (df[splitby] == jndexer[0]),
+                        feature,
+                    ].dropna(),
+                    df.loc[
+                        (df[groupby] == indexer[i_sig]) & (df[splitby] == jndexer[1]),
+                        feature,
+                    ].dropna(),
+                )
+            elif transform == "log1p":
+                _, p_value = stats.mannwhitneyu(
+                    np.log1p(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[0]),
+                            feature,
+                        ].dropna()
+                    ),
+                    np.log1p(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[1]),
+                            feature,
+                        ].dropna()
+                    ),
+                )
+            elif transform == "log10p":
+                _, p_value = stats.mannwhitneyu(
+                    np.log10(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[0]),
+                            feature,
+                        ].dropna()
+                        + 1
+                    ),
+                    np.log10(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[1]),
+                            feature,
+                        ].dropna()
+                        + 1
+                    ),
+                )
+            elif transform == "log2p":
+                _, p_value = stats.mannwhitneyu(
+                    np.log2(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[0]),
+                            feature,
+                        ].dropna()
+                        + 1
+                    ),
+                    np.log2(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[1]),
+                            feature,
+                        ].dropna()
+                        + 1
+                    ),
+                )
+            elif transform == "arcsinh":
+                _, p_value = stats.mannwhitneyu(
+                    np.arcsinh(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[0]),
+                            feature,
+                        ].dropna()
+                    ),
+                    np.arcsinh(
+                        df.loc[
+                            (df[groupby] == indexer[i_sig])
+                            & (df[splitby] == jndexer[1]),
+                            feature,
+                        ].dropna()
+                    ),
+                )
+
         # dump results into dictionary
         sig_out["variable"].append(feature)
         sig_out["group1"].append(str(indexer[i_sig]) + " " + str(jndexer[0]))
@@ -678,6 +846,8 @@ def split_violin(
     plot_type="violin",
     scale="width",
     sig=False,
+    test_method="t-test",
+    test_transform=None,
     strip=True,
     jitter=True,
     size=3,
@@ -731,6 +901,11 @@ def split_violin(
     sig : bool, optional (default=`False`)
         Perform significance testing (2-way t-test) between all groups across split_by
         and add significance bars to plot(s)
+    test_method : literal ["t-test","wilcoxon"], optional (default="t-test")
+        Method for performing significance testing across groups
+    test_transform : literal ["log1p","log10p","log2p","arcsinh"], optional (default=`None`)
+        Transformation to apply to values before testing. "log1p"=np.log(val+1),
+        "log10p"=np.log10(val+1), "log2p"=np.log2(val+1), "arcsinh"=np.arcsinh(val).
     strip : bool, optional (default=`True`)
         Show a strip plot on top of the violin plot.
     jitter : Union[int, float, bool], optional (default=`True`)
@@ -955,6 +1130,8 @@ def split_violin(
                     feature=variable,
                     groupby="group",
                     splitby=splitby,
+                    method=test_method,
+                    transform=test_transform,
                     groupby_order=groupby_order,
                     splitby_order=splitby_order,
                     log_scale=log_scale,

@@ -189,7 +189,7 @@ levels in <code>df[groupby]</code> pairwise.</dd>
 </dl></div>
 </dd>
 <dt id="kitchen.plotting.calc_significance_split"><code class="name flex">
-<span>def <span class="ident">calc_significance_split</span></span>(<span>df, ax, feature, groupby, splitby, groupby_order=None, splitby_order=None, log_scale=None, **kwargs)</span>
+<span>def <span class="ident">calc_significance_split</span></span>(<span>df, ax, feature, groupby, splitby, method='t-test', transform=None, groupby_order=None, splitby_order=None, log_scale=None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate significance with t-test between two groups</p>
@@ -205,6 +205,11 @@ levels in <code>df[groupby]</code> pairwise.</dd>
 <dd>Column from <code>dfa</code> to group by (x variable)</dd>
 <dt><strong><code>splitby</code></strong> :&ensp;<code>str</code></dt>
 <dd>Categorical column from <code>df</code> to split boxes/violins by</dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>literal ["t-test","wilcoxon"]</code>, optional <code>(default="t-test")</code></dt>
+<dd>Method for performing significance testing across groups</dd>
+<dt><strong><code>transform</code></strong> :&ensp;<code>literal ["log1p","log10p","log2p","arcsinh",None]</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Transformation to apply to values before testing. "log1p"=np.log(val+1),
+"log10p"=np.log10(val+1), "log2p"=np.log2(val+1), "arcsinh"=np.arcsinh(val).</dd>
 <dt><strong><code>groupby_order</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>List of values in <code>df[groupby]</code> specifying the order of groups on x-axis.</dd>
 <dt><strong><code>splitby_order</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
@@ -637,7 +642,7 @@ keys)</dd>
 <div class="desc"><p>Draw significance bracket on matplotlib figure</p></div>
 </dd>
 <dt id="kitchen.plotting.split_violin"><code class="name flex">
-<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, points_colorby=None, layer=None, log_scale=None, log_scale_method='functionlog', pseudocount=1.0, plot_type='violin', scale='width', sig=False, strip=True, jitter=True, size=3, hlines=None, panelsize=(3, 3), ncols=1, sample_n=False, ylabel=None, xlab_rot=None, titles=None, legend=True, save=None, dpi=300)</span>
+<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, points_colorby=None, layer=None, log_scale=None, log_scale_method='functionlog', pseudocount=1.0, plot_type='violin', scale='width', sig=False, test_method='t-test', test_transform=None, strip=True, jitter=True, size=3, hlines=None, panelsize=(3, 3), ncols=1, sample_n=False, ylabel=None, xlab_rot=None, titles=None, legend=True, save=None, dpi=300)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot genes grouped by one variable and split by another</p>
@@ -677,6 +682,11 @@ with corresponding orders in each element.</dd>
 <dt><strong><code>sig</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
 <dd>Perform significance testing (2-way t-test) between all groups across split_by
 and add significance bars to plot(s)</dd>
+<dt><strong><code>test_method</code></strong> :&ensp;<code>literal ["t-test","wilcoxon"]</code>, optional <code>(default="t-test")</code></dt>
+<dd>Method for performing significance testing across groups</dd>
+<dt><strong><code>test_transform</code></strong> :&ensp;<code>literal ["log1p","log10p","log2p","arcsinh"]</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Transformation to apply to values before testing. "log1p"=np.log(val+1),
+"log10p"=np.log10(val+1), "log2p"=np.log2(val+1), "arcsinh"=np.arcsinh(val).</dd>
 <dt><strong><code>strip</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
 <dd>Show a strip plot on top of the violin plot.</dd>
 <dt><strong><code>jitter</code></strong> :&ensp;<code>Union[int, float, bool]</code>, optional <code>(default=</code>True<code>)</code></dt>
