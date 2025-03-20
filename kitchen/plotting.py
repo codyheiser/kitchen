@@ -252,6 +252,8 @@ def calc_significance(
     groupby,
     groupby_order=None,
     test_pairs=None,
+    method="t-test",
+    transform=None,
     bonferroni=False,
     log_scale=None,
     **kwargs,
@@ -267,14 +269,19 @@ def calc_significance(
         Axes object to plot significance bars on
     feature : str
         DataFrame column to plot (y variable)
-    groupby : str
-        Column from `dfa` to group by (x variable)
+    groupby : list of str
+        Columns from `a` or `a.obs` to group by (x variable)
     groupby_order : list of str, optional (default=`None`)
         List of values in `df[groupby]` specifying the order of groups on x-axis.
     test_pairs : list of tuple, optional (default=`None`)
         List of pairs of `df[groupby]` values to include in testing. If `None`, test all
         levels in `df[groupby]` pairwise.
-    bonferroni : bool, optional (default=`False`)
+    method : literal ["t-test","wilcoxon"], optional (default="t-test")
+        Method for performing significance testing across groups
+    transform : literal ["log1p","log10p","log2p","arcsinh",None], optional (default=`None`)
+        Transformation to apply to values before testing. "log1p"=np.log(val+1),
+        "log10p"=np.log10(val+1), "log2p"=np.log2(val+1), "arcsinh"=np.arcsinh(val).
+    bonferroni : bool, optional (default=False)
         Adjust significance p-values with simple Bonferroni correction
     log_scale : int, optional (default=`None`)
         Set axis scale(s) to log. Numeric values are interpreted as the desired base
@@ -288,6 +295,17 @@ def calc_significance(
         Dictionary of t-test statistics if `sig==True`. Otherwise, write to `.csv` in
         `outdir/`.
     """
+    assert method in [
+        "t-test",
+        "wilcoxon",
+    ], "method must be one of ['t-test','wilcoxon']"
+    if transform is not None:
+        assert transform in [
+            "log1p",
+            "log10p",
+            "log2p",
+            "arcsinh",
+        ], "transform must be one of ['log1p','log10p','log2p','arcsinh',None]"
     # initialize dictionary of p values
     sig_out = {
         "variable": [],
@@ -323,10 +341,114 @@ def calc_significance(
             if not skip:
                 # if label has more than two classes, automatically perform
                 # t-tests and add significance bars to plots
-                _, p_value = stats.ttest_ind(
-                    df.loc[df[groupby] == indexer[i_sig], feature].dropna(),
-                    df.loc[df[groupby] == indexer[i_sig_2], feature].dropna(),
-                )
+                if method == "t-test":
+                    if transform is None:
+                        _, p_value = stats.ttest_ind(
+                            df.loc[df[groupby] == indexer[i_sig], feature].dropna(),
+                            df.loc[df[groupby] == indexer[i_sig_2], feature].dropna(),
+                        )
+                    elif transform == "log1p":
+                        _, p_value = stats.ttest_ind(
+                            np.log1p(
+                                df.loc[df[groupby] == indexer[i_sig], feature].dropna()
+                            ),
+                            np.log1p(
+                                df.loc[
+                                    df[groupby] == indexer[i_sig_2], feature
+                                ].dropna()
+                            ),
+                        )
+                    elif transform == "log10p":
+                        _, p_value = stats.ttest_ind(
+                            np.log10(
+                                df.loc[df[groupby] == indexer[i_sig], feature].dropna()
+                                + 1
+                            ),
+                            np.log10(
+                                df.loc[
+                                    df[groupby] == indexer[i_sig_2], feature
+                                ].dropna()
+                                + 1
+                            ),
+                        )
+                    elif transform == "log2p":
+                        _, p_value = stats.ttest_ind(
+                            np.log2(
+                                df.loc[df[groupby] == indexer[i_sig], feature].dropna()
+                                + 1
+                            ),
+                            np.log2(
+                                df.loc[
+                                    df[groupby] == indexer[i_sig_2], feature
+                                ].dropna()
+                                + 1
+                            ),
+                        )
+                    elif transform == "arcsinh":
+                        _, p_value = stats.ttest_ind(
+                            np.arcsinh(
+                                df.loc[df[groupby] == indexer[i_sig], feature].dropna()
+                            ),
+                            np.arcsinh(
+                                df.loc[
+                                    df[groupby] == indexer[i_sig_2], feature
+                                ].dropna()
+                            ),
+                        )
+                elif method == "wilcoxon":
+                    if transform is None:
+                        _, p_value = stats.mannwhitneyu(
+                            df.loc[df[groupby] == indexer[i_sig], feature].dropna(),
+                            df.loc[df[groupby] == indexer[i_sig_2], feature].dropna(),
+                        )
+                    elif transform == "log1p":
+                        _, p_value = stats.mannwhitneyu(
+                            np.log1p(
+                                df.loc[df[groupby] == indexer[i_sig], feature].dropna()
+                            ),
+                            np.log1p(
+                                df.loc[
+                                    df[groupby] == indexer[i_sig_2], feature
+                                ].dropna()
+                            ),
+                        )
+                    elif transform == "log10p":
+                        _, p_value = stats.mannwhitneyu(
+                            np.log10(
+                                df.loc[df[groupby] == indexer[i_sig], feature].dropna()
+                                + 1
+                            ),
+                            np.log10(
+                                df.loc[
+                                    df[groupby] == indexer[i_sig_2], feature
+                                ].dropna()
+                                + 1
+                            ),
+                        )
+                    elif transform == "log2p":
+                        _, p_value = stats.mannwhitneyu(
+                            np.log2(
+                                df.loc[df[groupby] == indexer[i_sig], feature].dropna()
+                                + 1
+                            ),
+                            np.log2(
+                                df.loc[
+                                    df[groupby] == indexer[i_sig_2], feature
+                                ].dropna()
+                                + 1
+                            ),
+                        )
+                    elif transform == "arcsinh":
+                        _, p_value = stats.mannwhitneyu(
+                            np.arcsinh(
+                                df.loc[df[groupby] == indexer[i_sig], feature].dropna()
+                            ),
+                            np.arcsinh(
+                                df.loc[
+                                    df[groupby] == indexer[i_sig_2], feature
+                                ].dropna()
+                            ),
+                        )
                 # Bonferroni correction
                 pvalue_adj = p_value * len(indexer)
                 # dump results into dictionary
@@ -551,6 +673,7 @@ def split_violin(
     points_colorby=None,
     layer=None,
     log_scale=None,
+    log_scale_method="functionlog",
     pseudocount=1.0,
     plot_type="violin",
     scale="width",
@@ -561,7 +684,9 @@ def split_violin(
     hlines=None,
     panelsize=(3, 3),
     ncols=1,
+    sample_n=False,
     ylabel=None,
+    xlab_rot=None,
     titles=None,
     legend=True,
     save=None,
@@ -595,6 +720,8 @@ def split_violin(
     log_scale : int, optional (default=`None`)
         Set axis scale(s) to log. Numeric values are interpreted as the desired base
         (e.g. 10). When `None`, plot defers to the existing Axes scale.
+    log_scale_method : literal ['functionlog','symlog'], optional (default='functionlog')
+        Method for adjusting y-axis scale if `log_scale` is not `None`
     pseudocount : float, optional (default=1.0)
         Pseudocount to add to values before log-transforming with base=`log_scale`
     plot_type : str, optional (default="violin")
@@ -618,8 +745,13 @@ def split_violin(
         Size of each panel in output figure in inches
     ncols : int, optional (default=1)
         Number of columns in gridspec. If `None` use `len(features)`.
+    sample_n : bool, optional (default=False)
+        Add sample number to x-axis tick labels for each group
     ylabel : str, optional (default=`None`)
-        Label for y axes. If `None` use "expression"
+        Label for y axes. If `None` use `colors`.
+    xlab_rot : int, optional (default=`None`)
+        Rotation (in degrees) to force on all x ticklabels. If `None`, auto-rotate x
+        ticklabels 90 degrees if they're longer than 10 characters.
     titles : list of str, optional (default=`None`)
         Titles for each set of axes. If `None` use `features`.
     legend : bool, optional (default=`True`)
@@ -637,6 +769,9 @@ def split_violin(
         Dictionary of t-test statistics if `sig==True`. Otherwise, write to `.csv` in
         `outdir/`.
     """
+    # coerce single string to list for looping
+    if isinstance(features, str):
+        features = [features]
     # prep df for plotting
     if isinstance(a, AnnData):
         # get genes of interest
@@ -827,24 +962,60 @@ def split_violin(
                 sig_out = pd.concat([sig_out, pd.DataFrame(sig_tmp)])
 
             if log_scale is not None:
-                # use custom functions for transformation
-                _ax.set_yscale(
+                assert log_scale_method in [
                     "functionlog",
-                    functions=[lambda x: x + pseudocount, lambda x: x - pseudocount],
-                    base=log_scale,
-                )
+                    "symlog",
+                ], "Must provide 'functionlog' or 'symlog' for log_scale_method"
+                if log_scale_method == "functionlog":
+                    # use custom functions for transformation
+                    _ax.set_yscale(
+                        "functionlog",
+                        functions=[
+                            lambda x: x + pseudocount,
+                            lambda x: x - pseudocount,
+                        ],
+                        base=log_scale,
+                    )
+                elif log_scale_method == "symlog":
+                    _ax.set_yscale(
+                        "symlog",
+                        linthresh=pseudocount,
+                        base=log_scale,
+                    )
                 # show log values as scalar (non-sci notation)
                 _ax.yaxis.set_major_formatter(ScalarFormatter())
+
+            # modify x-axis tick labels
+            old_labels = [label.get_text() for label in _ax.get_xticklabels()]
+            if sample_n:
+                # modify x-axis tick labels to include sample size
+                group_counts = tmp["group"].value_counts()
+                new_labels = [
+                    f"{label}\n(n = {group_counts[label]})" for label in old_labels
+                ]
+            else:
+                new_labels = old_labels.copy()
+            # set x-tick labels with conditional rotation
+            for label, old_label in zip(_ax.get_xticklabels(), old_labels):
+                if xlab_rot is None:
+                    if len(old_label) > 10:
+                        label.set_rotation(90)
+                    else:
+                        label.set_rotation(0)
+                    label.set_horizontalalignment("center")
+            # set label text
+            if xlab_rot is None:
+                _ax.set_xticklabels(new_labels)
+            else:
+                _ax.set_xticklabels(
+                    new_labels, rotation=xlab_rot, ha="right", rotation_mode="anchor"
+                )
 
             _ax.set_xlabel("")
             _ax.set_title(variable if titles is None else titles[iv])
             if _ax.get_legend() is not None:
                 _ax.get_legend().remove()
-            _ax.set_ylabel("expression" if ylabel is None else ylabel)
-            if groupby is not None:
-                _ax.set_xticklabels(groupby_order, rotation="vertical")
-            else:
-                _ax.set_xticklabels([])
+            _ax.set_ylabel(variable if ylabel is None else ylabel)
 
         if legend:
             # create legend for outside plots
@@ -929,11 +1100,16 @@ def boxplots_group(
     pairby=None,
     layer=None,
     log_scale=None,
+    log_scale_method="functionlog",
     pseudocount=1.0,
-    sig=False,
-    bonferroni=False,
+    sig=True,
     test_pairs=None,
+    test_method="t-test",
+    test_transform=None,
+    bonferroni=False,
+    sample_n=False,
     ylabel=None,
+    xlab_rot=None,
     titles=None,
     legend=True,
     size=3,
@@ -974,6 +1150,8 @@ def boxplots_group(
     log_scale : int, optional (default=`None`)
         Set axis scale(s) to log. Numeric values are interpreted as the desired base
         (e.g. 10). When `None`, plot defers to the existing Axes scale.
+    log_scale_method : literal ['functionlog','symlog'], optional (default='functionlog')
+        Method for adjusting y-axis scale if `log_scale` is not `None`
     pseudocount : float, optional (default=1.0)
         Pseudocount to add to values before log-transforming with base=`log_scale`
     sig : bool, optional (default=`False`)
@@ -984,8 +1162,18 @@ def boxplots_group(
     test_pairs : list of tuple, optional (default=`None`)
         List of pairs of `groupby` values to include in testing. If `None`, test all
         levels in `groupby` pairwise.
+    test_method : literal ["t-test","wilcoxon"], optional (default="t-test")
+        Method for performing significance testing across groups
+    test_transform : literal ["log1p","log10p","log2p","arcsinh"], optional (default=`None`)
+        Transformation to apply to values before testing. "log1p"=np.log(val+1),
+        "log10p"=np.log10(val+1), "log2p"=np.log2(val+1), "arcsinh"=np.arcsinh(val).
+    sample_n : bool, optional (default=False)
+        Add sample number to x-axis tick labels for each group
     ylabel : str, optional (default=`None`)
         Label for y axes. If `None` use `colors`.
+    xlab_rot : int, optional (default=`None`)
+        Rotation (in degrees) to force on all x ticklabels. If `None`, auto-rotate x
+        ticklabels 90 degrees if they're longer than 10 characters.
     titles : list of str, optional (default=`None`)
         Titles for each set of axes. If `None` use `features`.
     legend : bool, optional (default=`True`)
@@ -1205,30 +1393,69 @@ def boxplots_group(
                         ax=_ax,
                         feature=c,
                         groupby=x,
-                        groupby_order=groupby_order[ix]
-                        if groupby_order is not None
-                        else None,
+                        groupby_order=groupby_order[ix],
                         test_pairs=test_pairs,
+                        method=test_method,
+                        transform=test_transform,
                         bonferroni=bonferroni,
                         log_scale=log_scale,
                     )
                     sig_out = pd.concat([sig_out, pd.DataFrame(sig_tmp)])
 
                 if log_scale is not None:
-                    # use custom functions for transformation
-                    _ax.set_yscale(
+                    assert log_scale_method in [
                         "functionlog",
-                        functions=[
-                            lambda x: x + pseudocount,
-                            lambda x: x - pseudocount,
-                        ],
-                        base=log_scale,
-                    )
+                        "symlog",
+                    ], "Must provide 'functionlog' or 'symlog' for log_scale_method"
+                    if log_scale_method == "functionlog":
+                        # use custom functions for transformation
+                        _ax.set_yscale(
+                            "functionlog",
+                            functions=[
+                                lambda x: x + pseudocount,
+                                lambda x: x - pseudocount,
+                            ],
+                            base=log_scale,
+                        )
+                    elif log_scale_method == "symlog":
+                        _ax.set_yscale(
+                            "symlog",
+                            linthresh=pseudocount,
+                            base=log_scale,
+                        )
                     # show log values as scalar (non-sci notation)
                     _ax.yaxis.set_major_formatter(ScalarFormatter())
 
+                # modify x-axis tick labels
+                old_labels = [label.get_text() for label in _ax.get_xticklabels()]
+                if sample_n:
+                    # modify x-axis tick labels to include sample size
+                    group_counts = df[x].value_counts()
+                    new_labels = [
+                        f"{label}\n(n = {group_counts[label]})" for label in old_labels
+                    ]
+                else:
+                    new_labels = old_labels.copy()
+                # set x-tick labels with conditional rotation
+                for label, old_label in zip(_ax.get_xticklabels(), old_labels):
+                    if xlab_rot is None:
+                        if len(old_label) > 10:
+                            label.set_rotation(90)
+                        else:
+                            label.set_rotation(0)
+                        label.set_horizontalalignment("center")
+                # set label text
+                if xlab_rot is None:
+                    _ax.set_xticklabels(new_labels)
+                else:
+                    _ax.set_xticklabels(
+                        new_labels,
+                        rotation=xlab_rot,
+                        ha="right",
+                        rotation_mode="anchor",
+                    )
+
                 _ax.set_title(c if titles is None else titles[ic])
-                _ax.set_xticklabels(_ax.get_xticklabels(), rotation=90)
                 _ax.set_xlabel("")
                 _ax.set_ylabel(c if ylabel is None else ylabel)
 
