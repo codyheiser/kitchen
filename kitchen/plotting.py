@@ -1425,10 +1425,11 @@ def boxplots_group(
     for ix, x in enumerate(groupby):
         print("Generating boxplots for {}".format(x))
 
+        # set categories
+        df[x] = df[x].astype("category")
+
         # groupby_order
         if groupby_order is not None:
-            # set categories
-            df[x] = df[x].astype("category")
             # check if given groupby_order contains all categories
             if all([j in df[x].cat.categories for j in groupby_order[ix]]):
                 # reorder categories with manual groupby_order
@@ -1570,7 +1571,9 @@ def boxplots_group(
                         ax=_ax,
                         feature=c,
                         groupby=x,
-                        groupby_order=groupby_order[ix],
+                        groupby_order=groupby_order[ix]
+                        if groupby_order is not None
+                        else df[x].cat.categories,
                         test_pairs=test_pairs,
                         method=test_method,
                         transform=test_transform,
