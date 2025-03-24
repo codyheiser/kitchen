@@ -848,6 +848,7 @@ def split_violin(
     sig=False,
     test_method="t-test",
     test_transform=None,
+    split=True,
     strip=True,
     jitter=True,
     size=3,
@@ -906,6 +907,8 @@ def split_violin(
     test_transform : literal ["log1p","log10p","log2p","arcsinh"], optional (default=`None`)
         Transformation to apply to values before testing. "log1p"=np.log(val+1),
         "log10p"=np.log10(val+1), "log2p"=np.log2(val+1), "arcsinh"=np.arcsinh(val).
+    split : bool, optional (default=`True`)
+        Split box/violinplots and dodge stripplots if `splitby` is not `None`
     strip : bool, optional (default=`True`)
         Show a strip plot on top of the violin plot.
     jitter : Union[int, float, bool], optional (default=`True`)
@@ -978,6 +981,22 @@ def split_violin(
         df["hue"] = df[splitby].astype(str).values
         df["hue"] = df["hue"].astype("category")
         splitby = "hue"  # set to 'hue' for plotting
+        # splitby_order
+        if splitby_order is not None:
+            # check if given splitby_order contains all categories
+            if all([j in df["hue"].cat.categories for j in splitby_order]):
+                # reorder categories with manual splitby_order
+                df["hue"] = df["hue"].cat.set_categories(splitby_order, ordered=True)
+            else:
+                # ignore splitby_order due to mismatch
+                print(
+                    "\tElements in `splitby_order` do not match `splitby` categories... ignoring manual ordering"
+                )
+                # set order using cat.categories for downstream
+                splitby_order = list(df["hue"].cat.categories)
+        else:
+            # if no splitby_order given, set order using cat.categories for downstream
+            splitby_order = list(df["hue"].cat.categories)
 
     # add point hue
     if points_colorby is None:
@@ -1053,7 +1072,7 @@ def split_violin(
                     inner=None,
                     hue=splitby if splitby is not None else "group",
                     hue_order=splitby_order if splitby is not None else groupby_order,
-                    split=True if splitby is not None else False,
+                    split=False if splitby is None else split,
                     scale=scale,
                     orient="vertical",
                 )
@@ -1064,7 +1083,7 @@ def split_violin(
                     data=tmp,
                     hue=splitby if splitby is not None else "group",
                     hue_order=splitby_order if splitby is not None else groupby_order,
-                    dodge=True if splitby is not None else False,
+                    dodge=False if splitby is None else split,
                     orient="vertical",
                     fliersize=0,
                 )

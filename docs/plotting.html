@@ -642,7 +642,7 @@ keys)</dd>
 <div class="desc"><p>Draw significance bracket on matplotlib figure</p></div>
 </dd>
 <dt id="kitchen.plotting.split_violin"><code class="name flex">
-<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, points_colorby=None, layer=None, log_scale=None, log_scale_method='functionlog', pseudocount=1.0, plot_type='violin', scale='width', sig=False, test_method='t-test', test_transform=None, strip=True, jitter=True, size=3, hlines=None, panelsize=(3, 3), ncols=1, sample_n=False, ylabel=None, xlab_rot=None, titles=None, legend=True, save=None, dpi=300)</span>
+<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, points_colorby=None, layer=None, log_scale=None, log_scale_method='functionlog', pseudocount=1.0, plot_type='violin', scale='width', sig=False, test_method='t-test', test_transform=None, split=True, strip=True, jitter=True, size=3, hlines=None, panelsize=(3, 3), ncols=1, sample_n=False, ylabel=None, xlab_rot=None, titles=None, legend=True, save=None, dpi=300)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot genes grouped by one variable and split by another</p>
@@ -687,6 +687,8 @@ and add significance bars to plot(s)</dd>
 <dt><strong><code>test_transform</code></strong> :&ensp;<code>literal ["log1p","log10p","log2p","arcsinh"]</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Transformation to apply to values before testing. "log1p"=np.log(val+1),
 "log10p"=np.log10(val+1), "log2p"=np.log2(val+1), "arcsinh"=np.arcsinh(val).</dd>
+<dt><strong><code>split</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
+<dd>Split box/violinplots and dodge stripplots if <code>splitby</code> is not <code>None</code></dd>
 <dt><strong><code>strip</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>True<code>)</code></dt>
 <dd>Show a strip plot on top of the violin plot.</dd>
 <dt><strong><code>jitter</code></strong> :&ensp;<code>Union[int, float, bool]</code>, optional <code>(default=</code>True<code>)</code></dt>
