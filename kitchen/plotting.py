@@ -839,6 +839,7 @@ def split_violin(
     splitby=None,
     splitby_order=None,
     points_colorby=None,
+    points_colordict=None,
     layer=None,
     log_scale=None,
     log_scale_method="functionlog",
@@ -886,6 +887,8 @@ def split_violin(
         Order of categories in `adata.obs[splitby]`.
     points_colorby : str, optional (default=`None`)
         Categorical `.obs` column to color stripplot points by.
+    points_colordict : dict, optional (default=`None`)
+        Dictionary of group, color pairs from `points_colorby` to color points by
     layer : str, optional (default=`None`)
         Key from `layers` attribute of `adata` if present
     log_scale : int, optional (default=`None`)
@@ -1115,14 +1118,40 @@ def split_violin(
                         ax=_ax,
                     )
                 else:
-                    # get the Accent colormap
-                    Accent = mcp.gen_color(
-                        cmap="rainbow", n=len(tmp.points_hue.cat.categories)
-                    )
-                    for cat, color in zip(
-                        tmp.points_hue.cat.categories,
-                        Accent[: len(tmp.points_hue.cat.categories)],
-                    ):
+                    if points_colordict is None:
+                        # get the Accent colormap by default
+                        Accent = mcp.gen_color(
+                            cmap="rainbow", n=len(tmp.points_hue.cat.categories)
+                        )
+                        points_colordict = dict(
+                            zip(
+                                tmp.points_hue.cat.categories,
+                                Accent[: len(tmp.points_hue.cat.categories)],
+                            )
+                        )
+                    else:
+                        # check if given points_colordict contains all categories
+                        if not all(
+                            [
+                                j in tmp.points_hue.cat.categories
+                                for j in points_colordict.keys()
+                            ]
+                        ):
+                            print(
+                                "\tElements in `points_colordict` do not match `points_colorby` categories... using default accent colormap"
+                            )
+                            # get the Accent colormap instead
+                            Accent = mcp.gen_color(
+                                cmap="rainbow", n=len(tmp.points_hue.cat.categories)
+                            )
+                            points_colordict = dict(
+                                zip(
+                                    tmp.points_hue.cat.categories,
+                                    Accent[: len(tmp.points_hue.cat.categories)],
+                                )
+                            )
+                    # loop through colordict and plot points
+                    for cat, color in points_colordict.items():
                         df_per_color = tmp.loc[tmp.points_hue == cat]
                         sns.stripplot(
                             data=df_per_color,
@@ -1204,7 +1233,10 @@ def split_violin(
                 _ax.set_xticklabels(new_labels)
             else:
                 _ax.set_xticklabels(
-                    new_labels, rotation=xlab_rot, ha="right", rotation_mode="anchor"
+                    new_labels,
+                    rotation=xlab_rot,
+                    ha="right" if xlab_rot != 0 else "center",
+                    rotation_mode="anchor",
                 )
 
             _ax.set_xlabel("")
@@ -1255,10 +1287,7 @@ def split_violin(
                         alpha=0.7,
                         linestyle="None",
                     )
-                    for cat, color in zip(
-                        df[points_colorby].cat.categories,
-                        Accent[: len(df[points_colorby].cat.categories)],
-                    )
+                    for cat, color in points_colordict.items()
                 ]
                 legend_elements = (
                     points if splitby is None else legend_elements + points
@@ -1293,15 +1322,16 @@ def boxplots_group(
     groupby_order=None,
     groupby_colordict=None,
     points_colorby=None,
+    points_colordict=None,
     pairby=None,
     layer=None,
     log_scale=None,
     log_scale_method="functionlog",
     pseudocount=1.0,
     sig=True,
-    test_pairs=None,
     test_method="t-test",
     test_transform=None,
+    test_pairs=None,
     bonferroni=False,
     sample_n=False,
     ylabel=None,
@@ -1334,13 +1364,15 @@ def boxplots_group(
         List of values in `a[groupby]` or `a.obs[groupby]` specifying the order of
         groups on x-axis. If `groupby` is a list, `groupby_order` should also be a list
         with corresponding orders in each element.
-    groupby_colordict : dictionary, optional (default=`None`)
+    groupby_colordict : dict, optional (default=`None`)
         Dictionary of group, color pairs from `groupby` to color boxes and points by
+    points_colorby : str, optional (default=`None`)
+        Categorical `.obs` column to color stripplot points by.
+    points_colordict : dict, optional (default=`None`)
+        Dictionary of group, color pairs from `points_colorby` to color points by
     pairby : str, optional (default=`None`)
         Categorical `.obs` column identifying point pairings to draw lines between
         across `groupby` categories.
-    points_colorby : str, optional (default=`None`)
-        Categorical `.obs` column to color stripplot points by.
     layer : str, optional (default=`None`)
         Key from `layers` attribute of `adata` if present
     log_scale : int, optional (default=`None`)
@@ -1353,16 +1385,16 @@ def boxplots_group(
     sig : bool, optional (default=`False`)
         Perform significance testing (2-way t-test) between all groups and add
         significance bars to plot(s)
-    bonferroni : bool, optional (default=False)
-        Adjust significance p-values with simple Bonferroni correction
-    test_pairs : list of tuple, optional (default=`None`)
-        List of pairs of `groupby` values to include in testing. If `None`, test all
-        levels in `groupby` pairwise.
     test_method : literal ["t-test","wilcoxon"], optional (default="t-test")
         Method for performing significance testing across groups
     test_transform : literal ["log1p","log10p","log2p","arcsinh"], optional (default=`None`)
         Transformation to apply to values before testing. "log1p"=np.log(val+1),
         "log10p"=np.log10(val+1), "log2p"=np.log2(val+1), "arcsinh"=np.arcsinh(val).
+    test_pairs : list of tuple, optional (default=`None`)
+        List of pairs of `groupby` values to include in testing. If `None`, test all
+        levels in `groupby` pairwise.
+    bonferroni : bool, optional (default=False)
+        Adjust significance p-values with simple Bonferroni correction
     sample_n : bool, optional (default=False)
         Add sample number to x-axis tick labels for each group
     ylabel : str, optional (default=`None`)
@@ -1519,14 +1551,40 @@ def boxplots_group(
                     # coerce points_colorby column to categorical
                     if not pd.api.types.is_categorical_dtype(df[points_colorby]):
                         df[points_colorby] = df[points_colorby].astype("category")
-                    # get the Accent colormap
-                    Accent = mcp.gen_color(
-                        cmap="rainbow", n=len(df[points_colorby].cat.categories)
-                    )
-                    for cat, color in zip(
-                        df[points_colorby].cat.categories,
-                        Accent[: len(df[points_colorby].cat.categories)],
-                    ):
+                    if points_colordict is None:
+                        # get the Accent colormap by default
+                        Accent = mcp.gen_color(
+                            cmap="rainbow", n=len(df[points_colorby].cat.categories)
+                        )
+                        points_colordict = dict(
+                            zip(
+                                df[points_colorby].cat.categories,
+                                Accent[: len(df[points_colorby].cat.categories)],
+                            )
+                        )
+                    else:
+                        # check if given points_colordict contains all categories
+                        if not all(
+                            [
+                                j in df[points_colorby].cat.categories
+                                for j in points_colordict.keys()
+                            ]
+                        ):
+                            print(
+                                "\tElements in `points_colordict` do not match `points_colorby` categories... using default accent colormap"
+                            )
+                            # get the Accent colormap instead
+                            Accent = mcp.gen_color(
+                                cmap="rainbow", n=len(df[points_colorby].cat.categories)
+                            )
+                            points_colordict = dict(
+                                zip(
+                                    df[points_colorby].cat.categories,
+                                    Accent[: len(df[points_colorby].cat.categories)],
+                                )
+                            )
+                    # loop through colordict and plot points
+                    for cat, color in points_colordict.items():
                         df_per_color = df.loc[df[points_colorby] == cat]
                         sns.stripplot(
                             data=df_per_color,
@@ -1650,7 +1708,7 @@ def boxplots_group(
                     _ax.set_xticklabels(
                         new_labels,
                         rotation=xlab_rot,
-                        ha="right",
+                        ha="right" if xlab_rot != 0 else "center",
                         rotation_mode="anchor",
                     )
 
@@ -1673,10 +1731,7 @@ def boxplots_group(
                             markeredgecolor="k",
                             linestyle="None",
                         )
-                        for cat, color in zip(
-                            df[points_colorby].cat.categories,
-                            Accent[: len(df[points_colorby].cat.categories)],
-                        )
+                        for cat, color in points_colordict.items()
                     ]
                 else:
                     legend_elements = None

@@ -37,7 +37,7 @@ hljs.highlightAll();
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="kitchen.plotting.boxplots_group"><code class="name flex">
-<span>def <span class="ident">boxplots_group</span></span>(<span>a, features, groupby, groupby_order=None, groupby_colordict=None, points_colorby=None, pairby=None, layer=None, log_scale=None, log_scale_method='functionlog', pseudocount=1.0, sig=True, test_pairs=None, test_method='t-test', test_transform=None, bonferroni=False, sample_n=False, ylabel=None, xlab_rot=None, titles=None, legend=True, size=3, hlines=None, panelsize=(3, 3), ncols=6, outdir='./', save_prefix='', dpi=300)</span>
+<span>def <span class="ident">boxplots_group</span></span>(<span>a, features, groupby, groupby_order=None, groupby_colordict=None, points_colorby=None, points_colordict=None, pairby=None, layer=None, log_scale=None, log_scale_method='functionlog', pseudocount=1.0, sig=True, test_method='t-test', test_transform=None, test_pairs=None, bonferroni=False, sample_n=False, ylabel=None, xlab_rot=None, titles=None, legend=True, size=3, hlines=None, panelsize=(3, 3), ncols=6, outdir='./', save_prefix='', dpi=300)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot trends from
@@ -57,13 +57,15 @@ samples and columns to genes. Can also be <code>pd.DataFrame</code>.</dd>
 <dd>List of values in <code>a[groupby]</code> or <code>a.obs[groupby]</code> specifying the order of
 groups on x-axis. If <code>groupby</code> is a list, <code>groupby_order</code> should also be a list
 with corresponding orders in each element.</dd>
-<dt><strong><code>groupby_colordict</code></strong> :&ensp;<code>dictionary</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dt><strong><code>groupby_colordict</code></strong> :&ensp;<code>dict</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Dictionary of group, color pairs from <code>groupby</code> to color boxes and points by</dd>
+<dt><strong><code>points_colorby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Categorical <code>.obs</code> column to color stripplot points by.</dd>
+<dt><strong><code>points_colordict</code></strong> :&ensp;<code>dict</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Dictionary of group, color pairs from <code>points_colorby</code> to color points by</dd>
 <dt><strong><code>pairby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Categorical <code>.obs</code> column identifying point pairings to draw lines between
 across <code>groupby</code> categories.</dd>
-<dt><strong><code>points_colorby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
-<dd>Categorical <code>.obs</code> column to color stripplot points by.</dd>
 <dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Key from <code>layers</code> attribute of <code>adata</code> if present</dd>
 <dt><strong><code>log_scale</code></strong> :&ensp;<code>int</code>, optional <code>(default=</code>None<code>)</code></dt>
@@ -76,16 +78,16 @@ across <code>groupby</code> categories.</dd>
 <dt><strong><code>sig</code></strong> :&ensp;<code>bool</code>, optional <code>(default=</code>False<code>)</code></dt>
 <dd>Perform significance testing (2-way t-test) between all groups and add
 significance bars to plot(s)</dd>
-<dt><strong><code>bonferroni</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
-<dd>Adjust significance p-values with simple Bonferroni correction</dd>
-<dt><strong><code>test_pairs</code></strong> :&ensp;<code>list</code> of <code>tuple</code>, optional <code>(default=</code>None<code>)</code></dt>
-<dd>List of pairs of <code>groupby</code> values to include in testing. If <code>None</code>, test all
-levels in <code>groupby</code> pairwise.</dd>
 <dt><strong><code>test_method</code></strong> :&ensp;<code>literal ["t-test","wilcoxon"]</code>, optional <code>(default="t-test")</code></dt>
 <dd>Method for performing significance testing across groups</dd>
 <dt><strong><code>test_transform</code></strong> :&ensp;<code>literal ["log1p","log10p","log2p","arcsinh"]</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Transformation to apply to values before testing. "log1p"=np.log(val+1),
 "log10p"=np.log10(val+1), "log2p"=np.log2(val+1), "arcsinh"=np.arcsinh(val).</dd>
+<dt><strong><code>test_pairs</code></strong> :&ensp;<code>list</code> of <code>tuple</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>List of pairs of <code>groupby</code> values to include in testing. If <code>None</code>, test all
+levels in <code>groupby</code> pairwise.</dd>
+<dt><strong><code>bonferroni</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
+<dd>Adjust significance p-values with simple Bonferroni correction</dd>
 <dt><strong><code>sample_n</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
 <dd>Add sample number to x-axis tick labels for each group</dd>
 <dt><strong><code>ylabel</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
@@ -642,7 +644,7 @@ keys)</dd>
 <div class="desc"><p>Draw significance bracket on matplotlib figure</p></div>
 </dd>
 <dt id="kitchen.plotting.split_violin"><code class="name flex">
-<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, points_colorby=None, layer=None, log_scale=None, log_scale_method='functionlog', pseudocount=1.0, plot_type='violin', scale='width', sig=False, test_method='t-test', test_transform=None, split=True, strip=True, jitter=True, size=3, hlines=None, panelsize=(3, 3), ncols=1, sample_n=False, ylabel=None, xlab_rot=None, titles=None, legend=True, save=None, dpi=300)</span>
+<span>def <span class="ident">split_violin</span></span>(<span>a, features, groupby=None, groupby_order=None, splitby=None, splitby_order=None, points_colorby=None, points_colordict=None, layer=None, log_scale=None, log_scale_method='functionlog', pseudocount=1.0, plot_type='violin', scale='width', sig=False, test_method='t-test', test_transform=None, split=True, strip=True, jitter=True, size=3, hlines=None, panelsize=(3, 3), ncols=1, sample_n=False, ylabel=None, xlab_rot=None, titles=None, legend=True, save=None, dpi=300)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot genes grouped by one variable and split by another</p>
@@ -666,6 +668,8 @@ with corresponding orders in each element.</dd>
 <dd>Order of categories in <code>adata.obs[splitby]</code>.</dd>
 <dt><strong><code>points_colorby</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Categorical <code>.obs</code> column to color stripplot points by.</dd>
+<dt><strong><code>points_colordict</code></strong> :&ensp;<code>dict</code>, optional <code>(default=</code>None<code>)</code></dt>
+<dd>Dictionary of group, color pairs from <code>points_colorby</code> to color points by</dd>
 <dt><strong><code>layer</code></strong> :&ensp;<code>str</code>, optional <code>(default=</code>None<code>)</code></dt>
 <dd>Key from <code>layers</code> attribute of <code>adata</code> if present</dd>
 <dt><strong><code>log_scale</code></strong> :&ensp;<code>int</code>, optional <code>(default=</code>None<code>)</code></dt>
