@@ -460,10 +460,10 @@ initial look at pathways</p>
 <p>Saves <code>decoupler</code> ORA dotplots to <code>out_dir/</code>.</p></div>
 </dd>
 <dt id="kitchen.recipes.score_gene_signatures"><code class="name flex">
-<span>def <span class="ident">score_gene_signatures</span></span>(<span>adata, signatures_dict, sig_subset=None, layer=None)</span>
+<span>def <span class="ident">score_gene_signatures</span></span>(<span>adata, signatures_dict, method='seurat', sig_subset=None, layer=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Score gene signatures in AnnData using <code>sc.tl.score_genes</code></p>
+<div class="desc"><p>Score gene signatures in AnnData using <code>sc.tl.score_genes</code> or <code>dc.run_gsva</code></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>adata</code></strong> :&ensp;<code>anndata.AnnData</code></dt>
@@ -471,6 +471,8 @@ initial look at pathways</p>
 <dt><strong><code>signatures_dict</code></strong> :&ensp;<code>dict</code></dt>
 <dd>Dictionary of signature names (keys) and constituent genes (values), with gene
 names matching <code>adata.var_names</code></dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>literal ['seurat','gsva']</code>, optional <code>(default='seurat')</code></dt>
+<dd>Method to use for scoring. 'seurat':<code>sc.tl.score_genes</code>; 'gsva':<code>dc.run_gsva</code>.</dd>
 <dt><strong><code>sig_subset</code></strong> :&ensp;<code>list, Optional (default=</code>None<code>)</code></dt>
 <dd>Subset of keys from <code>signatures_dict</code> to attempt scoring. If <code>None</code>, score all
 signatures from <code>signatures_dict</code></dd>

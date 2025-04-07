@@ -17,6 +17,7 @@ from .ingredients import (
     g2m_genes_m,
     signature_dict_values,
     signature_dict_from_rank_genes_groups,
+    signatures_to_long_form,
 )
 from .plotting import custom_heatmap, decoupler_dotplot_facet
 
@@ -109,9 +110,11 @@ def calculate_cell_proportions(obs_df, celltype_column, groupby, celltype_subset
     return props_df
 
 
-def score_gene_signatures(adata, signatures_dict, sig_subset=None, layer=None):
+def score_gene_signatures(
+    adata, signatures_dict, method="seurat", sig_subset=None, layer=None
+):
     """
-    Score gene signatures in AnnData using `sc.tl.score_genes`
+    Score gene signatures in AnnData using `sc.tl.score_genes` or `dc.run_gsva`
 
     Parameters
     ----------
@@ -120,6 +123,8 @@ def score_gene_signatures(adata, signatures_dict, sig_subset=None, layer=None):
     signatures_dict : dict
         Dictionary of signature names (keys) and constituent genes (values), with gene
         names matching `adata.var_names`
+    method : literal ['seurat','gsva'], optional (default='seurat')
+        Method to use for scoring. 'seurat':`sc.tl.score_genes`; 'gsva':`dc.run_gsva`.
     sig_subset : list, Optional (default=`None`)
         Subset of keys from `signatures_dict` to attempt scoring. If `None`, score all
         signatures from `signatures_dict`
@@ -135,6 +140,10 @@ def score_gene_signatures(adata, signatures_dict, sig_subset=None, layer=None):
     scored_sigs : list
         List of signatures scored successfully
     """
+    assert method.lower() in [
+        "seurat",
+        "gsva",
+    ], "'method' must be one of ['seurat','gsva']"
     if layer is not None:
         # put desired layer in .X for scoring
         adata.X = adata.layers[layer].copy()
@@ -144,52 +153,107 @@ def score_gene_signatures(adata, signatures_dict, sig_subset=None, layer=None):
         assert np.all(
             [x in signatures_dict.keys() for x in sig_subset]
         ), "All keys in sig_subset must be present in signatures_dict!"
-    print("Scoring {} signatures from dictionary:\n".format(len(sig_subset)))
-    failed_sigs = []  # keep track of signatures that don't score properly
-    scored_sigs = []  # keep track of signatures successfully scored
-    for sig in sig_subset:
-        # if there's an "Up" and "Down" portion to a signature, score accordingly
-        if sig.lower().endswith("_up"):
-            try:
-                print(sig.replace("_Up", "").replace("_up", ""))
-                sc.tl.score_genes(
-                    adata,
-                    gene_list=signatures_dict[sig],
-                    gene_pool=signatures_dict[sig]
-                    + signatures_dict[
-                        sig.replace("_Up", "_Down").replace("_up", "_down")
-                    ],
-                    ctrl_size=len(
-                        signatures_dict[
+
+    if method.lower() == "seurat":
+        print(
+            "Scoring {} signatures from dictionary using Seurat method:\n".format(
+                len(sig_subset)
+            )
+        )
+        failed_sigs = []  # keep track of signatures that don't score properly
+        scored_sigs = []  # keep track of signatures successfully scored
+        for sig in sig_subset:
+            # if there's an "Up" and "Down" portion to a signature, score accordingly
+            if sig.lower().endswith("_up"):
+                try:
+                    print(sig.replace("_Up", "").replace("_up", ""))
+                    sc.tl.score_genes(
+                        adata,
+                        gene_list=signatures_dict[sig],
+                        gene_pool=signatures_dict[sig]
+                        + signatures_dict[
                             sig.replace("_Up", "_Down").replace("_up", "_down")
-                        ]
-                    ),
-                    score_name=sig.replace("_Up", "").replace("_up", ""),
-                )
-                scored_sigs.append(sig.replace("_Up", "").replace("_up", ""))
-            except ValueError as e:
-                print(
-                    "{} failed!\n\t{}".format(
-                        sig.replace("_Up", "").replace("_up", ""), e
+                        ],
+                        ctrl_size=len(
+                            signatures_dict[
+                                sig.replace("_Up", "_Down").replace("_up", "_down")
+                            ]
+                        ),
+                        score_name=sig.replace("_Up", "").replace("_up", ""),
                     )
-                )
-                failed_sigs.append(sig.replace("_Up", "").replace("_up", ""))
-        # should be able to skip the "Down" signatures as we look for "Up" lists above
-        elif sig.lower().endswith("_down"):
-            pass
-        # otherwise, score signature normally
-        else:
-            try:
-                print(sig)
-                sc.tl.score_genes(
-                    adata,
-                    gene_list=signatures_dict[sig],
-                    score_name=sig,
-                )
-                scored_sigs.append(sig)
-            except ValueError as e:
-                print("{} failed!\n\t{}".format(sig, e))
-                failed_sigs.append(sig)
+                    scored_sigs.append(sig.replace("_Up", "").replace("_up", ""))
+                except ValueError as e:
+                    print(
+                        "{} failed!\n\t{}".format(
+                            sig.replace("_Up", "").replace("_up", ""), e
+                        )
+                    )
+                    failed_sigs.append(sig.replace("_Up", "").replace("_up", ""))
+            # should be able to skip the "Down" signatures as we look for "Up" lists above
+            elif sig.lower().endswith("_down"):
+                pass
+            # otherwise, score signature normally
+            else:
+                try:
+                    print(sig)
+                    sc.tl.score_genes(
+                        adata,
+                        gene_list=signatures_dict[sig],
+                        score_name=sig,
+                    )
+                    scored_sigs.append(sig)
+                except ValueError as e:
+                    print("{} failed!\n\t{}".format(sig, e))
+                    failed_sigs.append(sig)
+
+    elif method.lower() == "gsva":
+        print(
+            "Scoring {} signatures from dictionary using GSVA:\n".format(
+                len(sig_subset)
+            )
+        )
+        # make decoupler-style network from sig dict
+        net = signatures_to_long_form(
+            signatures_dict, sig_col="signature", gene_col="gene"
+        )
+        # run GSVA on AnnData obj and extract results
+        dc.run_gsva(
+            adata,
+            net=net,
+            source="signature",
+            target="gene",
+            min_n=0,
+            seed=8,
+            verbose=True,
+            use_raw=False,
+        )
+        dc_nes_df = adata.obsm["gsva_estimate"].copy()
+        del adata.obsm["gsva_estimate"]  # remove from AnnData .obsm slot
+        # list to keep track of new columns and columns to drop
+        new_columns = {}
+        columns_to_drop = []
+        # iterate through the columns to find _Up and _Down pairs
+        for col in dc_nes_df.columns:
+            if col.endswith("_Up"):
+                base_name = col[:-3]
+                down_col = base_name + "_Down"
+                if down_col in dc_nes_df.columns:
+                    # create new column with the difference
+                    new_columns[base_name] = dc_nes_df[col] - dc_nes_df[down_col]
+                    # mark the _Up and _Down columns for dropping
+                    columns_to_drop.extend([col, down_col])
+                else:
+                    # if no matching _Down column, mark the _Up column for dropping
+                    columns_to_drop.append(col)
+        # add new columns to the DataFrame
+        for new_col, values in new_columns.items():
+            dc_nes_df[new_col] = values
+        # drop the original _Up and _Down columns
+        dc_nes_df.drop(columns=columns_to_drop, inplace=True)
+        scored_sigs = list(dc_nes_df.columns)
+        failed_sigs = []  # no way of failure here (?)
+        adata.obs = adata.obs.merge(dc_nes_df, left_index=True, right_index=True)
+
     return failed_sigs, scored_sigs
 
 

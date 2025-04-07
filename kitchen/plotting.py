@@ -1648,9 +1648,11 @@ def boxplots_group(
                         ax=_ax,
                         feature=c,
                         groupby=x,
-                        groupby_order=groupby_order[ix]
-                        if groupby_order is not None
-                        else df[x].cat.categories,
+                        groupby_order=(
+                            groupby_order[ix]
+                            if groupby_order is not None
+                            else df[x].cat.categories
+                        ),
                         test_pairs=test_pairs,
                         method=test_method,
                         transform=test_transform,
