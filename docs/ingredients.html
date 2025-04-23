@@ -190,7 +190,7 @@ as values.</dd>
 </dl></div>
 </dd>
 <dt id="kitchen.ingredients.signature_dict_from_rank_genes_groups"><code class="name flex">
-<span>def <span class="ident">signature_dict_from_rank_genes_groups</span></span>(<span>adata, uns_key='rank_genes_groups', groups=None, n_genes=5, ambient=False)</span>
+<span>def <span class="ident">signature_dict_from_rank_genes_groups</span></span>(<span>adata, uns_key='rank_genes_groups', groups=None, n_genes=5, add_down=False, ambient=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Extract DEGs from AnnData into signature dictionary</p>
@@ -206,6 +206,8 @@ as values.</dd>
 retrieve all groups.</dd>
 <dt><strong><code>n_genes</code></strong> :&ensp;<code>int</code>, optional <code>(default=5)</code></dt>
 <dd>Number of top genes per group to show</dd>
+<dt><strong><code>add_down</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
+<dd>Include bottom <code>n_genes</code> by score as well as top genes</dd>
 <dt><strong><code>ambient</code></strong> :&ensp;<code>bool</code>, optional <code>(default=False)</code></dt>
 <dd>Include ambient genes as a group in the plot/output dictionary. If <code>True</code>,
 <code>adata.var</code> must have a boolean column called 'ambient' labeling ambient genes.</dd>

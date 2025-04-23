@@ -324,7 +324,7 @@ clustering</dd>
 </dl></div>
 </dd>
 <dt id="kitchen.plotting.decoupler_dotplot"><code class="name flex">
-<span>def <span class="ident">decoupler_dotplot</span></span>(<span>df, x, y, c, s, largest_dot=50, cmap='coolwarm', title=None, figsize=(3, 5), ax=None, return_fig=False, save=None, dpi=200)</span>
+<span>def <span class="ident">decoupler_dotplot</span></span>(<span>df, x, y, c, s, largest_dot=50, cmap='Reds', title=None, figsize=(3, 5), ax=None, return_fig=False, save=None, dpi=200)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot results of <code>decoupler</code> enrichment analysis as dots.</p>
@@ -631,6 +631,46 @@ keys)</dd>
 <dd>&nbsp;</dd>
 </dl></div>
 </dd>
+<dt id="kitchen.plotting.rank_genes_groups"><code class="name flex">
+<span>def <span class="ident">rank_genes_groups</span></span>(<span>adata, groups=None, n_genes=20, gene_symbols=None, key='rank_genes_groups', fontsize=8, ncols=4, sharey=True, save_to=None, ax=None, include_lowest=False, panelsize=(4, 4), **kwds)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot ranking of genes with optional inclusion of lowest ranking genes.
+Adapted from sc.pl.rank_genes_groups</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>adata</code></strong> :&ensp;<code>AnnData</code></dt>
+<dd>Annotated data matrix.</dd>
+<dt><strong><code>groups</code></strong> :&ensp;<code>str | Sequence[str] | None</code>, optional</dt>
+<dd>The groups for which to show the gene ranking.</dd>
+<dt><strong><code>n_genes</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of genes to show. Default is 20.</dd>
+<dt><strong><code>gene_symbols</code></strong> :&ensp;<code>str | None</code>, optional</dt>
+<dd>Key for field in <code>.var</code> that stores gene symbols if you do not want to
+use <code>.var_names</code>.</dd>
+<dt><strong><code>key</code></strong> :&ensp;<code>str | None</code>, optional</dt>
+<dd>Key for accessing the rank genes groups in <code>adata.uns</code>. Default is "rank_genes_groups".</dd>
+<dt><strong><code>fontsize</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Fontsize for gene names. Default is 8.</dd>
+<dt><strong><code>ncols</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of panels shown per row. Default is 4.</dd>
+<dt><strong><code>sharey</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Controls if the y-axis of each panel should be shared. By passing
+<code>sharey=False</code>, each panel has its own y-axis range. Default is True.</dd>
+<dt><strong><code>save_to</code></strong> :&ensp;<code>bool | None</code>, optional</dt>
+<dd>Path to save the figure to. If None, the figure is not saved.</dd>
+<dt><strong><code>ax</code></strong> :&ensp;<code>Axes | None</code>, optional</dt>
+<dd>Matplotlib Axes object to draw the plots on. If None, a new figure is created.</dd>
+<dt><strong><code>include_lowest</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to include the lowest ranking genes. Default is False.</dd>
+<dt><strong><code>panelsize</code></strong> :&ensp;<code>tuple</code>, optional</dt>
+<dd>Tuple specifying the (width, height) of each panel. Default is (4, 4).</dd>
+<dt><strong><code>**kwds</code></strong></dt>
+<dd>Additional keyword arguments.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>List of each group’s matplotlib axis or <code>None</code> if <code>show=True</code>.</p></div>
+</dd>
 <dt id="kitchen.plotting.save_plot"><code class="name flex">
 <span>def <span class="ident">save_plot</span></span>(<span>fig, ax, save)</span>
 </code></dt>
@@ -766,6 +806,7 @@ ticklabels 90 degrees if they're longer than 10 characters.</dd>
 <li><code><a title="kitchen.plotting.pie_from_col" href="#kitchen.plotting.pie_from_col">pie_from_col</a></code></li>
 <li><code><a title="kitchen.plotting.plot_embedding" href="#kitchen.plotting.plot_embedding">plot_embedding</a></code></li>
 <li><code><a title="kitchen.plotting.rank_genes_cnmf" href="#kitchen.plotting.rank_genes_cnmf">rank_genes_cnmf</a></code></li>
+<li><code><a title="kitchen.plotting.rank_genes_groups" href="#kitchen.plotting.rank_genes_groups">rank_genes_groups</a></code></li>
 <li><code><a title="kitchen.plotting.save_plot" href="#kitchen.plotting.save_plot">save_plot</a></code></li>
 <li><code><a title="kitchen.plotting.significance_bar" href="#kitchen.plotting.significance_bar">significance_bar</a></code></li>
 <li><code><a title="kitchen.plotting.split_violin" href="#kitchen.plotting.split_violin">split_violin</a></code></li>
