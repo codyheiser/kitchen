@@ -445,6 +445,7 @@ def signature_dict_from_rank_genes_groups(
     uns_key="rank_genes_groups",
     groups=None,
     n_genes=5,
+    add_down=False,
     ambient=False,
 ):
     """
@@ -462,6 +463,8 @@ def signature_dict_from_rank_genes_groups(
         retrieve all groups.
     n_genes : int, optional (default=5)
         Number of top genes per group to show
+    add_down : bool, optional (default=False)
+        Include bottom `n_genes` by score as well as top genes
     ambient : bool, optional (default=False)
         Include ambient genes as a group in the plot/output dictionary. If `True`,
         `adata.var` must have a boolean column called 'ambient' labeling ambient genes.
@@ -481,7 +484,15 @@ def signature_dict_from_rank_genes_groups(
     # get markers manually
     markers = {}
     for clu in groups:
-        markers[clu] = [adata.uns[uns_key]["names"][x][clu] for x in range(n_genes)]
+        if add_down:
+            # top n_genes
+            pos = [adata.uns[uns_key]["names"][x][clu] for x in range(n_genes)]
+            # bottom n_genes
+            neg = [adata.uns[uns_key]["names"][-(x + 1)][clu] for x in range(n_genes)]
+            # append, flipping order of bottom n_genes so they're descending
+            markers[clu] = pos + neg[::-1]
+        else:
+            markers[clu] = [adata.uns[uns_key]["names"][x][clu] for x in range(n_genes)]
     # append ambient genes
     if ambient:
         if "ambient" in adata.var:
