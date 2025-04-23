@@ -786,7 +786,7 @@ def scDEG_decoupler_ORA(
         degs["group"] = uns_key
     # subset to significant DEGs
     degs = degs.loc[
-        (degs.pvals_adj <= max_FDRpval) & (abs(degs.logfoldchanges) >= min_logFC), :
+        (degs.pvals_adj <= max_FDRpval) & (degs.logfoldchanges >= min_logFC), :
     ]
 
     # perform over representation analysis
@@ -1006,7 +1006,7 @@ def scDEG_decoupler_GSEA(
         net=nets["msigdb"],
         max_FDRpval=0.05,
         out_dir="plots/",
-        save_prefix=f"HALLMARK_scATAC_{key}_",
+        save_prefix=f"HALLMARK_{key}_",
         save_output=False,
         get_gsea_df_kwargs={
             "source":"geneset",
