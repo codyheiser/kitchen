@@ -16,6 +16,7 @@ from math import ceil
 from anndata import AnnData
 from scanpy.get import obs_df
 from matplotlib import patheffects as pe
+from matplotlib.axes import Axes
 from matplotlib.colors import SymLogNorm
 from matplotlib.lines import Line2D
 from matplotlib.markers import TICKDOWN, TICKLEFT
@@ -3240,6 +3241,171 @@ def rank_genes_cnmf(
         return gs
 
 
+def rank_genes_groups(
+    adata,
+    groups=None,
+    n_genes=20,
+    gene_symbols=None,
+    key="rank_genes_groups",
+    fontsize=8,
+    ncols=4,
+    sharey=True,
+    save_to=None,
+    ax=None,
+    include_lowest=False,
+    panelsize=(4, 4),
+    **kwds,
+):
+    """
+    Plot ranking of genes with optional inclusion of lowest ranking genes.
+    Adapted from sc.pl.rank_genes_groups
+
+    Parameters
+    ----------
+    adata : AnnData
+        Annotated data matrix.
+    groups : str | Sequence[str] | None, optional
+        The groups for which to show the gene ranking.
+    n_genes : int, optional
+        Number of genes to show. Default is 20.
+    gene_symbols : str | None, optional
+        Key for field in `.var` that stores gene symbols if you do not want to
+        use `.var_names`.
+    key : str | None, optional
+        Key for accessing the rank genes groups in `adata.uns`. Default is "rank_genes_groups".
+    fontsize : int, optional
+        Fontsize for gene names. Default is 8.
+    ncols : int, optional
+        Number of panels shown per row. Default is 4.
+    sharey : bool, optional
+        Controls if the y-axis of each panel should be shared. By passing
+        `sharey=False`, each panel has its own y-axis range. Default is True.
+    save_to : bool | None, optional
+        Path to save the figure to. If None, the figure is not saved.
+    ax : Axes | None, optional
+        Matplotlib Axes object to draw the plots on. If None, a new figure is created.
+    include_lowest : bool, optional
+        Whether to include the lowest ranking genes. Default is False.
+    panelsize : tuple, optional
+        Tuple specifying the (width, height) of each panel. Default is (4, 4).
+    **kwds
+        Additional keyword arguments.
+
+    Returns
+    -------
+    List of each group’s matplotlib axis or `None` if `show=True`.
+    """
+    n_panels_per_row = kwds.get("n_panels_per_row", ncols)
+    if n_genes < 1:
+        msg = (
+            "Specifying a negative number for n_genes has not been implemented for "
+            f"this plot. Received {n_genes=!r}."
+        )
+        raise NotImplementedError(msg)
+
+    reference = str(adata.uns[key]["params"]["reference"])
+    group_names = adata.uns[key]["names"].dtype.names if groups is None else groups
+    n_panels_x = min(n_panels_per_row, len(group_names))
+    n_panels_y = np.ceil(len(group_names) / n_panels_x).astype(int)
+
+    from matplotlib import gridspec
+
+    if ax is None or (sps := ax.get_subplotspec()) is None:
+        fig = (
+            plt.figure(
+                figsize=(
+                    n_panels_x * panelsize[0],
+                    n_panels_y * panelsize[1],
+                )
+            )
+            if ax is None
+            else ax.get_figure()
+        )
+        gs = gridspec.GridSpec(n_panels_y, n_panels_x, fig, wspace=0.22, hspace=0.3)
+    else:
+        fig = ax.get_figure()
+        gs = sps.subgridspec(n_panels_y, n_panels_x)
+    if fig is None:
+        msg = "passed ax has no associated figure"
+        raise RuntimeError(msg)
+
+    axs: list[Axes] = []
+    ymin = np.inf
+    ymax = -np.inf
+    for count, group_name in enumerate(group_names):
+        if include_lowest:
+            gene_names = np.concatenate(
+                (
+                    adata.uns[key]["names"][group_name][:n_genes],
+                    adata.uns[key]["names"][group_name][-n_genes:],
+                )
+            )
+            scores = np.concatenate(
+                (
+                    adata.uns[key]["scores"][group_name][:n_genes],
+                    adata.uns[key]["scores"][group_name][-n_genes:],
+                )
+            )
+        else:
+            gene_names = adata.uns[key]["names"][group_name][:n_genes]
+            scores = adata.uns[key]["scores"][group_name][:n_genes]
+
+        if sharey:
+            ymin = min(ymin, np.min(scores))
+            ymax = max(ymax, np.max(scores))
+
+            axs.append(fig.add_subplot(gs[count], sharey=axs[0] if axs else None))
+        else:
+            ymin = np.min(scores)
+            ymax = np.max(scores)
+            ymax += 0.3 * (ymax - ymin)
+
+            axs.append(fig.add_subplot(gs[count]))
+            axs[-1].set_ylim(ymin, ymax)
+
+        axs[-1].set_xlim(-0.9, len(gene_names) - 0.1)
+
+        if gene_symbols is not None:
+            if adata.raw is not None and adata.uns[key]["params"]["use_raw"]:
+                gene_names = adata.raw.var[gene_symbols][gene_names]
+            else:
+                gene_names = adata.var[gene_symbols][gene_names]
+
+        for ig, gene_name in enumerate(gene_names):
+            axs[-1].text(
+                ig,
+                scores[ig],
+                gene_name,
+                rotation="vertical",
+                verticalalignment="bottom",
+                horizontalalignment="center",
+                fontsize=fontsize,
+            )
+
+        if include_lowest:
+            axs[-1].axhline(0, linestyle="--", color="grey")
+
+        axs[-1].set_title(f"{group_name} vs. {reference}")
+        axs[-1].set_xticks([])  # remove x-ticks
+        axs[-1].set_xticklabels([])  # remove x-tick labels
+
+        if count >= n_panels_x * (n_panels_y - 1):
+            axs[-1].set_xlabel("ranking")
+
+        if count % n_panels_x == 0:
+            axs[-1].set_ylabel("score")
+
+    if sharey is True and axs:
+        ymax += 0.3 * (ymax - ymin)
+        axs[0].set_ylim(ymin, ymax)
+
+    if save_to is None:
+        return fig
+    else:
+        fig.tight_layout()
+        fig.savefig(save_to)
+
+
 def decoupler_dotplot(
     df,
     x,
@@ -3247,7 +3413,7 @@ def decoupler_dotplot(
     c,
     s,
     largest_dot=50,
-    cmap="coolwarm",
+    cmap="Reds",
     title=None,
     figsize=(3, 5),
     ax=None,
